@@ -1,6 +1,8 @@
 package com.example.simplebrowser;
 
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.net.http.SslCertificate;
 import android.view.View;
 import android.widget.ImageButton;
@@ -10,6 +12,12 @@ import java.util.Date;
 
 public class SecurityManager {
 
+    private static final int SECURE_GREEN =
+            Color.rgb(0, 170, 70);
+
+    private static final int WARNING_RED =
+            Color.rgb(210, 45, 45);
+
     private final MainActivity activity;
     private final ImageButton securityButton;
 
@@ -18,18 +26,24 @@ public class SecurityManager {
             ImageButton securityButton) {
 
         this.activity = activity;
-        this.securityButton = securityButton;
+        this.securityButton =
+                securityButton;
 
         securityButton.setOnClickListener(
                 v -> {
 
-            BrowserTab tab =
-                    activity.getActiveTab();
+                    BrowserTab tab =
+                            activity.getActiveTab();
 
-            if (tab != null) {
-                showInfo(tab);
-            }
-        });
+                    if (tab != null) {
+                        showInfo(tab);
+                    }
+                });
+    }
+
+    public void applyAppearance() {
+        updateIcon(
+                activity.getActiveTab());
     }
 
     public void updateIcon(
@@ -37,15 +51,18 @@ public class SecurityManager {
 
         if (tab == null ||
                 tab != activity.getActiveTab()) {
-
             return;
         }
 
         if (tab.settingsPage) {
 
-            securityButton.setImageResource(
-                    android.R.drawable.ic_menu_manage);
-
+            /*
+             * Keep the security control recognizable
+             * even on the internal settings page.
+             */
+            setLock(
+                    SECURE_GREEN,
+                    "Browser settings");
             return;
         }
 
@@ -62,19 +79,61 @@ public class SecurityManager {
 
         if (tab.sslError) {
 
-            securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert);
+            securityButton
+                    .setImageResource(
+                            android.R.drawable
+                                    .ic_dialog_alert);
+
+            securityButton
+                    .setColorFilter(
+                            WARNING_RED,
+                            PorterDuff.Mode.SRC_IN);
+
+            securityButton
+                    .setContentDescription(
+                            "Connection security warning");
 
         } else if (https) {
 
-            securityButton.setImageResource(
-                    android.R.drawable.ic_lock_lock);
+            setLock(
+                    SECURE_GREEN,
+                    "Secure connection");
 
         } else {
 
-            securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert);
+            securityButton
+                    .setImageResource(
+                            android.R.drawable
+                                    .ic_dialog_alert);
+
+            securityButton
+                    .setColorFilter(
+                            WARNING_RED,
+                            PorterDuff.Mode.SRC_IN);
+
+            securityButton
+                    .setContentDescription(
+                            "Not secure");
         }
+    }
+
+    private void setLock(
+            int color,
+            String description) {
+
+        securityButton
+                .setImageResource(
+                        android.R.drawable
+                                .ic_lock_lock);
+
+        securityButton
+                .setColorFilter(
+                        color,
+                        PorterDuff.Mode.SRC_IN);
+
+        securityButton
+                .setContentDescription(
+                        description);
     }
 
     private void showInfo(
@@ -226,18 +285,19 @@ public class SecurityManager {
 
         new AlertDialog.Builder(activity)
                 .setTitle("Certificate")
-                .setMessage(message.toString())
+                .setMessage(
+                        message.toString())
                 .setPositiveButton(
                         "OK",
                         null)
                 .show();
     }
 
-    private String safe(String value) {
+    private String safe(
+            String value) {
 
         if (value == null ||
                 value.trim().isEmpty()) {
-
             return "Unknown";
         }
 
