@@ -3,6 +3,7 @@ package com.example.simplebrowser;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -56,10 +57,6 @@ public class MainActivity extends Activity {
         ImageButton security =
                 findViewById(R.id.security);
 
-        browserSettings =
-                new BrowserSettings(this);
-
-        tabManager =
                 new TabManager(
                         this,
                         container,
@@ -75,12 +72,52 @@ public class MainActivity extends Activity {
                         this,
                         security);
 
+        setupToolbarIcons();
+
         setupButtons();
 
         applyBrowserAppearance();
 
         tabManager.addTab(
                 browserSettings.getHomePage());
+    }
+
+    private void setupToolbarIcons() {
+
+        setToolbarIcon(R.id.back,
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.BACK,
+                        Color.DKGRAY));
+
+        setToolbarIcon(R.id.forward,
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.FORWARD,
+                        Color.DKGRAY));
+
+        setToolbarIcon(R.id.home,
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.HOME,
+                        Color.DKGRAY));
+
+        setToolbarIcon(R.id.reload,
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.RELOAD,
+                        Color.DKGRAY));
+
+        setToolbarIcon(R.id.settings,
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.SETTINGS,
+                        Color.DKGRAY));
+    }
+
+    private void setToolbarIcon(
+            int id,
+            Drawable drawable) {
+
+        ImageButton button = findViewById(id);
+        button.setImageDrawable(drawable);
+        button.setColorFilter(null);
+        button.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
     }
 
     private void setupButtons() {
