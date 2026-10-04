@@ -644,6 +644,30 @@ public class SettingsPage {
                         "storage",
                         settings.isStorageEnabled()) +
 
+                settingRow(
+                        "Images",
+                        "Allow websites to load network images",
+                        "images",
+                        settings.areImagesEnabled()) +
+
+                settingRow(
+                        "Zoom",
+                        "Allow page zoom and pinch-to-zoom",
+                        "zoom",
+                        settings.isZoomEnabled()) +
+
+                settingRow(
+                        "Location access",
+                        "Allow websites to request device location",
+                        "geolocation",
+                        settings.isGeolocationEnabled()) +
+
+                settingRow(
+                        "Media autoplay",
+                        "Allow audio and video to start without a user gesture",
+                        "media_autoplay",
+                        settings.isMediaAutoplayEnabled()) +
+
                 "</div>" +
                 "</div>" +
 
