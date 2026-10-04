@@ -285,6 +285,20 @@ public class TabManager {
 
                     return false;
                 });
+
+        tab.webView.setDownloadListener(
+                (url,
+                 userAgent,
+                 contentDisposition,
+                 mimeType,
+                 contentLength) ->
+                        activity.startDownload(
+                                tab,
+                                url,
+                                userAgent,
+                                contentDisposition,
+                                mimeType,
+                                contentLength));
     }
 
     private void createTabView(
@@ -1226,6 +1240,32 @@ public class TabManager {
                 incognito
                         ? incognitoTabs
                         : normalTabs;
+
+        /*
+         * Replace the visible tab strip with only this session's
+         * tabs, and hide all WebViews belonging to the other session.
+         */
+        tabsLayout.setLayoutTransition(null);
+        tabsLayout.removeAllViews();
+
+        for (BrowserTab hidden :
+                normalTabs) {
+            hidden.webView.setVisibility(View.GONE);
+        }
+
+        for (BrowserTab hidden :
+                incognitoTabs) {
+            hidden.webView.setVisibility(View.GONE);
+        }
+
+        for (BrowserTab current :
+                tabs) {
+            tabsLayout.addView(
+                    current.tabView);
+        }
+
+        tabsLayout.setLayoutTransition(
+                tabTransition);
 
         activeTab =
                 incognito
