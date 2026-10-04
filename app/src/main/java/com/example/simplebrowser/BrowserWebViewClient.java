@@ -25,25 +25,75 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
-        if (url != null &&
-                "browser://settings"
-                        .equalsIgnoreCase(url)) {
+        if (url != null) {
 
-            activity.showSettings(tab);
+            String settingsSection =
+                    getSettingsSection(url);
 
-            return true;
+            if (settingsSection != null) {
+
+                activity.showSettingsSection(
+                        tab,
+                        settingsSection);
+
+                return true;
+            }
         }
 
         /*
-         * Never allow the Android bridge to
-         * survive into a normal website.
+         * Never allow the Android bridge to survive
+         * when the built-in settings page becomes
+         * a normal page.
          */
         if (tab.settingsPage) {
-
             activity.removeSettingsBridge(tab);
         }
 
         return false;
+    }
+
+    private String getSettingsSection(
+            String url) {
+
+        if (url == null) {
+            return null;
+        }
+
+        String lower =
+                url.trim()
+                        .toLowerCase();
+
+        String root =
+                "browser://settings";
+
+        if (!lower.startsWith(root)) {
+            return null;
+        }
+
+        if (lower.equals(root) ||
+                lower.equals(
+                        root + "/general")) {
+            return "general";
+        }
+
+        if (lower.equals(
+                root + "/websites")) {
+            return "websites";
+        }
+
+        if (lower.equals(
+                root + "/appearance")) {
+            return "appearance";
+        }
+
+        if (lower.equals(
+                root + "/privacy") ||
+                lower.equals(
+                        root + "/privacy-security")) {
+            return "privacy-security";
+        }
+
+        return null;
     }
 
     @Override
@@ -52,11 +102,6 @@ public class BrowserWebViewClient
             String url,
             Bitmap favicon) {
 
-        /*
-         * loadDataWithBaseURL() uses the internal
-         * browser.local base URL. Keep settings
-         * marked as an internal page.
-         */
         if (tab.settingsPage &&
                 (url == null ||
                  !url.startsWith(
@@ -72,7 +117,9 @@ public class BrowserWebViewClient
             tab.sslError = false;
         }
 
-        activity.pageStarted(tab, url);
+        activity.pageStarted(
+                tab,
+                url);
     }
 
     @Override
@@ -86,7 +133,9 @@ public class BrowserWebViewClient
             tab.loading = false;
         }
 
-        activity.pageFinished(tab, url);
+        activity.pageFinished(
+                tab,
+                url);
     }
 
     @Override
