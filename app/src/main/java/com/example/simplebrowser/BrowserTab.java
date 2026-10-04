@@ -22,7 +22,16 @@ public class BrowserTab {
     public boolean errorPage = false;
     public boolean defaultPage = false;
     public boolean historyPage = false;
+    public boolean downloadsPage = false;
     public boolean isIncognito = false;
+
+    /*
+     * Restored tabs keep their URL here and do not load it until
+     * the tab is selected. This prevents reopening many websites
+     * at the same time.
+     */
+    public String pendingUrl = "";
+    public boolean hasLoaded = false;
 
     public String settingsSection = "general";
 
