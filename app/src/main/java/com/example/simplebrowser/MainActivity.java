@@ -1001,6 +1001,28 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void showErrorPage(
+            BrowserTab tab,
+            String url,
+            String description) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+
+        tab.errorPage = true;
+        errorPage.show(
+                tab,
+                url,
+                description);
+
+        if (tab == getActiveTab()) {
+            applyActiveTabAppearance();
+        }
+    }
+
     public void showHistory(
             BrowserTab tab,
             String query) {
@@ -1599,6 +1621,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+
+        saveTabs();
 
         if (browserHistory != null) {
             browserHistory.close();
