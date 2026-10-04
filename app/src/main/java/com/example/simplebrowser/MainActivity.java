@@ -1,18 +1,22 @@
 package com.example.simplebrowser;
 
 import android.app.Activity;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.PorterDuff;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.GeolocationPermissions;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -39,6 +43,14 @@ public class MainActivity extends Activity {
     private TabManager tabManager;
     private SettingsPage settingsPage;
     private SecurityManager securityManager;
+
+    private GeolocationPermissions.Callback
+            pendingGeolocationCallback;
+
+    private String pendingGeolocationOrigin;
+
+    private static final int LOCATION_PERMISSION_REQUEST =
+            1501;
 
     @Override
     protected void onCreate(
@@ -856,6 +868,89 @@ public class MainActivity extends Activity {
         showSettings(
                 tab,
                 section);
+    }
+
+    public void handleGeolocationRequest(
+            String origin,
+            GeolocationPermissions.Callback callback) {
+
+        if (!browserSettings.isGeolocationEnabled() ||
+                callback == null) {
+
+            if (callback != null) {
+                callback.invoke(
+                        origin,
+                        false,
+                        false);
+            }
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT < 23 ||
+                checkSelfPermission(
+                        Manifest.permission
+                                .ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+
+            callback.invoke(
+                    origin,
+                    true,
+                    false);
+
+            return;
+        }
+
+        if (pendingGeolocationCallback != null) {
+
+            pendingGeolocationCallback.invoke(
+                    pendingGeolocationOrigin,
+                    false,
+                    false);
+        }
+
+        pendingGeolocationOrigin = origin;
+        pendingGeolocationCallback = callback;
+
+        requestPermissions(
+                new String[] {
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                },
+                LOCATION_PERMISSION_REQUEST);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults) {
+
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults);
+
+        if (requestCode !=
+                LOCATION_PERMISSION_REQUEST) {
+            return;
+        }
+
+        if (pendingGeolocationCallback == null) {
+            return;
+        }
+
+        boolean granted =
+                grantResults.length > 0 &&
+                grantResults[0] ==
+                        PackageManager.PERMISSION_GRANTED;
+
+        pendingGeolocationCallback.invoke(
+                pendingGeolocationOrigin,
+                granted,
+                false);
+
+        pendingGeolocationCallback = null;
+        pendingGeolocationOrigin = null;
     }
 
     public void removeSettingsBridge(
