@@ -22,7 +22,7 @@ public class BrowserSettings {
         String value =
                 preferences.getString(
                         "home",
-                        "https://www.google.com/");
+                        "browser://default");
 
         if ("custom".equals(value)) {
 
@@ -44,7 +44,7 @@ public class BrowserSettings {
     public String getHomeSelection() {
         return preferences.getString(
                 "home",
-                "https://www.google.com/");
+                "browser://default");
     }
 
     public void setHomePage(String value) {
