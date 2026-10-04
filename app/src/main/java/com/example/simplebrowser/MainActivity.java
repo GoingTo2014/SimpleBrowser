@@ -1051,6 +1051,13 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void clearBrowserHistory() {
+
+        if (browserHistory != null) {
+            browserHistory.clear();
+        }
+    }
+
     public void recordVisit(
             BrowserTab tab,
             String url) {
