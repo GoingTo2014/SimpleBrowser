@@ -1,13 +1,12 @@
 package com.example.simplebrowser;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.content.Context;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -33,9 +32,13 @@ public class MainActivity extends Activity {
     protected void onCreate(
             Bundle savedInstanceState) {
 
+        browserSettings =
+                new BrowserSettings(this);
+
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
+        setContentView(
+                R.layout.main);
 
         urlBox =
                 findViewById(R.id.url);
@@ -43,11 +46,11 @@ public class MainActivity extends Activity {
         progressBar =
                 findViewById(R.id.progress);
 
-        FrameLayout webViewContainer =
+        FrameLayout container =
                 findViewById(
                         R.id.webview_container);
 
-        LinearLayout tabsLayout =
+        LinearLayout tabs =
                 findViewById(R.id.tabs);
 
         ImageButton security =
@@ -59,8 +62,8 @@ public class MainActivity extends Activity {
         tabManager =
                 new TabManager(
                         this,
-                        webViewContainer,
-                        tabsLayout);
+                        container,
+                        tabs);
 
         settingsPage =
                 new SettingsPage(
@@ -82,20 +85,23 @@ public class MainActivity extends Activity {
 
     private void setupButtons() {
 
-        Button back =
+        ImageButton back =
                 findViewById(R.id.back);
 
-        Button forward =
+        ImageButton forward =
                 findViewById(R.id.forward);
 
-        Button home =
+        ImageButton home =
                 findViewById(R.id.home);
 
-        Button reload =
+        ImageButton reload =
                 findViewById(R.id.reload);
 
-        Button newTab =
+        ImageButton newTab =
                 findViewById(R.id.new_tab);
+
+        ImageButton settings =
+                findViewById(R.id.settings);
 
         back.setOnClickListener(v -> {
 
@@ -149,6 +155,7 @@ public class MainActivity extends Activity {
                     getActiveTab();
 
             if (tab != null) {
+
                 tab.webView.reload();
             }
         });
@@ -162,10 +169,22 @@ public class MainActivity extends Activity {
                             .getHomePage());
         });
 
+        settings.setOnClickListener(v -> {
+
+            hideKeyboard();
+
+            BrowserTab tab =
+                    getActiveTab();
+
+            if (tab != null) {
+                showSettings(tab);
+            }
+        });
+
         urlBox.setOnEditorActionListener(
                 (v, actionId, event) -> {
 
-            boolean enterPressed =
+            boolean enter =
                     event != null &&
                     event.getKeyCode() ==
                             android.view.KeyEvent
@@ -178,7 +197,7 @@ public class MainActivity extends Activity {
                     EditorInfo.IME_ACTION_GO ||
                 actionId ==
                     EditorInfo.IME_ACTION_DONE ||
-                enterPressed) {
+                enter) {
 
                 String input =
                         urlBox.getText()
@@ -186,6 +205,7 @@ public class MainActivity extends Activity {
                                 .trim();
 
                 if (!input.isEmpty()) {
+
                     openUrlOrSearch(input);
                 }
 
@@ -212,7 +232,6 @@ public class MainActivity extends Activity {
                 input)) {
 
             showSettings(tab);
-
             return;
         }
 
@@ -225,7 +244,9 @@ public class MainActivity extends Activity {
                         "https://" + input;
             }
 
-            loadTabUrl(tab, input);
+            loadTabUrl(
+                    tab,
+                    input);
 
         } else {
 
@@ -236,18 +257,17 @@ public class MainActivity extends Activity {
                                 input,
                                 "UTF-8");
 
-                String searchUrl =
-                        getSearchUrl();
-
                 loadTabUrl(
                         tab,
-                        searchUrl + encoded);
+                        getSearchUrl()
+                        + encoded);
 
             } catch (Exception e) {
 
                 loadTabUrl(
                         tab,
-                        getSearchUrl() + input);
+                        getSearchUrl()
+                        + input);
             }
         }
     }
@@ -262,7 +282,6 @@ public class MainActivity extends Activity {
 
             return
                     "https://www.bing.com/search?q=";
-
         }
 
         if ("duckduckgo".equals(engine)) {
@@ -307,7 +326,6 @@ public class MainActivity extends Activity {
                 url)) {
 
             showSettings(tab);
-
             return;
         }
 
@@ -343,7 +361,15 @@ public class MainActivity extends Activity {
 
         if (tab == getActiveTab()) {
 
-            setUrlText(url);
+            if (tab.settingsPage) {
+
+                setUrlText(
+                        SETTINGS_URL);
+
+            } else {
+
+                setUrlText(url);
+            }
 
             progressBar.setProgress(0);
 
@@ -360,7 +386,15 @@ public class MainActivity extends Activity {
 
         if (tab == getActiveTab()) {
 
-            setUrlText(url);
+            if (tab.settingsPage) {
+
+                setUrlText(
+                        SETTINGS_URL);
+
+            } else {
+
+                setUrlText(url);
+            }
 
             progressBar.setProgress(100);
 
@@ -374,7 +408,7 @@ public class MainActivity extends Activity {
                             View.GONE);
                 }
 
-            }, 150);
+            }, 100);
         }
 
         updateSecurity(tab);
@@ -388,7 +422,8 @@ public class MainActivity extends Activity {
             return;
         }
 
-        progressBar.setProgress(progress);
+        progressBar.setProgress(
+                progress);
 
         if (progress < 100) {
 
@@ -432,6 +467,11 @@ public class MainActivity extends Activity {
         return tabManager.getActiveTab();
     }
 
+    public TabManager getTabManager() {
+
+        return tabManager;
+    }
+
     public BrowserSettings
             getBrowserSettings() {
 
@@ -445,23 +485,38 @@ public class MainActivity extends Activity {
 
     public void applyBrowserAppearance() {
 
-        View root =
-                findViewById(R.id.root);
+        boolean dark =
+                browserSettings.isDarkMode();
 
-        if (root == null) {
-            return;
-        }
+        if (dark) {
 
-        if (browserSettings.isDarkMode()) {
+            urlBox.setTextColor(
+                    Color.WHITE);
 
-            root.setBackgroundColor(
-                    Color.BLACK);
+            urlBox.setHintTextColor(
+                    Color.LTGRAY);
 
         } else {
 
-            root.setBackgroundColor(
-                    Color.WHITE);
+            urlBox.setTextColor(
+                    Color.BLACK);
+
+            urlBox.setHintTextColor(
+                    Color.GRAY);
         }
+
+        tabManager.updateTitles();
+    }
+
+    public void changeDarkMode() {
+
+        /*
+         * Recreating the Activity causes Android to
+         * apply the appropriate light/dark resources.
+         *
+         * No invert filter is used.
+         */
+        recreate();
     }
 
     public void setUrlText(
@@ -499,18 +554,6 @@ public class MainActivity extends Activity {
         urlBox.clearFocus();
     }
 
-    private int findTabIndex(
-            BrowserTab tab) {
-
-        return tabManager
-                .getTabs()
-                .indexOf(tab);
-    }
-
-    public TabManager getTabManager() {
-        return tabManager;
-    }
-
     @Override
     public void onBackPressed() {
 
@@ -529,4 +572,4 @@ public class MainActivity extends Activity {
             super.onBackPressed();
         }
     }
-                    }
+}
