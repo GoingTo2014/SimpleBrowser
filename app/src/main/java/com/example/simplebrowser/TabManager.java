@@ -162,8 +162,27 @@ public class TabManager {
     public BrowserTab addTab(
             String url) {
 
+        return addTab(
+                url,
+                false);
+    }
+
+    public BrowserTab addIncognitoTab(
+            String url) {
+
+        return addTab(
+                url,
+                true);
+    }
+
+    private BrowserTab addTab(
+            String url,
+            boolean incognito) {
+
         BrowserTab tab =
                 new BrowserTab();
+
+        tab.isIncognito = incognito;
 
         tab.webView =
                 new WebView(activity);
