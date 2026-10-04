@@ -495,7 +495,7 @@ public class SettingsPage {
                 "<div class='row'>" +
                 "<div class='title'>Home page</div>" +
 
-                "<select onchange=\"Android.setHome(this.value)\">" +
+                "<select onchange="updateHomeVisibility(this.value);Android.setHome(this.value)">" +
 
                 homeOption(
                         "https://www.google.com/",
@@ -513,13 +513,34 @@ public class SettingsPage {
                         "about:blank",
                         "Blank page") +
 
+                "<option value='custom'" +
+                ("custom".equals(
+                        settings.getHomeSelection())
+                        ? " selected"
+                        : "") +
+                ">Custom</option>" +
+
                 "</select>" +
+                "</div>" +
+
+                "<div id='custom-home' class='row " +
+                ("custom".equals(
+                        settings.getHomeSelection())
+                        ? ""
+                        : "custom-hidden") +
+                "'>" +
+                "<div class='title'>Custom home page</div>" +
+                "<div class='description'>Use a complete URL such as https://example.com/</div>" +
+                "<input type='text' value='" +
+                htmlAttribute(
+                        settings.getCustomHomePage()) +
+                "' onchange="Android.setCustomHome(this.value)">" +
                 "</div>" +
 
                 "<div class='row'>" +
                 "<div class='title'>Search engine</div>" +
 
-                "<select onchange=\"Android.setSearch(this.value)\">" +
+                "<select onchange="updateSearchVisibility(this.value);Android.setSearch(this.value)">" +
 
                 searchOption(
                         "google",
@@ -537,24 +558,28 @@ public class SettingsPage {
                         "yahoo",
                         "Yahoo") +
 
+                "<option value='custom'" +
+                ("custom".equals(
+                        settings.getSearchEngine())
+                        ? " selected"
+                        : "") +
+                ">Custom</option>" +
+
                 "</select>" +
                 "</div>" +
 
-                "<div class='row switchrow'>" +
-
-                "<div>" +
-                "<div class='title'>Desktop mode</div>" +
-                "<div class='description'>" +
-                "Ask websites to use their desktop layout and desktop user-agent." +
-                "</div>" +
-                "</div>" +
-
-                "<input type='checkbox'" +
-                (settings.isDesktopMode()
-                        ? " checked"
-                        : "") +
-                " onchange=\"Android.setSetting('desktop_mode',this.checked)\">" +
-
+                "<div id='custom-search' class='row " +
+                ("custom".equals(
+                        settings.getSearchEngine())
+                        ? ""
+                        : "custom-hidden") +
+                "'>" +
+                "<div class='title'>Custom search URL</div>" +
+                "<div class='description'>Use %s where the search text should be inserted.</div>" +
+                "<input type='text' value='" +
+                htmlAttribute(
+                        settings.getCustomSearchUrl()) +
+                "' onchange="Android.setCustomSearch(this.value)">" +
                 "</div>" +
 
                 "</div>" +
