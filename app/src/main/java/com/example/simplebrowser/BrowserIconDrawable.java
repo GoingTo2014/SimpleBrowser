@@ -395,38 +395,61 @@ public final class BrowserIconDrawable extends Drawable {
     private void drawLock(
             Canvas canvas) {
 
-        RectF body =
-                new RectF(
-                        7f, 13f,
-                        25f, 27f);
-
-        canvas.drawRoundRect(
-                body,
-                2f,
-                2f,
-                paint);
-
         RectF shackle =
                 new RectF(
-                        11f, 6f,
-                        21f, 18f);
+                        10f, 5f,
+                        22f, 19f);
 
+        /*
+         * Negative sweep draws the upper half of the
+         * shackle, making the symbol unmistakably a padlock.
+         */
         canvas.drawArc(
                 shackle,
                 180f,
-                180f,
+                -180f,
                 false,
                 paint);
 
         canvas.drawLine(
-                11f, 12f,
-                11f, 16f,
+                10f, 12f,
+                10f, 16f,
                 paint);
 
         canvas.drawLine(
-                21f, 12f,
-                21f, 16f,
+                22f, 12f,
+                22f, 16f,
                 paint);
+
+        RectF body =
+                new RectF(
+                        6f, 13f,
+                        26f, 28f);
+
+        canvas.drawRoundRect(
+                body,
+                2.5f,
+                2.5f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.FILL);
+
+        canvas.drawCircle(
+                16f, 19f,
+                2f,
+                paint);
+
+        canvas.drawRoundRect(
+                new RectF(
+                        14.7f, 19f,
+                        17.3f, 24f),
+                1.2f,
+                1.2f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.STROKE);
     }
 
     public void setIconColor(
