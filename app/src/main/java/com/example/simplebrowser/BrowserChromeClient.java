@@ -62,7 +62,7 @@ public class BrowserChromeClient
         }
 
         BrowserTab newTab =
-                activity.addTab(
+                activity.getTabManager().addTab(
                         activity
                                 .getBrowserSettings()
                                 .getHomePage());
