@@ -613,7 +613,7 @@ public class TabManager {
                 ColorUtils.mix(
                         accent,
                         Color.WHITE,
-                        0.72f);
+                        0.55f);
 
         int background =
                 tab == activeTab
@@ -646,10 +646,9 @@ public class TabManager {
                                 63, 81, 181));
 
         tabsLayout.setBackgroundColor(
-                ColorUtils.mix(
+                ColorUtils.darken(
                         accent,
-                        Color.WHITE,
-                        0.52f));
+                        0.14f));
 
         for (BrowserTab tab :
                 tabs) {
