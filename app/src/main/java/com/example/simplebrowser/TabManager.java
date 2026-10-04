@@ -223,6 +223,14 @@ public class TabManager {
                             tab.dragStartY =
                                     event.getRawY();
 
+                            tab.dragStartScrollX =
+                                    tabScroll == null
+                                            ? 0f
+                                            : tabScroll.getScrollX();
+
+                            tab.dragOriginalIndex =
+                                    tabs.indexOf(tab);
+
                             tab.dragging = false;
 
                             startDragTimer(tab);
@@ -259,7 +267,7 @@ public class TabManager {
                                     .requestDisallowInterceptTouchEvent(
                                             true);
 
-                            reorderWhileDragging(
+                            updateDragTranslation(
                                     tab,
                                     event.getRawX());
 
@@ -357,20 +365,13 @@ public class TabManager {
                             0.82f);
 
                     tab.tabView.setScaleX(
-                            1.05f);
+                            1.03f);
 
                     tab.tabView.setScaleY(
-                            1.05f);
+                            1.03f);
 
-                    tab.tabView.bringToFront();
-
-                    /*
-                     * Reordering is based on fixed tab width
-                     * rather than stale child coordinates.
-                     */
-                    reorderWhileDragging(
-                            tab,
-                            tab.dragStartX);
+                    tab.tabView.setTranslationX(
+                            0f);
 
                 };
 
@@ -391,7 +392,7 @@ public class TabManager {
         }
     }
 
-    private void reorderWhileDragging(
+    private void updateDragTranslation(
             BrowserTab tab,
             float rawX) {
 
@@ -399,12 +400,15 @@ public class TabManager {
             return;
         }
 
-        int currentIndex =
-                tabs.indexOf(tab);
+        float scrollDelta =
+                tabScroll == null
+                        ? 0f
+                        : tabScroll.getScrollX() -
+                                tab.dragStartScrollX;
 
-        if (currentIndex < 0) {
-            return;
-        }
+        float translation =
+                (rawX - tab.dragStartX) +
+                        scrollDelta;
 
         int tabWidth =
                 tab.tabView.getWidth();
@@ -413,69 +417,148 @@ public class TabManager {
             tabWidth = dp(181);
         }
 
-        float scrollLeft = 0f;
+        int originalIndex =
+                tab.dragOriginalIndex;
 
-        if (tabScroll != null) {
-
-            int[] location =
-                    new int[2];
-
-            tabScroll.getLocationOnScreen(
-                    location);
-
-            scrollLeft =
-                    location[0] -
-                    tabScroll.getScrollX();
+        if (originalIndex < 0) {
+            originalIndex =
+                    tabs.indexOf(tab);
         }
 
-        float contentX =
-                rawX -
-                scrollLeft;
+        int tabCount =
+                tabs.size();
 
-        /*
-         * Calculate the insertion slot after removing the
-         * dragged tab. Since every tab has the same fixed
-         * width, this is stable even while the layout is
-         * waiting for its next measurement pass.
-         */
-        int targetIndex =
+        float originalLeft =
+                originalIndex * tabWidth;
+
+        float minimum =
+                -originalLeft;
+
+        float maximum =
+                (tabCount - 1) * tabWidth -
+                        originalLeft;
+
+        if (translation < minimum) {
+            translation = minimum;
+        }
+
+        if (translation > maximum) {
+            translation = maximum;
+        }
+
+        tab.tabView.setTranslationX(
+                translation);
+    }
+
+    private int getDragTargetIndex(
+            BrowserTab tab) {
+
+        int tabWidth =
+                tab.tabView.getWidth();
+
+        if (tabWidth <= 0) {
+            tabWidth = dp(181);
+        }
+
+        int originalIndex =
+                tab.dragOriginalIndex;
+
+        if (originalIndex < 0) {
+            originalIndex =
+                    tabs.indexOf(tab);
+        }
+
+        float visualLeft =
+                (originalIndex * tabWidth) +
+                        tab.tabView.getTranslationX();
+
+        int target =
                 Math.round(
-                        (contentX -
-                                tabWidth / 2f) /
-                                tabWidth);
+                        visualLeft / tabWidth);
 
-        if (targetIndex < 0) {
-            targetIndex = 0;
+        if (target < 0) {
+            target = 0;
         }
 
-        int remainingCount =
-                tabs.size() - 1;
-
-        if (targetIndex > remainingCount) {
-            targetIndex = remainingCount;
+        if (target >= tabs.size()) {
+            target = tabs.size() - 1;
         }
 
-        /*
-         * When the target is the dragged tab's current slot,
-         * nothing needs to change.
-         */
-        if (targetIndex == currentIndex) {
+        return target;
+    }
+
+    private void commitDrag(
+            BrowserTab tab) {
+
+        if (!tab.dragging ||
+                !tabs.contains(tab)) {
             return;
         }
 
-        tabs.remove(currentIndex);
-        tabsLayout.removeView(
-                tab.tabView);
+        int targetIndex =
+                getDragTargetIndex(tab);
 
-        tabs.add(
-                targetIndex,
-                tab);
+        int currentIndex =
+                tabs.indexOf(tab);
 
-        tabsLayout.addView(
-                tab.tabView,
-                targetIndex);
+        if (currentIndex != targetIndex) {
 
-        tab.tabView.bringToFront();
+            int tabWidth =
+                    tab.tabView.getWidth();
+
+            if (tabWidth <= 0) {
+                tabWidth = dp(181);
+            }
+
+            float visualLeft =
+                    (currentIndex * tabWidth) +
+                            tab.tabView
+                                    .getTranslationX();
+
+            tabsLayout.setLayoutTransition(
+                    tabTransition);
+
+            tabs.remove(currentIndex);
+
+            tabsLayout.removeView(
+                    tab.tabView);
+
+            tabs.add(
+                    targetIndex,
+                    tab);
+
+            tabsLayout.addView(
+                    tab.tabView,
+                    targetIndex);
+
+            float targetLeft =
+                    targetIndex * tabWidth;
+
+            tab.tabView.setTranslationX(
+                    visualLeft -
+                            targetLeft);
+        }
+
+        tab.dragging = false;
+        cancelDragTimer(tab);
+
+        tab.tabView.animate()
+                .translationX(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(180)
+                .start();
+
+        tabsLayout.post(
+                () -> {
+
+                    tabsLayout.setLayoutTransition(
+                            tabTransition);
+
+                    updateTabAppearanceColors();
+                });
+
+        selectTab(tab);
     }
 
     private void autoScrollTabs(
@@ -521,9 +604,7 @@ public class TabManager {
     private void finishDrag(
             BrowserTab tab) {
 
-        tab.dragging = false;
-
-        cancelDragTimer(tab);
+        commitDrag(tab);
 
         tab.tabView
                 .setAlpha(1f);
@@ -533,14 +614,6 @@ public class TabManager {
 
         tab.tabView
                 .setScaleY(1f);
-
-        tab.tabView
-                .bringToFront();
-
-        tabsLayout.setLayoutTransition(
-                tabTransition);
-
-        selectTab(tab);
     }
 
     public void selectTab(
