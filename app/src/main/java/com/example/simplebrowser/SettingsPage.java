@@ -328,7 +328,6 @@ public class SettingsPage {
                 "}" +
 
                 ".subtitle{" +
-                "color:#666;" +
                 "color:" +
                 contentSecondaryTextHex +
                 ";" +
@@ -339,7 +338,7 @@ public class SettingsPage {
                 "font-size:18px;" +
                 "margin:0 0 9px;" +
                 "color:" +
-                accent +
+                headingColorHex +
                 ";" +
                 "}" +
 
