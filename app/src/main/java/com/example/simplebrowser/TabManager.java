@@ -886,19 +886,16 @@ public class TabManager {
 
     public void saveTabs() {
 
+        JSONObject state =
+                new JSONObject();
+
         JSONArray array =
                 new JSONArray();
 
-        int activeIndex = -1;
+        int activePersistentIndex = -1;
+        int persistentIndex = 0;
 
-        for (int i = 0; i < tabs.size(); i++) {
-
-            BrowserTab tab =
-                    tabs.get(i);
-
-            if (tab == activeTab) {
-                activeIndex = i;
-            }
+        for (BrowserTab tab : tabs) {
 
             if (tab.isIncognito) {
                 continue;
@@ -911,6 +908,14 @@ public class TabManager {
                 url =
                         activity.getSettingsUrl(
                                 tab.settingsSection);
+
+            } else if (tab.defaultPage) {
+
+                url = "browser://default";
+
+            } else if (tab.historyPage) {
+
+                url = "browser://history";
 
             } else if (tab.errorPage) {
 
@@ -946,47 +951,33 @@ public class TabManager {
 
                 array.put(object);
 
+                if (tab == activeTab) {
+                    activePersistentIndex =
+                            persistentIndex;
+                }
+
+                persistentIndex++;
+
             } catch (Exception ignored) {
             }
         }
 
-        /*
-         * Active index is translated from the original list
-         * into the list of persistent tabs.
-         */
-        int persistentIndex = -1;
+        try {
 
-        if (activeIndex >= 0) {
+            state.put(
+                    "tabs",
+                    array);
 
-            persistentIndex = 0;
+            state.put(
+                    "active",
+                    activePersistentIndex);
 
-            for (int i = 0;
-                    i < activeIndex;
-                    i++) {
+            activity.getBrowserSettings()
+                    .setSavedTabsJson(
+                            state.toString());
 
-                if (!tabs.get(i).isIncognito) {
-                    persistentIndex++;
-                }
-            }
-
-            if (tabs.get(activeIndex).isIncognito) {
-                persistentIndex = -1;
-            }
+        } catch (Exception ignored) {
         }
-
-        activity.getBrowserSettings()
-                .setSavedTabsJson(
-                        array.toString());
-
-        activity.getBrowserSettings()
-                .setBoolean(
-                        "saved_active_tab",
-                        persistentIndex >= 0);
-
-        activity.getBrowserSettings()
-                .setBoolean(
-                        "saved_tabs_has_state",
-                        array.length() > 0);
     }
 
     public boolean restoreTabs() {
@@ -1002,10 +993,15 @@ public class TabManager {
 
         try {
 
-            JSONArray array =
-                    new JSONArray(json);
+            JSONObject state =
+                    new JSONObject(json);
 
-            if (array.length() == 0) {
+            JSONArray array =
+                    state.optJSONArray(
+                            "tabs");
+
+            if (array == null ||
+                    array.length() == 0) {
                 return false;
             }
 
@@ -1026,29 +1022,66 @@ public class TabManager {
                         false);
             }
 
-            int target =
-                    tabs.size() - 1;
+            int activeIndex =
+                    state.optInt(
+                            "active",
+                            tabs.size() - 1);
 
-            for (int i = 0; i < tabs.size(); i++) {
+            if (activeIndex < 0 ||
+                    activeIndex >= tabs.size()) {
 
-                if (tabs.get(i).isIncognito) {
-                    continue;
-                }
+                activeIndex =
+                        tabs.size() - 1;
             }
 
-            if (target >= 0) {
-                selectTab(tabs.get(target));
+            if (activeIndex >= 0) {
+                selectTab(
+                        tabs.get(activeIndex));
             }
 
             return true;
 
         } catch (Exception e) {
 
-            activity.getBrowserSettings()
-                    .setSavedTabsJson(
-                            "");
+            /*
+             * Also accept the old saved JSONArray format
+             * from earlier versions of the browser.
+             */
+            try {
 
-            return false;
+                JSONArray array =
+                        new JSONArray(json);
+
+                if (array.length() == 0) {
+                    return false;
+                }
+
+                for (int i = 0;
+                        i < array.length();
+                        i++) {
+
+                    addTab(
+                            array
+                                    .getJSONObject(i)
+                                    .optString(
+                                            "url",
+                                            "about:blank"),
+                            false);
+                }
+
+                selectTab(
+                        tabs.get(
+                                tabs.size() - 1));
+
+                return true;
+
+            } catch (Exception ignored) {
+
+                activity.getBrowserSettings()
+                        .setSavedTabsJson("");
+
+                return false;
+            }
         }
     }
 
