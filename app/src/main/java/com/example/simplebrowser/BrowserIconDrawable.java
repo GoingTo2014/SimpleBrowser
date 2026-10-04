@@ -8,22 +8,20 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 
-/**
- * Browser toolbar icons drawn directly with Canvas.
- *
- * This avoids media-player/system menu icons and keeps the browser
- * icon set consistent without external dependencies.
- */
 public final class BrowserIconDrawable extends Drawable {
 
     public static final int BACK = 0;
     public static final int FORWARD = 1;
     public static final int HOME = 2;
     public static final int RELOAD = 3;
-    public static final int SETTINGS = 4;
+    public static final int MORE = 4;
     public static final int STOP = 5;
+    public static final int SETTINGS_PAGE = 6;
+    public static final int LOCAL_FILE = 7;
+    public static final int SECURE = 8;
 
     private final int type;
+
     private final Paint paint =
             new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -37,13 +35,19 @@ public final class BrowserIconDrawable extends Drawable {
         this.type = type;
         this.color = color;
 
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStyle(
+                Paint.Style.STROKE);
+
+        paint.setStrokeCap(
+                Paint.Cap.ROUND);
+
+        paint.setStrokeJoin(
+                Paint.Join.ROUND);
     }
 
     @Override
-    public void draw(Canvas canvas) {
+    public void draw(
+            Canvas canvas) {
 
         Rect bounds =
                 getBounds();
@@ -54,12 +58,15 @@ public final class BrowserIconDrawable extends Drawable {
         float height =
                 bounds.height();
 
-        if (width <= 0f || height <= 0f) {
+        if (width <= 0f ||
+                height <= 0f) {
             return;
         }
 
         float scale =
-                Math.min(width, height) / 32f;
+                Math.min(
+                        width,
+                        height) / 32f;
 
         float left =
                 bounds.left +
@@ -70,12 +77,19 @@ public final class BrowserIconDrawable extends Drawable {
                 (height - 32f * scale) / 2f;
 
         canvas.save();
-        canvas.translate(left, top);
-        canvas.scale(scale, scale);
+
+        canvas.translate(
+                left,
+                top);
+
+        canvas.scale(
+                scale,
+                scale);
 
         paint.setColor(color);
         paint.setAlpha(alpha);
         paint.setStrokeWidth(2.5f);
+        paint.setStyle(Paint.Style.STROKE);
 
         switch (type) {
 
@@ -95,19 +109,32 @@ public final class BrowserIconDrawable extends Drawable {
                 drawReload(canvas);
                 break;
 
-            case SETTINGS:
-                drawSettings(canvas);
+            case MORE:
+                drawMore(canvas);
                 break;
 
             case STOP:
                 drawStop(canvas);
+                break;
+
+            case SETTINGS_PAGE:
+                drawSettingsPage(canvas);
+                break;
+
+            case LOCAL_FILE:
+                drawLocalFile(canvas);
+                break;
+
+            case SECURE:
+                drawLock(canvas);
                 break;
         }
 
         canvas.restore();
     }
 
-    private void drawBack(Canvas canvas) {
+    private void drawBack(
+            Canvas canvas) {
 
         Path arrow =
                 new Path();
@@ -126,7 +153,8 @@ public final class BrowserIconDrawable extends Drawable {
                 paint);
     }
 
-    private void drawForward(Canvas canvas) {
+    private void drawForward(
+            Canvas canvas) {
 
         Path arrow =
                 new Path();
@@ -145,7 +173,8 @@ public final class BrowserIconDrawable extends Drawable {
                 paint);
     }
 
-    private void drawHome(Canvas canvas) {
+    private void drawHome(
+            Canvas canvas) {
 
         Path roof =
                 new Path();
@@ -186,92 +215,218 @@ public final class BrowserIconDrawable extends Drawable {
                 paint);
     }
 
-    private void drawReload(Canvas canvas) {
+    private void drawReload(
+            Canvas canvas) {
 
         RectF arc =
                 new RectF(
                         6f, 6f,
                         26f, 26f);
 
-        /*
-         * A simple browser-style C arrow rather than the old
-         * system/media sync icon.
-         */
         canvas.drawArc(
                 arc,
-                42f,
-                278f,
+                45f,
+                275f,
                 false,
                 paint);
 
         Path arrow =
                 new Path();
 
-        arrow.moveTo(24.5f, 7f);
-        arrow.lineTo(24.5f, 14f);
-        arrow.lineTo(17.5f, 11.5f);
+        arrow.moveTo(
+                24.5f, 7f);
+
+        arrow.lineTo(
+                24.5f, 14f);
+
+        arrow.lineTo(
+                17.5f, 11.5f);
 
         canvas.drawPath(
                 arrow,
                 paint);
     }
 
-    private void drawSettings(Canvas canvas) {
+    private void drawMore(
+            Canvas canvas) {
+
+        paint.setStyle(
+                Paint.Style.FILL);
 
         canvas.drawCircle(
-                16f, 16f,
-                7.5f,
+                8f, 16f,
+                2f,
                 paint);
 
         canvas.drawCircle(
                 16f, 16f,
-                2.7f,
+                2f,
                 paint);
 
-        for (int i = 0; i < 8; i++) {
+        canvas.drawCircle(
+                24f, 16f,
+                2f,
+                paint);
 
-            double angle =
-                    Math.PI * 2d * i / 8d;
-
-            float innerX =
-                    16f +
-                    (float) Math.cos(angle) *
-                            9.5f;
-
-            float innerY =
-                    16f +
-                    (float) Math.sin(angle) *
-                            9.5f;
-
-            float outerX =
-                    16f +
-                    (float) Math.cos(angle) *
-                            12f;
-
-            float outerY =
-                    16f +
-                    (float) Math.sin(angle) *
-                            12f;
-
-            canvas.drawLine(
-                    innerX,
-                    innerY,
-                    outerX,
-                    outerY,
-                    paint);
-        }
+        paint.setStyle(
+                Paint.Style.STROKE);
     }
 
-    private void drawStop(Canvas canvas) {
+    private void drawStop(
+            Canvas canvas) {
 
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(
+                Paint.Style.FILL);
 
-        canvas.drawRect(
-                8f, 8f,
-                24f, 24f,
+        canvas.drawRoundRect(
+                new RectF(
+                        8f, 8f,
+                        24f, 24f),
+                2f,
+                2f,
                 paint);
 
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(
+                Paint.Style.STROKE);
+    }
+
+    private void drawSettingsPage(
+            Canvas canvas) {
+
+        /*
+         * A browser-settings icon: page outline with
+         * simple sliders, intentionally distinct from
+         * the normal security lock and local-file icon.
+         */
+        Path page =
+                new Path();
+
+        page.moveTo(8f, 5f);
+        page.lineTo(21f, 5f);
+        page.lineTo(25f, 9f);
+        page.lineTo(25f, 27f);
+        page.lineTo(8f, 27f);
+        page.close();
+
+        canvas.drawPath(
+                page,
+                paint);
+
+        canvas.drawLine(
+                11f, 13f,
+                22f, 13f,
+                paint);
+
+        canvas.drawLine(
+                11f, 18f,
+                22f, 18f,
+                paint);
+
+        canvas.drawLine(
+                11f, 23f,
+                22f, 23f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.FILL);
+
+        canvas.drawCircle(
+                15f, 13f,
+                1.7f,
+                paint);
+
+        canvas.drawCircle(
+                19f, 18f,
+                1.7f,
+                paint);
+
+        canvas.drawCircle(
+                14f, 23f,
+                1.7f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.STROKE);
+    }
+
+    private void drawLocalFile(
+            Canvas canvas) {
+
+        Path page =
+                new Path();
+
+        page.moveTo(8f, 4f);
+        page.lineTo(20f, 4f);
+        page.lineTo(25f, 9f);
+        page.lineTo(25f, 28f);
+        page.lineTo(8f, 28f);
+        page.close();
+
+        canvas.drawPath(
+                page,
+                paint);
+
+        canvas.drawLine(
+                20f, 4f,
+                20f, 10f,
+                paint);
+
+        canvas.drawLine(
+                20f, 10f,
+                25f, 10f,
+                paint);
+
+        canvas.drawLine(
+                11f, 15f,
+                22f, 15f,
+                paint);
+
+        canvas.drawLine(
+                11f, 20f,
+                22f, 20f,
+                paint);
+
+        canvas.drawLine(
+                11f, 25f,
+                18f, 25f,
+                paint);
+    }
+
+    private void drawLock(
+            Canvas canvas) {
+
+        RectF body =
+                new RectF(
+                        7f, 13f,
+                        25f, 27f);
+
+        canvas.drawRoundRect(
+                body,
+                2f,
+                2f,
+                paint);
+
+        RectF shackle =
+                new RectF(
+                        11f, 6f,
+                        21f, 18f);
+
+        canvas.drawArc(
+                shackle,
+                180f,
+                180f,
+                false,
+                paint);
+
+        canvas.drawLine(
+                11f, 12f,
+                11f, 16f,
+                paint);
+
+        canvas.drawLine(
+                21f, 12f,
+                21f, 16f,
+                paint);
     }
 
     public void setIconColor(
@@ -282,7 +437,9 @@ public final class BrowserIconDrawable extends Drawable {
     }
 
     @Override
-    public void setAlpha(int alpha) {
+    public void setAlpha(
+            int alpha) {
+
         this.alpha = alpha;
         invalidateSelf();
     }
@@ -290,7 +447,6 @@ public final class BrowserIconDrawable extends Drawable {
     @Override
     public void setColorFilter(
             android.graphics.ColorFilter filter) {
-        // Explicit icon color is used.
     }
 
     @Override
