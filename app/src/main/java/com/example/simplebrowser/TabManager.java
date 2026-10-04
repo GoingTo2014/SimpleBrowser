@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.os.Handler;
+import android.os.Looper;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -19,14 +21,32 @@ import java.util.List;
 
 public class TabManager {
 
+    private static final long DRAG_HOLD_MS =
+            350L;
+
+    /*
+     * A normal desktop Chrome-style UA is used when
+     * Desktop mode is enabled. The WebView engine itself
+     * remains the Android 4.4-compatible WebView.
+     */
+    private static final String DESKTOP_USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+            "AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/120.0.0.0 Safari/537.36";
+
     private final MainActivity activity;
     private final FrameLayout webViewContainer;
     private final LinearLayout tabsLayout;
+    private final LayoutTransition tabTransition;
 
     private final List<BrowserTab> tabs =
             new ArrayList<>();
 
+    private final Handler dragHandler =
+            new Handler(Looper.getMainLooper());
+
     private BrowserTab activeTab;
+    private BrowserTab pendingDragTab;
 
     public TabManager(
             MainActivity activity,
@@ -39,13 +59,13 @@ public class TabManager {
         this.tabsLayout =
                 tabsLayout;
 
-        LayoutTransition transition =
+        tabTransition =
                 new LayoutTransition();
 
-        transition.setDuration(180);
+        tabTransition.setDuration(180);
 
         tabsLayout.setLayoutTransition(
-                transition);
+                tabTransition);
     }
 
     public BrowserTab addTab(
@@ -83,28 +103,9 @@ public class TabManager {
         WebSettings settings =
                 tab.webView.getSettings();
 
-        BrowserSettings browserSettings =
-                activity.getBrowserSettings();
-
-        settings.setJavaScriptEnabled(
-                browserSettings
-                        .isJavaScriptEnabled());
-
-        settings.setDomStorageEnabled(
-                browserSettings
-                        .isStorageEnabled());
-
-        settings.setCacheMode(
-                WebSettings.LOAD_DEFAULT);
-
-        settings.setSupportMultipleWindows(
-                browserSettings
-                        .arePopupsEnabled());
-
-        CookieManager.getInstance()
-                .setAcceptCookie(
-                        browserSettings
-                                .areCookiesEnabled());
+        applyWebSettings(
+                settings,
+                activity.getBrowserSettings());
 
         tab.webView.setLayerType(
                 WebView.LAYER_TYPE_HARDWARE,
@@ -123,14 +124,14 @@ public class TabManager {
         tab.webView.setOnTouchListener(
                 (v, event) -> {
 
-            if (event.getAction() ==
-                    MotionEvent.ACTION_DOWN) {
+                    if (event.getAction() ==
+                            MotionEvent.ACTION_DOWN) {
 
-                activity.hideKeyboard();
-            }
+                        activity.hideKeyboard();
+                    }
 
-            return false;
-        });
+                    return false;
+                });
     }
 
     private void createTabView(
@@ -185,76 +186,90 @@ public class TabManager {
                 v -> closeTab(tab));
 
         /*
-         * Drag from the title.
+         * Hold the tab title for 350 ms to enter
+         * a real drag mode. Moving then reorders both
+         * the backing list and the visible tab bar.
          */
         tab.titleView.setOnTouchListener(
                 (v, event) -> {
 
-            switch (event.getAction()) {
+                    switch (event.getAction()) {
 
-                case MotionEvent.ACTION_DOWN:
+                        case MotionEvent.ACTION_DOWN:
 
-                    tab.dragStartX =
-                            event.getRawX();
+                            tab.dragStartX =
+                                    event.getRawX();
 
-                    tab.dragging = false;
+                            tab.dragging = false;
+                            pendingDragTab = tab;
 
-                    return false;
+                            scheduleDragStart(tab);
 
-                case MotionEvent.ACTION_MOVE:
+                            return true;
 
-                    float distance =
-                            event.getRawX()
-                            - tab.dragStartX;
+                        case MotionEvent.ACTION_MOVE:
 
-                    if (!tab.dragging &&
-                            Math.abs(distance) >
-                                    dp(10)) {
+                            if (pendingDragTab != tab) {
+                                return true;
+                            }
 
-                        tab.dragging = true;
+                            float distance =
+                                    event.getRawX()
+                                    - tab.dragStartX;
+
+                            if (tab.dragging) {
+
+                                tab.tabView
+                                        .setTranslationY(
+                                                -dp(3));
+
+                                reorderWhileDragging(
+                                        tab,
+                                        event.getRawX());
+
+                                return true;
+                            }
+
+                            /*
+                             * Cancel a pending long press if
+                             * the pointer is moved too far.
+                             */
+                            if (Math.abs(distance) >
+                                    dp(12)) {
+
+                                cancelDragStart(tab);
+                            }
+
+                            return true;
+
+                        case MotionEvent.ACTION_UP:
+
+                            cancelDragStart(tab);
+
+                            if (tab.dragging) {
+
+                                finishDrag(tab);
+
+                            } else {
+
+                                selectTab(tab);
+                            }
+
+                            return true;
+
+                        case MotionEvent.ACTION_CANCEL:
+
+                            cancelDragStart(tab);
+
+                            if (tab.dragging) {
+                                cancelDragVisuals(tab);
+                            }
+
+                            return true;
                     }
-
-                    if (tab.dragging) {
-
-                        tab.tabView
-                                .setTranslationX(
-                                        distance);
-
-                        return true;
-                    }
-
-                    return false;
-
-                case MotionEvent.ACTION_UP:
-
-                    if (tab.dragging) {
-
-                        finishDrag(tab);
-
-                        tab.dragging = false;
-
-                        return true;
-                    }
-
-                    selectTab(tab);
 
                     return true;
-
-                case MotionEvent.ACTION_CANCEL:
-
-                    tab.tabView
-                            .animate()
-                            .translationX(0)
-                            .setDuration(120)
-                            .start();
-
-                    tab.dragging = false;
-
-                    return true;
-            }
-
-            return false;
-        });
+                });
 
         tab.tabView.addView(
                 tab.titleView,
@@ -269,86 +284,172 @@ public class TabManager {
                         dp(36)));
 
         tab.tabView.setOnClickListener(
-                v -> selectTab(tab));
+                v -> {
+
+                    if (!tab.dragging) {
+                        selectTab(tab);
+                    }
+                });
+    }
+
+    private void scheduleDragStart(
+            final BrowserTab tab) {
+
+        cancelDragStart(tab);
+
+        dragHandler.postDelayed(
+                () -> {
+
+                    if (pendingDragTab == tab &&
+                            tab.tabView != null) {
+
+                        startDragging(tab);
+                    }
+
+                },
+                DRAG_HOLD_MS);
+    }
+
+    private void cancelDragStart(
+            BrowserTab tab) {
+
+        dragHandler.removeCallbacksAndMessages(
+                null);
+
+        if (pendingDragTab == tab &&
+                !tab.dragging) {
+
+            pendingDragTab = null;
+        }
+    }
+
+    private void startDragging(
+            BrowserTab tab) {
+
+        tab.dragging = true;
+        pendingDragTab = tab;
+
+        tabsLayout.setLayoutTransition(null);
+
+        tab.tabView.setAlpha(0.8f);
+        tab.tabView.setScaleX(1.03f);
+        tab.tabView.setScaleY(1.03f);
+
+        tab.tabView.bringToFront();
+    }
+
+    private void reorderWhileDragging(
+            BrowserTab tab,
+            float rawX) {
+
+        int currentIndex =
+                tabs.indexOf(tab);
+
+        if (currentIndex < 0) {
+            return;
+        }
+
+        int targetIndex =
+                currentIndex;
+
+        for (int i = 0;
+                i < tabs.size();
+                i++) {
+
+            BrowserTab other =
+                    tabs.get(i);
+
+            if (other == tab) {
+                continue;
+            }
+
+            int[] location =
+                    new int[2];
+
+            other.tabView
+                    .getLocationOnScreen(
+                            location);
+
+            float center =
+                    location[0] +
+                    other.tabView.getWidth() /
+                            2f;
+
+            if (rawX < center) {
+                targetIndex = i;
+                break;
+            }
+
+            targetIndex = i + 1;
+        }
+
+        if (targetIndex > tabs.size() - 1) {
+            targetIndex =
+                    tabs.size() - 1;
+        }
+
+        if (targetIndex == currentIndex) {
+            return;
+        }
+
+        tabs.remove(currentIndex);
+        tabs.add(targetIndex, tab);
+
+        tabsLayout.removeView(tab.tabView);
+
+        if (targetIndex >=
+                tabsLayout.getChildCount()) {
+
+            tabsLayout.addView(
+                    tab.tabView);
+
+        } else {
+
+            tabsLayout.addView(
+                    tab.tabView,
+                    targetIndex);
+        }
+
+        tab.tabView.bringToFront();
     }
 
     private void finishDrag(
             BrowserTab tab) {
 
-        float visualLeft =
-                tab.tabView.getLeft()
-                + tab.tabView.getTranslationX();
-
-        float center =
-                visualLeft
-                + tab.tabView.getWidth() / 2f;
-
-        int oldIndex =
-                tabs.indexOf(tab);
-
-        int newIndex =
-                oldIndex;
-
-        for (int i = 0;
-             i < tabs.size();
-             i++) {
-
-            if (i == oldIndex) {
-                continue;
-            }
-
-            BrowserTab other =
-                    tabs.get(i);
-
-            float otherCenter =
-                    other.tabView.getLeft()
-                    + other.tabView.getWidth()
-                    / 2f;
-
-            if (center < otherCenter) {
-
-                newIndex = i;
-                break;
-            }
-
-            newIndex = i;
-        }
-
-        if (newIndex != oldIndex) {
-
-            tabs.remove(oldIndex);
-
-            if (newIndex > oldIndex) {
-                newIndex--;
-            }
-
-            tabs.add(
-                    newIndex,
-                    tab);
-
-            tabsLayout.removeView(
-                    tab.tabView);
-
-            tabsLayout.addView(
-                    tab.tabView,
-                    newIndex);
-        }
-
-        tab.tabView
-                .animate()
-                .translationX(0)
-                .setDuration(180)
-                .start();
-
+        cancelDragVisuals(tab);
         selectTab(tab);
+    }
+
+    private void cancelDragVisuals(
+            BrowserTab tab) {
+
+        tab.dragging = false;
+
+        if (pendingDragTab == tab) {
+            pendingDragTab = null;
+        }
+
+        tab.tabView.setTranslationY(0f);
+        tab.tabView.setScaleX(1f);
+        tab.tabView.setScaleY(1f);
+        tab.tabView.setAlpha(1f);
+
+        tabsLayout.setLayoutTransition(
+                tabTransition);
     }
 
     public void selectTab(
             BrowserTab tab) {
 
+        if (tab == null ||
+                !tabs.contains(tab)) {
+            return;
+        }
+
         activeTab = tab;
 
-        for (BrowserTab current : tabs) {
+        for (BrowserTab current :
+                tabs) {
 
             current.webView.setVisibility(
                     current == tab
@@ -386,35 +487,50 @@ public class TabManager {
         activity.updateSecurity(tab);
     }
 
-    private void updateTabAppearance(
+    public void updateTabAppearance(
             BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        int textColor;
 
         if (tab == activeTab) {
 
-            String accent =
-                    activity
-                            .getBrowserSettings()
-                            .getAccentColor();
+            int accent =
+                    ColorUtils.parseColor(
+                            activity
+                                    .getBrowserSettings()
+                                    .getAccentColor(),
+                            Color.rgb(
+                                    63, 81, 181));
 
-            try {
-
-                tab.titleView.setTextColor(
-                        Color.parseColor(accent));
-
-            } catch (Exception e) {
-
-                tab.titleView.setTextColor(
-                        Color.BLUE);
-            }
+            textColor =
+                    ColorUtils
+                            .getReadableTextColor(
+                                    ColorUtils
+                                            .mix(
+                                                    Color.WHITE,
+                                                    accent,
+                                                    0.10f));
 
         } else {
 
-            tab.titleView.setTextColor(
-                    activity
-                            .getBrowserSettings()
-                            .isDarkMode()
-                            ? Color.LTGRAY
-                            : Color.DKGRAY);
+            textColor =
+                    ColorUtils
+                            .getReadableTextColor(
+                                    Color.WHITE);
+        }
+
+        tab.titleView.setTextColor(
+                textColor);
+    }
+
+    public void updateTabAppearanceColors() {
+
+        for (BrowserTab tab : tabs) {
+            updateTabAppearance(tab);
         }
     }
 
@@ -431,6 +547,8 @@ public class TabManager {
 
             return;
         }
+
+        cancelDragStart(tab);
 
         int index =
                 tabs.indexOf(tab);
@@ -459,6 +577,8 @@ public class TabManager {
             selectTab(
                     tabs.get(next));
         }
+
+        activity.updateNavigationButtonsForTabs();
     }
 
     public BrowserTab getActiveTab() {
@@ -479,20 +599,9 @@ public class TabManager {
             WebSettings settings =
                     tab.webView.getSettings();
 
-            if (!tab.settingsPage) {
-
-                settings.setJavaScriptEnabled(
-                        browserSettings
-                                .isJavaScriptEnabled());
-            }
-
-            settings.setDomStorageEnabled(
-                    browserSettings
-                            .isStorageEnabled());
-
-            settings.setSupportMultipleWindows(
-                    browserSettings
-                            .arePopupsEnabled());
+            applyWebSettings(
+                    settings,
+                    browserSettings);
         }
 
         CookieManager.getInstance()
@@ -500,9 +609,52 @@ public class TabManager {
                         browserSettings
                                 .areCookiesEnabled());
 
-        for (BrowserTab tab : tabs) {
+        updateTabAppearanceColors();
+    }
 
-            updateTabAppearance(tab);
+    private void applyWebSettings(
+            WebSettings settings,
+            BrowserSettings browserSettings) {
+
+        settings.setJavaScriptEnabled(
+                browserSettings
+                        .isJavaScriptEnabled());
+
+        settings.setDomStorageEnabled(
+                browserSettings
+                        .isStorageEnabled());
+
+        settings.setCacheMode(
+                WebSettings.LOAD_DEFAULT);
+
+        settings.setSupportMultipleWindows(
+                browserSettings
+                        .arePopupsEnabled());
+
+        /*
+         * Explicitly allow local HTML pages on API 19.
+         */
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+
+        if (browserSettings
+                .isDesktopMode()) {
+
+            settings.setUserAgentString(
+                    DESKTOP_USER_AGENT);
+
+            settings.setUseWideViewPort(true);
+            settings.setLoadWithOverviewMode(true);
+
+        } else {
+
+            /*
+             * null tells WebView to return to its
+             * built-in user agent.
+             */
+            settings.setUserAgentString(null);
+            settings.setUseWideViewPort(false);
+            settings.setLoadWithOverviewMode(false);
         }
     }
 
@@ -521,8 +673,8 @@ public class TabManager {
         if (title.length() > 22) {
 
             title =
-                    title.substring(0, 22)
-                    + "...";
+                    title.substring(0, 22) +
+                    "...";
         }
 
         tab.titleView.setText(title);
@@ -535,13 +687,17 @@ public class TabManager {
         }
     }
 
+    public void updateNavigationStates() {
+        activity.updateNavigationButtonsForTabs();
+    }
+
     private int dp(int value) {
 
         return (int) (
                 value *
                 activity.getResources()
                         .getDisplayMetrics()
-                        .density
-                + 0.5f);
+                        .density +
+                0.5f);
     }
 }
