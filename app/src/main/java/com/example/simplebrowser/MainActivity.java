@@ -979,6 +979,27 @@ public class MainActivity extends Activity {
         updateNavigationButtons();
     }
 
+    public void updateTabTitle(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tabManager == null) {
+            return;
+        }
+
+        tabManager.updateTabTitle(tab);
+    }
+
+    public void updateSecurity(
+            BrowserTab tab) {
+
+        if (securityManager == null) {
+            return;
+        }
+
+        securityManager.updateIcon(tab);
+    }
+
     private void updateNavigationButtons() {
 
         BrowserTab tab =
