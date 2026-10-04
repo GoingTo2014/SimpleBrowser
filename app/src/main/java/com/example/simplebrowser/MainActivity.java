@@ -1321,6 +1321,20 @@ public class MainActivity extends Activity {
                         getSettingsUrl(
                                 tab.settingsSection));
 
+            } else if (tab.defaultPage) {
+
+                setUrlText(
+                        "browser://default");
+
+            } else if (tab.historyPage) {
+
+                setUrlText(
+                        "browser://history");
+
+            } else if (tab.errorPage) {
+
+                setUrlText(tab.url);
+
             } else {
 
                 setUrlText(url);
@@ -1347,6 +1361,20 @@ public class MainActivity extends Activity {
                 setUrlText(
                         getSettingsUrl(
                                 tab.settingsSection));
+
+            } else if (tab.defaultPage) {
+
+                setUrlText(
+                        "browser://default");
+
+            } else if (tab.historyPage) {
+
+                setUrlText(
+                        "browser://history");
+
+            } else if (tab.errorPage) {
+
+                setUrlText(tab.url);
 
             } else {
 
