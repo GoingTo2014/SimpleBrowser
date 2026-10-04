@@ -998,6 +998,13 @@ public class MainActivity extends Activity {
             return;
         }
 
+        tab.hasLoaded = true;
+        tab.pendingUrl =
+                url == null ||
+                url.trim().isEmpty()
+                        ? "about:blank"
+                        : url;
+
         String settingsSection =
                 getSettingsSection(url);
 
@@ -1528,6 +1535,11 @@ public class MainActivity extends Activity {
                 setUrlText(
                         "browser://history");
 
+            } else if (tab.downloadsPage) {
+
+                setUrlText(
+                        "browser://downloads");
+
             } else if (tab.errorPage) {
 
                 setUrlText(tab.url);
@@ -1568,6 +1580,11 @@ public class MainActivity extends Activity {
 
                 setUrlText(
                         "browser://history");
+
+            } else if (tab.downloadsPage) {
+
+                setUrlText(
+                        "browser://downloads");
 
             } else if (tab.errorPage) {
 
