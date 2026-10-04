@@ -18,6 +18,30 @@ public class BrowserSettings {
     }
 
     public String getHomePage() {
+
+        String value =
+                preferences.getString(
+                        "home",
+                        "https://www.google.com/");
+
+        if ("custom".equals(value)) {
+
+            String custom =
+                    preferences.getString(
+                            "custom_home",
+                            "");
+
+            if (!custom.trim().isEmpty()) {
+                return custom.trim();
+            }
+
+            return "about:blank";
+        }
+
+        return value;
+    }
+
+    public String getHomeSelection() {
         return preferences.getString(
                 "home",
                 "https://www.google.com/");
@@ -26,6 +50,24 @@ public class BrowserSettings {
     public void setHomePage(String value) {
         preferences.edit()
                 .putString("home", value)
+                .apply();
+    }
+
+    public String getCustomHomePage() {
+        return preferences.getString(
+                "custom_home",
+                "");
+    }
+
+    public void setCustomHomePage(
+            String value) {
+
+        preferences.edit()
+                .putString(
+                        "custom_home",
+                        value == null
+                                ? ""
+                                : value.trim())
                 .apply();
     }
 
@@ -38,6 +80,24 @@ public class BrowserSettings {
     public void setSearchEngine(String value) {
         preferences.edit()
                 .putString("search", value)
+                .apply();
+    }
+
+    public String getCustomSearchUrl() {
+        return preferences.getString(
+                "custom_search",
+                "");
+    }
+
+    public void setCustomSearchUrl(
+            String value) {
+
+        preferences.edit()
+                .putString(
+                        "custom_search",
+                        value == null
+                                ? ""
+                                : value.trim())
                 .apply();
     }
 
@@ -65,6 +125,30 @@ public class BrowserSettings {
                 true);
     }
 
+    public boolean areImagesEnabled() {
+        return preferences.getBoolean(
+                "images",
+                true);
+    }
+
+    public boolean isZoomEnabled() {
+        return preferences.getBoolean(
+                "zoom",
+                true);
+    }
+
+    public boolean isGeolocationEnabled() {
+        return preferences.getBoolean(
+                "geolocation",
+                false);
+    }
+
+    public boolean isMediaAutoplayEnabled() {
+        return preferences.getBoolean(
+                "media_autoplay",
+                false);
+    }
+
     public boolean isDesktopMode() {
         return preferences.getBoolean(
                 "desktop_mode",
@@ -74,7 +158,7 @@ public class BrowserSettings {
     public String getAccentColor() {
         return preferences.getString(
                 "color",
-                "#3F51B5");
+                "#FFFFFF");
     }
 
     public void setBoolean(
