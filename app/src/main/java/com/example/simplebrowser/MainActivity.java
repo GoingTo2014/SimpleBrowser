@@ -226,6 +226,40 @@ public class MainActivity extends Activity {
 
                     return false;
                 });
+
+        /*
+         * Also support a real pointer hover when the
+         * browser is used with a mouse/trackpad.
+         */
+        button.setOnHoverListener(
+                (v, event) -> {
+
+                    if (!button.isEnabled()) {
+                        return false;
+                    }
+
+                    if (event.getAction() ==
+                            MotionEvent.ACTION_HOVER_ENTER) {
+
+                        button.animate()
+                                .scaleX(1.06f)
+                                .scaleY(1.06f)
+                                .setDuration(100)
+                                .start();
+
+                    } else if (
+                            event.getAction() ==
+                                    MotionEvent.ACTION_HOVER_EXIT) {
+
+                        button.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(120)
+                                .start();
+                    }
+
+                    return false;
+                });
     }
 
     private void setupButtons() {
