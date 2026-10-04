@@ -38,10 +38,18 @@ public class TabManager {
     private final HorizontalScrollView tabScroll;
     private final LayoutTransition tabTransition;
 
-    private final List<BrowserTab> tabs =
+    private final List<BrowserTab> normalTabs =
             new ArrayList<>();
 
+    private final List<BrowserTab> incognitoTabs =
+            new ArrayList<>();
+
+    private List<BrowserTab> tabs;
+
     private BrowserTab activeTab;
+    private BrowserTab normalActiveTab;
+    private BrowserTab incognitoActiveTab;
+    private boolean incognitoMode = false;
 
     public TabManager(
             MainActivity activity,
@@ -53,6 +61,8 @@ public class TabManager {
                 webViewContainer;
         this.tabsLayout =
                 tabsLayout;
+
+        this.tabs = normalTabs;
 
         if (tabsLayout.getParent()
                 instanceof HorizontalScrollView) {
