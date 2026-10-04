@@ -301,19 +301,19 @@ public class SettingsPage {
                 "Simple Browser" +
                 "</div>" +
 
-                "<div id='nav-general' class='nav active' onclick="showSection('general')">" +
+                "<div id='nav-general' class='nav active' onclick=\"showSection('general')\">" +
                 "General" +
                 "</div>" +
 
-                "<div id='nav-privacy' class='nav' onclick="showSection('privacy')">" +
+                "<div id='nav-privacy' class='nav' onclick=\"showSection('privacy')\">" +
                 "Privacy & Security" +
                 "</div>" +
 
-                "<div id='nav-websites' class='nav' onclick="showSection('websites')">" +
+                "<div id='nav-websites' class='nav' onclick=\"showSection('websites')\">" +
                 "Websites" +
                 "</div>" +
 
-                "<div id='nav-appearance' class='nav' onclick="showSection('appearance')">" +
+                "<div id='nav-appearance' class='nav' onclick=\"showSection('appearance')\">" +
                 "Appearance" +
                 "</div>" +
 
