@@ -507,6 +507,10 @@ public class MainActivity extends Activity {
                 .indexOf(tab);
     }
 
+    public TabManager getTabManager() {
+        return tabManager;
+    }
+
     @Override
     public void onBackPressed() {
 
