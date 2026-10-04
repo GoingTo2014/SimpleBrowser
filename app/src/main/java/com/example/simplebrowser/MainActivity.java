@@ -408,42 +408,33 @@ public class MainActivity extends Activity {
         menu.setBackgroundColor(
                 menuBackground);
 
-        Button settingsButton =
-                new Button(this);
-
-        settingsButton.setText(
-                "Settings");
-
-        settingsButton.setAllCaps(false);
-
-        settingsButton.setTextColor(
+        addMenuSectionButton(
+                menu,
+                "General",
+                "general",
+                accent,
                 readable);
 
-        settingsButton.setBackgroundColor(
-                accent);
+        addMenuSectionButton(
+                menu,
+                "Websites",
+                "websites",
+                accent,
+                readable);
 
-        settingsButton.setOnClickListener(
-                v -> {
+        addMenuSectionButton(
+                menu,
+                "Appearance",
+                "appearance",
+                accent,
+                readable);
 
-                    if (browserMenu != null) {
-                        browserMenu.dismiss();
-                    }
-
-                    BrowserTab tab =
-                            getActiveTab();
-
-                    if (tab != null) {
-                        showSettings(
-                                tab,
-                                "general");
-                    }
-                });
-
-        menu.addView(
-                settingsButton,
-                new LinearLayout.LayoutParams(
-                        -1,
-                        dp(44)));
+        addMenuSectionButton(
+                menu,
+                "Privacy & Security",
+                "privacy-security",
+                accent,
+                readable);
 
         CheckBox desktop =
                 new CheckBox(this);
@@ -457,8 +448,7 @@ public class MainActivity extends Activity {
                                 menuBackground));
 
         desktop.setChecked(
-                browserSettings
-                        .isDesktopMode());
+                browserSettings.isDesktopMode());
 
         desktop.setPadding(
                 dp(4),
@@ -469,10 +459,9 @@ public class MainActivity extends Activity {
         desktop.setOnCheckedChangeListener(
                 (button, checked) -> {
 
-                    browserSettings
-                            .setBoolean(
-                                    "desktop_mode",
-                                    checked);
+                    browserSettings.setBoolean(
+                            "desktop_mode",
+                            checked);
 
                     applyDesktopMode();
 
@@ -501,13 +490,53 @@ public class MainActivity extends Activity {
                         .ColorDrawable(
                                 menuBackground));
 
-        browserMenu.setOutsideTouchable(true);
+        browserMenu.setOutsideTouchable(
+                true);
 
         browserMenu.showAsDropDown(
                 anchor,
                 anchor.getWidth() -
                         dp(220),
                 0);
+    }
+
+    private void addMenuSectionButton(
+            LinearLayout menu,
+            String text,
+            String section,
+            int accent,
+            int readable) {
+
+        Button button =
+                new Button(this);
+
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextColor(readable);
+        button.setBackgroundColor(accent);
+
+        button.setOnClickListener(
+                v -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showSettings(
+                                tab,
+                                section);
+                    }
+                });
+
+        menu.addView(
+                button,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)));
     }
 
     public void openUrlOrSearch(
