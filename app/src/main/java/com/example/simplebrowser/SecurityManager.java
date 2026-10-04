@@ -31,19 +31,25 @@ public class SecurityManager {
         this.securityButton =
                 securityButton;
 
-        int accent =
-                ColorUtils.parseColor(
-                        activity
-                                .getBrowserSettings()
-                                .getAccentColor(),
-                        Color.rgb(
-                                63, 81, 181));
+        BrowserTab tab =
+                activity.getActiveTab();
+
+        int chromeColor =
+                tab != null &&
+                        tab.isIncognito
+                        ? Color.rgb(
+                                32, 33, 36)
+                        : ColorUtils.parseColor(
+                                activity
+                                        .getBrowserSettings()
+                                        .getAccentColor(),
+                                Color.WHITE);
 
         securityButton.setBackground(
                 ButtonFeedback.create(
                         ColorUtils
                                 .getReadableTextColor(
-                                        accent)));
+                                        chromeColor)));
 
         securityButton.setOnClickListener(
                 v -> {
