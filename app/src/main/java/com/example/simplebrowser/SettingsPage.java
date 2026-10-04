@@ -1,9 +1,16 @@
 package com.example.simplebrowser;
 
+import android.graphics.Color;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+/**
+ * Built-in settings UI.
+ *
+ * The page is self-contained HTML/CSS/JS so it works on the
+ * Android 4.4 WebView without external web dependencies.
+ */
 public class SettingsPage {
 
     private final MainActivity activity;
@@ -53,10 +60,6 @@ public class SettingsPage {
     public void remove(
             BrowserTab tab) {
 
-        /*
-         * Absolutely remove the bridge before
-         * the WebView becomes a normal webpage.
-         */
         tab.webView
                 .removeJavascriptInterface(
                         "Android");
@@ -71,46 +74,43 @@ public class SettingsPage {
 
     private String createHtml() {
 
-        boolean dark =
-                settings.isDarkMode();
+        int accentColor =
+                ColorUtils.parseColor(
+                        settings.getAccentColor(),
+                        Color.rgb(
+                                63, 81, 181));
 
-        String background =
-                dark
-                        ? "#121212"
-                        : "#FFFFFF";
+        int accentText =
+                ColorUtils
+                        .getReadableTextColor(
+                                accentColor);
 
-        String sidebar =
-                dark
-                        ? "#1E1E1E"
-                        : "#F3F3F3";
+        int accentSoft =
+                ColorUtils.mix(
+                        accentColor,
+                        accentText,
+                        0.16f);
 
-        String card =
-                dark
-                        ? "#1E1E1E"
-                        : "#FFFFFF";
-
-        String text =
-                dark
-                        ? "#FFFFFF"
-                        : "#202124";
-
-        String secondary =
-                dark
-                        ? "#BDBDBD"
-                        : "#666666";
-
-        String border =
-                dark
-                        ? "#333333"
-                        : "#DDDDDD";
+        int accentBorder =
+                ColorUtils.mix(
+                        accentColor,
+                        Color.WHITE,
+                        0.28f);
 
         String accent =
-                settings.getAccentColor();
+                ColorUtils.toHex(accentColor);
+
+        String accentTextHex =
+                ColorUtils.toHex(accentText);
+
+        String accentSoftHex =
+                ColorUtils.toHex(accentSoft);
+
+        String accentBorderHex =
+                ColorUtils.toHex(accentBorder);
 
         return "<!DOCTYPE html>" +
-
                 "<html>" +
-
                 "<head>" +
 
                 "<meta name='viewport' " +
@@ -119,21 +119,15 @@ public class SettingsPage {
 
                 "<style>" +
 
-                "*{" +
-                "box-sizing:border-box;" +
-                "}" +
+                "*{box-sizing:border-box;}" +
 
                 "html,body{" +
                 "margin:0;" +
                 "padding:0;" +
                 "min-height:100%;" +
                 "font-family:sans-serif;" +
-                "background:" +
-                background +
-                ";" +
-                "color:" +
-                text +
-                ";" +
+                "background:#F5F6F8;" +
+                "color:#202124;" +
                 "}" +
 
                 ".layout{" +
@@ -142,15 +136,15 @@ public class SettingsPage {
                 "}" +
 
                 ".sidebar{" +
-                "width:200px;" +
+                "width:205px;" +
                 "background:" +
-                sidebar +
-                ";" +
-                "border-right:1px solid " +
-                border +
+                accent +
                 ";" +
                 "padding:18px 0;" +
                 "flex-shrink:0;" +
+                "color:" +
+                accentTextHex +
+                ";" +
                 "}" +
 
                 ".brand{" +
@@ -160,130 +154,135 @@ public class SettingsPage {
                 "}" +
 
                 ".nav{" +
-                "padding:10px 18px;" +
+                "padding:11px 18px;" +
                 "font-size:14px;" +
                 "color:" +
-                secondary +
+                accentTextHex +
                 ";" +
+                "opacity:.86;" +
+                "cursor:pointer;" +
                 "}" +
 
                 ".nav:hover{" +
                 "background:" +
-                (dark ? "#2A2A2A" : "#E8E8E8") +
-                ";cursor:pointer;" +
+                accentSoftHex +
+                ";" +
+                "opacity:1;" +
                 "}" +
 
                 ".nav.active{" +
-                "color:" +
-                accent +
-                ";" +
-                "font-weight:bold;" +
                 "background:" +
-                background +
+                accentSoftHex +
                 ";" +
+                "opacity:1;" +
+                "font-weight:bold;" +
+                "border-left:3px solid " +
+                accentTextHex +
+                ";" +
+                "padding-left:15px;" +
                 "}" +
 
                 ".content{" +
                 "width:100%;" +
-                "max-width:780px;" +
+                "max-width:820px;" +
                 "padding:28px;" +
                 "}" +
 
                 "h1{" +
-                "font-size:27px;" +
+                "font-size:28px;" +
                 "margin:0;" +
+                "color:" +
+                accent +
+                ";" +
                 "}" +
 
                 ".subtitle{" +
-                "color:" +
-                secondary +
-                ";" +
-                "margin-top:5px;" +
-                "margin-bottom:25px;" +
+                "color:#666;" +
+                "margin:5px 0 25px;" +
                 "}" +
 
                 "h2{" +
                 "font-size:18px;" +
-                "margin:25px 0 9px;" +
+                "margin:0 0 9px;" +
                 "}" +
 
                 ".card{" +
-                "background:" +
-                card +
-                ";" +
-                "border:1px solid " +
-                border +
-                ";" +
-                "border-radius:7px;" +
+                "background:#FFFFFF;" +
+                "border:1px solid #DDDDDD;" +
+                "border-radius:8px;" +
                 "overflow:hidden;" +
+                "margin-bottom:25px;" +
                 "}" +
 
                 ".row{" +
-                "padding:14px 16px;" +
-                "border-bottom:1px solid " +
-                border +
-                ";" +
+                "padding:15px 16px;" +
+                "border-bottom:1px solid #E5E5E5;" +
                 "}" +
 
-                ".row:last-child{" +
-                "border-bottom:0;" +
-                "}" +
+                ".row:last-child{border-bottom:0;}" +
 
                 ".switchrow{" +
                 "display:flex;" +
                 "align-items:center;" +
                 "justify-content:space-between;" +
+                "gap:12px;" +
                 "}" +
 
-                ".title{" +
-                "font-size:15px;" +
-                "}" +
+                ".title{font-size:15px;}" +
 
                 ".description{" +
                 "font-size:12px;" +
-                "color:" +
-                secondary +
-                ";" +
+                "color:#666;" +
                 "margin-top:3px;" +
                 "}" +
 
                 "select{" +
                 "width:100%;" +
                 "margin-top:8px;" +
-                "padding:7px;" +
+                "padding:8px;" +
                 "font-size:15px;" +
                 "}" +
 
                 "input[type=color]{" +
-                "width:55px;" +
-                "height:32px;" +
+                "width:60px;" +
+                "height:34px;" +
                 "padding:0;" +
-                "border:0;" +
-                "background:transparent;" +
+                "border:1px solid " +
+                accentBorderHex +
+                ";" +
+                "background:#FFFFFF;" +
                 "}" +
+
+                "input[type=checkbox]{width:20px;height:20px;}" +
 
                 "button{" +
                 "font-size:14px;" +
-                "padding:8px 12px;" +
+                "padding:9px 13px;" +
+                "background:" +
+                accent +
+                ";" +
+                "color:" +
+                accentTextHex +
+                ";" +
+                "border:0;" +
+                "border-radius:5px;" +
                 "}" +
+
+                ".section{display:none;}" +
+
+                ".section.active{display:block;}" +
 
                 "@media(max-width:600px){" +
 
-                ".sidebar{" +
-                "width:135px;" +
-                "}" +
+                ".sidebar{width:145px;}" +
 
-                ".content{" +
-                "padding:20px 15px;" +
-                "}" +
+                ".content{padding:20px 15px;}" +
 
-                ".brand{" +
-                "padding-left:13px;" +
-                "}" +
+                ".brand{padding-left:13px;}" +
 
-                ".nav{" +
-                "padding-left:13px;" +
-                "}" +
+                ".nav{padding-left:13px;}" +
+
+                ".nav.active{padding-left:10px;}" +
 
                 "}" +
 
@@ -297,25 +296,23 @@ public class SettingsPage {
 
                 "<div class='sidebar'>" +
 
-                "<div class='brand'>" +
-                "Simple Browser" +
-                "</div>" +
+                "<div class='brand'>Simple Browser</div>" +
 
-                "<div id='nav-general' class='nav active' onclick=\"showSection('general')\">" +
-                "General" +
-                "</div>" +
+                "<div id='nav-general' class='nav active' " +
+                "onclick=\"showSection('general')\">" +
+                "General</div>" +
 
-                "<div id='nav-privacy' class='nav' onclick=\"showSection('privacy')\">" +
-                "Privacy & Security" +
-                "</div>" +
+                "<div id='nav-privacy' class='nav' " +
+                "onclick=\"showSection('privacy')\">" +
+                "Privacy &amp; Security</div>" +
 
-                "<div id='nav-websites' class='nav' onclick=\"showSection('websites')\">" +
-                "Websites" +
-                "</div>" +
+                "<div id='nav-websites' class='nav' " +
+                "onclick=\"showSection('websites')\">" +
+                "Websites</div>" +
 
-                "<div id='nav-appearance' class='nav' onclick=\"showSection('appearance')\">" +
-                "Appearance" +
-                "</div>" +
+                "<div id='nav-appearance' class='nav' " +
+                "onclick=\"showSection('appearance')\">" +
+                "Appearance</div>" +
 
                 "</div>" +
 
@@ -323,22 +320,17 @@ public class SettingsPage {
 
                 "<h1>Settings</h1>" +
 
-                "<div class='subtitle'>" +
-                "Configure Simple Browser" +
-                "</div>" +
+                "<div class='subtitle'>Configure Simple Browser</div>" +
 
-                "<div id='section-general' class='section'><h2>General</h2>" +
+                "<div id='section-general' class='section active'>" +
+
+                "<h2>General</h2>" +
 
                 "<div class='card'>" +
 
                 "<div class='row'>" +
-
-                "<div class='title'>" +
-                "Home page" +
-                "</div>" +
-
-                "<select onchange=\"" +
-                "Android.setHome(this.value)\">" +
+                "<div class='title'>Home page</div>" +
+                "<select onchange=\"Android.setHome(this.value)\">" +
 
                 homeOption(
                         "https://www.google.com/",
@@ -357,17 +349,11 @@ public class SettingsPage {
                         "Blank page") +
 
                 "</select>" +
-
                 "</div>" +
 
                 "<div class='row'>" +
-
-                "<div class='title'>" +
-                "Search engine" +
-                "</div>" +
-
-                "<select onchange=\"" +
-                "Android.setSearch(this.value)\">" +
+                "<div class='title'>Search engine</div>" +
+                "<select onchange=\"Android.setSearch(this.value)\">" +
 
                 searchOption(
                         "google",
@@ -386,12 +372,88 @@ public class SettingsPage {
                         "Yahoo") +
 
                 "</select>" +
+                "</div>" +
+
+                "<div class='row switchrow'>" +
+
+                "<div>" +
+                "<div class='title'>Desktop mode</div>" +
+                "<div class='description'>" +
+                "Ask websites to use their desktop layout and desktop user-agent." +
+                "</div>" +
+                "</div>" +
+
+                "<input type='checkbox'" +
+                (settings.isDesktopMode()
+                        ? " checked"
+                        : "") +
+                " onchange=\"Android.setSetting('desktop_mode',this.checked)\">" +
+
+                "</div>" +
+
+                "<div class='row'>" +
+
+                "<div class='title'>Default browser</div>" +
+
+                "<div class='description'>" +
+                "Ask Android to choose which installed browser should open web links." +
+                "</div>" +
+
+                "<br>" +
+
+                "<button onclick=\"Android.chooseDefaultBrowser()\">" +
+                "Choose browser" +
+                "</button>" +
+
+                "</div>" +
+
+                "<div class='row'>" +
+
+                "<div class='title'>Open local HTML file</div>" +
+
+                "<div class='description'>" +
+                "Choose an HTML file stored on the device." +
+                "</div>" +
+
+                "<br>" +
+
+                "<button onclick=\"Android.openLocalFile()\">" +
+                "Open HTML file" +
+                "</button>" +
 
                 "</div>" +
 
                 "</div>" +
+                "</div>" +
 
-                "</div><div id='section-websites' class='section'><h2>Websites</h2>" +
+                "<div id='section-privacy' class='section'>" +
+
+                "<h2>Privacy &amp; Security</h2>" +
+
+                "<div class='card'>" +
+
+                "<div class='row'>" +
+
+                "<button onclick=\"Android.clearData()\">" +
+                "Clear browsing data" +
+                "</button>" +
+
+                "</div>" +
+
+                "<div class='row'>" +
+
+                "<button onclick=\"Android.resetSettings()\">" +
+                "Restore default settings" +
+                "</button>" +
+
+                "</div>" +
+
+                "</div>" +
+                "</div>" +
+
+                "<div id='section-websites' class='section'>" +
+
+                "<h2>Websites</h2>" +
 
                 "<div class='card'>" +
 
@@ -421,85 +483,54 @@ public class SettingsPage {
 
                 "</div>" +
 
-                "</div><div id='section-appearance' class='section'><h2>Appearance</h2>" +
+                "</div>" +
+
+                "<div id='section-appearance' class='section'>" +
+
+                "<h2>Appearance</h2>" +
 
                 "<div class='card'>" +
-
-                settingRow(
-                        "Dark mode",
-                        "Use a dark browser theme",
-                        "dark",
-                        settings.isDarkMode()) +
 
                 "<div class='row switchrow'>" +
 
                 "<div>" +
-
-                "<div class='title'>" +
-                "Browser color" +
-                "</div>" +
-
+                "<div class='title'>Browser color</div>" +
                 "<div class='description'>" +
-                "Accent color for the browser" +
+                "Changes the browser toolbar and this settings interface." +
                 "</div>" +
-
                 "</div>" +
 
                 "<input type='color' " +
-                "value='" +
-                accent +
-                "' " +
-                "onchange=\"" +
-                "Android.setColor(this.value)\">" +
+                "value='" + accent + "' " +
+                "onchange=\"Android.setColor(this.value)\">" +
 
                 "</div>" +
 
                 "</div>" +
-
-                "</div><div id='section-privacy' class='section'><h2>Privacy</h2>" +
-
-                "<div class='card'>" +
-
-                "<div class='row'>" +
-
-                "<button onclick=\"" +
-                "Android.clearData()\">" +
-
-                "Clear browsing data" +
-
-                "</button>" +
-
-                "</div>" +
-
-                "<div class='row'>" +
-
-                "<button onclick=\"" +
-                "Android.resetSettings()\">" +
-
-                "Restore default settings" +
-
-                "</button>" +
-
                 "</div>" +
 
                 "</div>" +
-
-                "</div>" +
-
                 "</div>" +
 
                 "<script>" +
+
                 "function showSection(name){" +
                 "var names=['general','privacy','websites','appearance'];" +
                 "for(var i=0;i<names.length;i++){" +
                 "var n=names[i];" +
                 "var section=document.getElementById('section-'+n);" +
                 "var nav=document.getElementById('nav-'+n);" +
-                "if(section) section.style.display=(n===name?'block':'none');" +
-                "if(nav) nav.className='nav'+(n===name?' active':'');" +
+                "if(section){" +
+                "section.className='section'+(n===name?' active':'');" +
+                "}" +
+                "if(nav){" +
+                "nav.className='nav'+(n===name?' active':'');" +
                 "}" +
                 "}" +
+                "}" +
+
                 "showSection('general');" +
+
                 "</script>" +
 
                 "</body>" +
@@ -551,15 +582,9 @@ public class SettingsPage {
             String name,
             boolean enabled) {
 
-        String checked =
-                enabled
-                        ? " checked"
-                        : "";
-
         return "<div class='row switchrow'>" +
 
                 "<div>" +
-
                 "<div class='title'>" +
                 title +
                 "</div>" +
@@ -567,13 +592,11 @@ public class SettingsPage {
                 "<div class='description'>" +
                 description +
                 "</div>" +
-
                 "</div>" +
 
                 "<input type='checkbox'" +
-                checked +
-                " onchange=\"" +
-                "Android.setSetting('" +
+                (enabled ? " checked" : "") +
+                " onchange=\"Android.setSetting('" +
                 name +
                 "',this.checked)\">" +
 
@@ -585,14 +608,12 @@ public class SettingsPage {
         @JavascriptInterface
         public void setHome(
                 String value) {
-
             settings.setHomePage(value);
         }
 
         @JavascriptInterface
         public void setSearch(
                 String value) {
-
             settings.setSearchEngine(value);
         }
 
@@ -608,47 +629,44 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
-                if ("dark".equals(name)) {
+                        if ("desktop_mode"
+                                .equals(name)) {
 
-                    /*
-                     * Recreate the Activity using
-                     * the correct Android theme.
-                     *
-                     * No CSS inversion is used.
-                     */
-                    activity.changeDarkMode();
+                            activity.applyDesktopMode();
 
-                } else {
+                        } else {
 
-                    activity.applyWebsiteSettings();
-                }
-            });
+                            activity.applyWebsiteSettings();
+                        }
+                    });
         }
 
         @JavascriptInterface
         public void setColor(
                 String color) {
 
-            /*
-             * Only the actual accent color is stored.
-             * No website colors are inverted.
-             */
-            settings.setAccentColor(color);
+            int parsed =
+                    ColorUtils.parseColor(
+                            color,
+                            Color.rgb(
+                                    63, 81, 181));
+
+            settings.setAccentColor(
+                    ColorUtils.toHex(parsed));
 
             activity.runOnUiThread(
                     () -> {
 
-                activity.applyBrowserAppearance();
+                        activity.applyBrowserAppearance();
 
-                BrowserTab tab =
-                        activity.getActiveTab();
+                        BrowserTab tab =
+                                activity.getActiveTab();
 
-                if (tab != null &&
-                        tab.settingsPage) {
-
-                    show(tab);
-                }
-            });
+                        if (tab != null &&
+                                tab.settingsPage) {
+                            show(tab);
+                        }
+                    });
         }
 
         @JavascriptInterface
@@ -657,25 +675,25 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
-                for (BrowserTab tab :
-                        activity
-                                .getTabManager()
-                                .getTabs()) {
+                        for (BrowserTab tab :
+                                activity
+                                        .getTabManager()
+                                        .getTabs()) {
 
-                    tab.webView.clearCache(true);
-                    tab.webView.clearHistory();
-                }
+                            tab.webView.clearCache(true);
+                            tab.webView.clearHistory();
+                        }
 
-                android.webkit.CookieManager
-                        .getInstance()
-                        .removeAllCookie();
+                        android.webkit.CookieManager
+                                .getInstance()
+                                .removeAllCookie();
 
-                Toast.makeText(
-                        activity,
-                        "Browsing data cleared",
-                        Toast.LENGTH_SHORT)
-                        .show();
-            });
+                        Toast.makeText(
+                                activity,
+                                "Browsing data cleared",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    });
         }
 
         @JavascriptInterface
@@ -684,10 +702,31 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
-                settings.reset();
+                        settings.reset();
 
-                activity.changeDarkMode();
-            });
+                        activity.applyWebsiteSettings();
+                        activity.applyBrowserAppearance();
+
+                        BrowserTab tab =
+                                activity.getActiveTab();
+
+                        if (tab != null &&
+                                tab.settingsPage) {
+                            show(tab);
+                        }
+                    });
+        }
+
+        @JavascriptInterface
+        public void chooseDefaultBrowser() {
+            activity.runOnUiThread(
+                    () -> activity.chooseDefaultBrowser());
+        }
+
+        @JavascriptInterface
+        public void openLocalFile() {
+            activity.runOnUiThread(
+                    () -> activity.openLocalFilePicker());
         }
     }
 }
