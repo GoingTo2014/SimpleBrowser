@@ -20,6 +20,9 @@ public class BrowserTab {
     public boolean sslError = false;
     public boolean settingsPage = false;
 
+    /** Original WebView UA used when Desktop mode is off. */
+    public String defaultUserAgent = "";
+
     public float dragStartX = 0;
     public boolean dragging = false;
 }
