@@ -432,8 +432,14 @@ public class TabManager {
                 rawX -
                 scrollLeft;
 
+        /*
+         * Calculate the insertion slot after removing the
+         * dragged tab. Since every tab has the same fixed
+         * width, this is stable even while the layout is
+         * waiting for its next measurement pass.
+         */
         int targetIndex =
-                (int) Math.floor(
+                Math.round(
                         (contentX -
                                 tabWidth / 2f) /
                                 tabWidth);
@@ -442,29 +448,28 @@ public class TabManager {
             targetIndex = 0;
         }
 
-        if (targetIndex >= tabs.size()) {
-            targetIndex =
-                    tabs.size() - 1;
+        int remainingCount =
+                tabs.size() - 1;
+
+        if (targetIndex > remainingCount) {
+            targetIndex = remainingCount;
         }
 
+        /*
+         * When the target is the dragged tab's current slot,
+         * nothing needs to change.
+         */
         if (targetIndex == currentIndex) {
             return;
         }
 
         tabs.remove(currentIndex);
-
-        if (currentIndex <
-                targetIndex) {
-
-            targetIndex--;
-        }
+        tabsLayout.removeView(
+                tab.tabView);
 
         tabs.add(
                 targetIndex,
                 tab);
-
-        tabsLayout.removeView(
-                tab.tabView);
 
         tabsLayout.addView(
                 tab.tabView,
