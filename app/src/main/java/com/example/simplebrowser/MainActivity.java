@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -360,6 +362,17 @@ public class MainActivity extends Activity {
             hideKeyboard();
 
             showBrowserMenu(settings);
+        });
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        newTab.setOnClickListener(v -> {
+
+            hideKeyboard();
+
+            tabManager.addTab(
+                    browserSettings.getHomePage());
         });
 
         setupButtonPressAnimation(back);
@@ -868,6 +881,15 @@ public class MainActivity extends Activity {
         settingsPage.remove(tab);
     }
 
+    public void restoreSettingsPage(
+            BrowserTab tab,
+            String section) {
+
+        settingsPage.restore(
+                tab,
+                section);
+    }
+
     public void pageStarted(
             BrowserTab tab,
             String url) {
@@ -1152,19 +1174,58 @@ public class MainActivity extends Activity {
                     Color.TRANSPARENT);
         }
 
-        int urlBackground =
-                ColorUtils.mix(
+        LinearLayout tabBar =
+                findViewById(R.id.tab_bar);
+
+        int tabBarBackground =
+                ColorUtils.darken(
                         accent,
-                        Color.WHITE,
-                        0.82f);
+                        0.14f);
+
+        tabBar.setBackgroundColor(
+                tabBarBackground);
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        newTab.setBackgroundColor(
+                Color.TRANSPARENT);
+
+        newTab.setColorFilter(
+                ColorUtils.getReadableTextColor(
+                        tabBarBackground),
+                PorterDuff.Mode.SRC_IN);
+
+        int urlBackground =
+                ColorUtils.darken(
+                        accent,
+                        0.12f);
+
+        int urlBorder =
+                ColorUtils.darken(
+                        accent,
+                        0.25f);
 
         int urlText =
                 ColorUtils
                         .getReadableTextColor(
                                 urlBackground);
 
-        urlBox.setBackgroundColor(
+        GradientDrawable urlDrawable =
+                new GradientDrawable();
+
+        urlDrawable.setColor(
                 urlBackground);
+
+        urlDrawable.setCornerRadius(
+                dp(5));
+
+        urlDrawable.setStroke(
+                dp(1),
+                urlBorder);
+
+        urlBox.setBackground(
+                urlDrawable);
 
         urlBox.setTextColor(
                 urlText);
@@ -1173,7 +1234,7 @@ public class MainActivity extends Activity {
                 ColorUtils.mix(
                         urlBackground,
                         urlText,
-                        0.45f));
+                        0.50f));
 
         updateReloadButton(
                 getActiveTab());
