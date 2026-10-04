@@ -790,10 +790,6 @@ public class MainActivity extends Activity {
 
     public void applyDesktopMode() {
 
-        boolean desktop =
-                browserSettings
-                        .isDesktopMode();
-
         tabManager.applyWebSettings();
 
         for (BrowserTab tab :
@@ -901,6 +897,10 @@ public class MainActivity extends Activity {
     public void updateTabTitle(
             BrowserTab tab) {
         tabManager.updateTabTitle(tab);
+    }
+
+    public void updateNavigationButtonsForTabs() {
+        updateNavigationButtons();
     }
 
     public void updateSecurity(
