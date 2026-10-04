@@ -321,7 +321,7 @@ public class SettingsPage {
                 "Configure Simple Browser" +
                 "</div>" +
 
-                "<h2>General</h2>" +
+                "<div id='section-general' class='section'><h2>General</h2>" +
 
                 "<div class='card'>" +
 
@@ -385,7 +385,7 @@ public class SettingsPage {
 
                 "</div>" +
 
-                "<h2>Websites</h2>" +
+                "</div><div id='section-websites' class='section'><h2>Websites</h2>" +
 
                 "<div class='card'>" +
 
@@ -415,7 +415,7 @@ public class SettingsPage {
 
                 "</div>" +
 
-                "<h2>Appearance</h2>" +
+                "</div><div id='section-appearance' class='section'><h2>Appearance</h2>" +
 
                 "<div class='card'>" +
 
@@ -450,7 +450,7 @@ public class SettingsPage {
 
                 "</div>" +
 
-                "<h2>Privacy</h2>" +
+                "</div><div id='section-privacy' class='section'><h2>Privacy</h2>" +
 
                 "<div class='card'>" +
 
