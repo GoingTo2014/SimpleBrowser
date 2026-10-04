@@ -117,7 +117,7 @@ public class HistoryPage {
         html.append("<style>");
 
         html.append(
-                "html,body{margin:0;padding:0;" +
+                "html,body{margin:0;padding:0;overflow-x:hidden;" +
                 "background:" + background + ";" +
                 "color:" + text + ";" +
                 "font-family:sans-serif;}");
