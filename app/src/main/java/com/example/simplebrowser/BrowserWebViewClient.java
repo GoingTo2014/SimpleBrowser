@@ -250,6 +250,8 @@ public class BrowserWebViewClient
                     "DefaultPage");
             tab.webView.removeJavascriptInterface(
                     "HistoryPage");
+            tab.webView.removeJavascriptInterface(
+                    "DownloadsPage");
         }
 
         if (!tab.settingsPage &&
