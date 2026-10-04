@@ -159,8 +159,11 @@ public class HistoryPage {
 
                 html.append(
                         "<div class='title'>" +
+                        "<a href='javascript:openEntry(" +
+                        entry.id +
+                        ")'>" +
                         escape(title) +
-                        "</div>");
+                        "</a></div>");
 
                 html.append(
                         "<div class='url'>" +
@@ -199,6 +202,8 @@ public class HistoryPage {
                 "function clearAll(){HistoryPage.clear();}");
         html.append(
                 "function removeEntry(id){HistoryPage.remove(id);}");
+        html.append(
+                "function openEntry(id){HistoryPage.open(id);}");
         html.append("</script>");
 
         html.append("</body></html>");
@@ -235,6 +240,30 @@ public class HistoryPage {
                     () -> show(
                             tab,
                             value));
+        }
+
+        @JavascriptInterface
+        public void open(long id) {
+
+            activity.runOnUiThread(
+                    () -> {
+
+                        List<BrowserHistory.Entry> entries =
+                                history.getEntries("");
+
+                        for (BrowserHistory.Entry entry :
+                                entries) {
+
+                            if (entry.id == id) {
+
+                                activity.openUrlOrSearchForTab(
+                                        tab,
+                                        entry.url);
+
+                                return;
+                            }
+                        }
+                    });
         }
 
         @JavascriptInterface
