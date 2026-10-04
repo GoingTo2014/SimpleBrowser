@@ -31,6 +31,8 @@ public class BrowserTab {
      */
     public float dragStartX = 0f;
     public float dragStartY = 0f;
+    public float dragStartScrollX = 0f;
+    public int dragOriginalIndex = -1;
     public boolean dragging = false;
     public Runnable dragRunnable;
 }
