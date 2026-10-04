@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.content.Context;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -19,7 +21,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.main);
 
         webView = findViewById(R.id.webview);
@@ -44,20 +45,43 @@ public class MainActivity extends Activity {
         webView.loadUrl(HOME_URL);
 
         backButton.setOnClickListener(v -> {
+            hideKeyboard();
+            urlBox.clearFocus();
+
             if (webView.canGoBack()) {
                 webView.goBack();
             }
         });
 
         forwardButton.setOnClickListener(v -> {
+            hideKeyboard();
+            urlBox.clearFocus();
+
             if (webView.canGoForward()) {
                 webView.goForward();
             }
         });
 
-        homeButton.setOnClickListener(v -> webView.loadUrl(HOME_URL));
+        homeButton.setOnClickListener(v -> {
+            hideKeyboard();
+            urlBox.clearFocus();
+            webView.loadUrl(HOME_URL);
+        });
 
-        reloadButton.setOnClickListener(v -> webView.reload());
+        reloadButton.setOnClickListener(v -> {
+            hideKeyboard();
+            urlBox.clearFocus();
+            webView.reload();
+        });
+
+        webView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                hideKeyboard();
+                urlBox.clearFocus();
+            }
+
+            return false;
+        });
 
         urlBox.setOnEditorActionListener((v, actionId, event) -> {
             boolean enterPressed =
@@ -77,6 +101,8 @@ public class MainActivity extends Activity {
                         url = "https://" + url;
                     }
 
+                    hideKeyboard();
+                    urlBox.clearFocus();
                     webView.loadUrl(url);
                 }
 
@@ -87,9 +113,20 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void hideKeyboard() {
+        InputMethodManager manager =
+                (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if (manager != null) {
+            manager.hideSoftInputFromWindow(urlBox.getWindowToken(), 0);
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
+            hideKeyboard();
+            urlBox.clearFocus();
             webView.goBack();
         } else {
             super.onBackPressed();
