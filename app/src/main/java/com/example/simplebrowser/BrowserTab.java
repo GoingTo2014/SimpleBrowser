@@ -19,4 +19,7 @@ public class BrowserTab {
     public boolean loading = false;
     public boolean sslError = false;
     public boolean settingsPage = false;
+
+    public float dragStartX = 0;
+    public boolean dragging = false;
 }
