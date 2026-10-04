@@ -47,7 +47,9 @@ public class HistoryPage {
 
         webView.loadDataWithBaseURL(
                 "https://browser.local/history",
-                createHtml(query),
+                createHtml(
+                        query,
+                        tab.isIncognito),
                 "text/html",
                 "UTF-8",
                 null);
@@ -69,7 +71,8 @@ public class HistoryPage {
     }
 
     private String createHtml(
-            String query) {
+            String query,
+            boolean incognito) {
 
         List<BrowserHistory.Entry> entries =
                 history.getEntries(query);
@@ -85,9 +88,27 @@ public class HistoryPage {
                 "content='width=device-width,initial-scale=1'>");
 
         html.append("<style>");
+        String background =
+                incognito
+                        ? "#202124"
+                        : "#FFFFFF";
+
+        String text =
+                incognito
+                        ? "#FFFFFF"
+                        : "#202124";
+
+        String secondary =
+                incognito
+                        ? "#B9B9B9"
+                        : "#555555";
+
         html.append(
-                "html,body{margin:0;background:#FFFFFF;" +
-                "color:#202124;font-family:sans-serif;}");
+                "html,body{margin:0;background:" +
+                background +
+                ";color:" +
+                text +
+                ";font-family:sans-serif;}");
         html.append(
                 ".page{max-width:900px;margin:0 auto;padding:24px;}");
         html.append(
@@ -96,20 +117,33 @@ public class HistoryPage {
                 ".top{display:flex;gap:10px;margin:18px 0;}");
         html.append(
                 "input{flex:1;padding:11px;font-size:15px;" +
-                "border:1px solid #BDBDBD;border-radius:5px;}");
+                "border:1px solid #6B6D70;border-radius:5px;" +
+                "background:" +
+                (incognito ? "#303134" : "#FFFFFF") +
+                ";color:" +
+                text +
+                ";}");
         html.append(
                 "button{padding:10px 13px;border:0;" +
                 "border-radius:5px;background:#202124;" +
                 "color:#FFFFFF;}");
         html.append(
-                ".entry{padding:13px 0;border-top:1px solid #E5E5E5;}");
+                ".entry{padding:13px 0;border-top:1px solid " +
+                (incognito ? "#4A4B4F" : "#E5E5E5") +
+                ";}");
         html.append(
-                ".title{font-weight:bold;font-size:15px;}");
+                ".title{font-weight:bold;font-size:15px;color:" +
+                text +
+                ";}");
         html.append(
-                ".url{color:#555;font-size:13px;" +
+                ".url{color:" +
+                secondary +
+                ";font-size:13px;" +
                 "word-break:break-all;margin-top:3px;}");
         html.append(
-                ".time{color:#777;font-size:12px;margin-top:4px;}");
+                ".time{color:" +
+                secondary +
+                ";font-size:12px;margin-top:4px;}");
         html.append(
                 ".row{display:flex;gap:8px;align-items:flex-start;}");
         html.append(
