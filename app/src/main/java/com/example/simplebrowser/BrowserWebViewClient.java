@@ -188,7 +188,9 @@ public class BrowserWebViewClient
 
         } else if (defaultPage ||
                 historyPage ||
-                tab.errorPage) {
+                (tab.errorPage &&
+                 (url == null ||
+                  url.equals(tab.url)))) {
 
             /*
              * These are browser-owned HTML documents.
@@ -204,6 +206,24 @@ public class BrowserWebViewClient
             }
 
             tab.loading = false;
+
+        } else if (tab.errorPage) {
+
+            /*
+             * A different URL means the user left the custom
+             * error page, usually by pressing Back.
+             */
+            tab.errorPage = false;
+
+            if (tab.settingsPage ||
+                    tab.defaultPage ||
+                    tab.historyPage) {
+                activity.removeSettingsBridge(tab);
+            }
+
+            tab.settingsPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
 
         } else if (tab.settingsPage ||
                 tab.defaultPage ||
