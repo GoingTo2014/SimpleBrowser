@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.http.SslCertificate;
-import android.view.View;
 import android.widget.ImageButton;
 
 import java.text.DateFormat;
@@ -14,6 +13,9 @@ public class SecurityManager {
 
     private static final int SECURE_GREEN =
             Color.rgb(0, 170, 70);
+
+    private static final int LOCAL_BLUE =
+            Color.rgb(35, 105, 190);
 
     private static final int WARNING_RED =
             Color.rgb(210, 45, 45);
@@ -56,13 +58,11 @@ public class SecurityManager {
 
         if (tab.settingsPage) {
 
-            /*
-             * Keep the security control recognizable
-             * even on the internal settings page.
-             */
-            setLock(
+            setCustomIcon(
+                    BrowserIconDrawable.SETTINGS_PAGE,
                     SECURE_GREEN,
                     "Browser settings");
+
             return;
         }
 
@@ -73,62 +73,77 @@ public class SecurityManager {
             url = tab.url;
         }
 
+        String lower =
+                url == null
+                        ? ""
+                        : url.toLowerCase();
+
+        if (lower.startsWith(
+                "file://") ||
+                lower.startsWith(
+                        "content://")) {
+
+            setCustomIcon(
+                    BrowserIconDrawable.LOCAL_FILE,
+                    LOCAL_BLUE,
+                    "Local file");
+
+            return;
+        }
+
         boolean https =
-                url != null &&
-                url.startsWith("https://");
+                lower.startsWith(
+                        "https://");
 
         if (tab.sslError) {
 
-            securityButton
-                    .setImageResource(
-                            android.R.drawable
-                                    .ic_dialog_alert);
-
-            securityButton
-                    .setColorFilter(
-                            WARNING_RED,
-                            PorterDuff.Mode.SRC_IN);
-
-            securityButton
-                    .setContentDescription(
-                            "Connection security warning");
+            setWarning(
+                    "Connection security warning");
 
         } else if (https) {
 
-            setLock(
+            setCustomIcon(
+                    BrowserIconDrawable.SECURE,
                     SECURE_GREEN,
                     "Secure connection");
 
         } else {
 
-            securityButton
-                    .setImageResource(
-                            android.R.drawable
-                                    .ic_dialog_alert);
-
-            securityButton
-                    .setColorFilter(
-                            WARNING_RED,
-                            PorterDuff.Mode.SRC_IN);
-
-            securityButton
-                    .setContentDescription(
-                            "Not secure");
+            setWarning(
+                    "Not secure");
         }
     }
 
-    private void setLock(
+    private void setCustomIcon(
+            int type,
             int color,
+            String description) {
+
+        securityButton
+                .setImageDrawable(
+                        new BrowserIconDrawable(
+                                type,
+                                color));
+
+        securityButton
+                .setColorFilter(null);
+
+        securityButton
+                .setContentDescription(
+                        description);
+    }
+
+    private void setWarning(
             String description) {
 
         securityButton
                 .setImageResource(
                         android.R.drawable
-                                .ic_lock_lock);
+                                .ic_dialog_alert);
 
         securityButton
                 .setColorFilter(
-                        color,
+                        WARNING_RED,
                         PorterDuff.Mode.SRC_IN);
 
         securityButton
@@ -160,9 +175,31 @@ public class SecurityManager {
             url = tab.url;
         }
 
+        String lower =
+                url == null
+                        ? ""
+                        : url.toLowerCase();
+
+        if (lower.startsWith("file://") ||
+                lower.startsWith("content://")) {
+
+            new AlertDialog.Builder(activity)
+                    .setTitle("Local file")
+                    .setMessage(
+                            "This page was opened from the device.\n\n" +
+                            "URL:\n" +
+                            safe(url))
+                    .setPositiveButton(
+                            "OK",
+                            null)
+                    .show();
+
+            return;
+        }
+
         boolean https =
-                url != null &&
-                url.startsWith("https://");
+                lower.startsWith(
+                        "https://");
 
         if (!https) {
 
@@ -183,7 +220,8 @@ public class SecurityManager {
         if (tab.sslError) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Connection is not secure")
+                    .setTitle(
+                            "Connection is not secure")
                     .setMessage(
                             "The SSL certificate could not " +
                             "be trusted.\n\n" +
@@ -242,12 +280,10 @@ public class SecurityManager {
 
         message.append("\n\nIssued to:\n");
 
-        if (issuedTo != null) {
-            message.append(
-                    safe(issuedTo.getCName()));
-        } else {
-            message.append("Unknown");
-        }
+        message.append(
+                issuedTo == null
+                        ? "Unknown"
+                        : safe(issuedTo.getCName()));
 
         message.append("\n\nIssued by:\n");
 
