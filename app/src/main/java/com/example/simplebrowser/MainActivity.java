@@ -585,25 +585,9 @@ public class MainActivity extends Activity {
             return;
         }
 
-        try {
-
-            String encoded =
-                    URLEncoder.encode(
-                            input,
-                            "UTF-8");
-
-            loadTabUrl(
-                    tab,
-                    getSearchUrl() +
-                            encoded);
-
-        } catch (Exception e) {
-
-            loadTabUrl(
-                    tab,
-                    getSearchUrl() +
-                            input);
-        }
+        loadTabUrl(
+                tab,
+                buildSearchUrl(input));
     }
 
     private String getSettingsSection(
@@ -753,8 +737,59 @@ public class MainActivity extends Activity {
                     "https://search.yahoo.com/search?p=";
         }
 
+        if ("custom".equals(engine)) {
+            String custom =
+                    browserSettings
+                            .getCustomSearchUrl();
+
+            if (!custom.trim().isEmpty()) {
+                return custom.trim();
+            }
+        }
+
         return
                 "https://www.google.com/search?q=";
+    }
+
+    private String buildSearchUrl(
+            String input) {
+
+        String encoded;
+
+        try {
+
+            encoded =
+                    URLEncoder.encode(
+                            input,
+                            "UTF-8");
+
+        } catch (Exception e) {
+
+            encoded = input;
+        }
+
+        String template =
+                getSearchUrl();
+
+        if (template.contains("%s")) {
+
+            return template.replace(
+                    "%s",
+                    encoded);
+        }
+
+        if (template.endsWith("=") ||
+                template.endsWith("?") ||
+                template.endsWith("&")) {
+
+            return template + encoded;
+        }
+
+        if (template.contains("?")) {
+            return template + "&q=" + encoded;
+        }
+
+        return template + "?q=" + encoded;
     }
 
     public void loadTabUrl(
