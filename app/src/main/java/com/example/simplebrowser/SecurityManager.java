@@ -31,6 +31,20 @@ public class SecurityManager {
         this.securityButton =
                 securityButton;
 
+        securityButton.setBackground(
+                ButtonFeedback.create(
+                        ColorUtils.getReadableTextColor(
+                                activity
+                                        .getBrowserSettings()
+                                        .getAccentColor()
+                                        .startsWith("#")
+                                        ? ColorUtils.parseColor(
+                                                activity
+                                                        .getBrowserSettings()
+                                                        .getAccentColor(),
+                                                Color.WHITE)
+                                        : Color.WHITE)));
+
         securityButton.setOnClickListener(
                 v -> {
 
@@ -44,6 +58,21 @@ public class SecurityManager {
     }
 
     public void applyAppearance() {
+
+        int accent =
+                ColorUtils.parseColor(
+                        activity
+                                .getBrowserSettings()
+                                .getAccentColor(),
+                        Color.rgb(
+                                63, 81, 181));
+
+        securityButton.setBackground(
+                ButtonFeedback.create(
+                        ColorUtils
+                                .getReadableTextColor(
+                                        accent)));
+
         updateIcon(
                 activity.getActiveTab());
     }
@@ -58,9 +87,7 @@ public class SecurityManager {
 
         if (tab.settingsPage) {
 
-            setCustomIcon(
-                    BrowserIconDrawable.SETTINGS_PAGE,
-                    SECURE_GREEN,
+            setFileIcon(
                     "Browser settings");
 
             return;
@@ -83,9 +110,7 @@ public class SecurityManager {
                 lower.startsWith(
                         "content://")) {
 
-            setCustomIcon(
-                    BrowserIconDrawable.LOCAL_FILE,
-                    LOCAL_BLUE,
+            setFileIcon(
                     "Local file");
 
             return;
@@ -102,8 +127,8 @@ public class SecurityManager {
 
         } else if (https) {
 
-            setCustomIcon(
-                    BrowserIconDrawable.SECURE,
+            setIcon(
+                    android.R.drawable.ic_lock_lock,
                     SECURE_GREEN,
                     "Secure connection");
 
@@ -114,41 +139,57 @@ public class SecurityManager {
         }
     }
 
-    private void setCustomIcon(
-            int type,
+    private void setIcon(
+            int drawableRes,
             int color,
             String description) {
 
-        securityButton
-                .setImageDrawable(
-                        new BrowserIconDrawable(
-                                type,
-                                color));
+        securityButton.setImageResource(
+                drawableRes);
 
-        securityButton
-                .setColorFilter(null);
+        securityButton.setColorFilter(
+                color,
+                PorterDuff.Mode.SRC_IN);
 
-        securityButton
-                .setContentDescription(
-                        description);
+        securityButton.setContentDescription(
+                description);
+    }
+
+    private void setFileIcon(
+            String description) {
+
+        securityButton.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.FILE,
+                        Color.rgb(
+                                105, 105, 105)));
+
+        securityButton.setColorFilter(null);
+        securityButton.setContentDescription(
+                description);
+    }
+
+    private void setUnlockIcon(
+            String description) {
+
+        securityButton.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.UNLOCK,
+                        Color.rgb(
+                                120, 120, 120)));
+
+        securityButton.setColorFilter(null);
+        securityButton.setContentDescription(
+                description);
     }
 
     private void setWarning(
             String description) {
 
-        securityButton
-                .setImageResource(
-                        android.R.drawable
-                                .ic_dialog_alert);
-
-        securityButton
-                .setColorFilter(
-                        WARNING_RED,
-                        PorterDuff.Mode.SRC_IN);
-
-        securityButton
-                .setContentDescription(
-                        description);
+        setIcon(
+                android.R.drawable.ic_dialog_alert,
+                WARNING_RED,
+                description);
     }
 
     private void showInfo(
