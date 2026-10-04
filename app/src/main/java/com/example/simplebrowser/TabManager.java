@@ -72,6 +72,90 @@ public class TabManager {
                 tabTransition);
     }
 
+    private void rebuildTabOrderWithAnimation(
+            BrowserTab draggedTab,
+            int oldDraggedLeft,
+            int oldDraggedTranslation) {
+
+        final java.util.HashMap<BrowserTab, Integer> oldLefts =
+                new java.util.HashMap<>();
+
+        for (BrowserTab current : tabs) {
+
+            oldLefts.put(
+                    current,
+                    current.tabView.getLeft());
+        }
+
+        final int draggedVisualLeft =
+                oldDraggedLeft +
+                        oldDraggedTranslation;
+
+        tabsLayout.setLayoutTransition(
+                null);
+
+        tabsLayout.removeAllViews();
+
+        for (BrowserTab current : tabs) {
+
+            tabsLayout.addView(
+                    current.tabView);
+        }
+
+        tabsLayout.post(
+                () -> {
+
+                    for (BrowserTab current : tabs) {
+
+                        Integer previous =
+                                oldLefts.get(current);
+
+                        if (previous == null) {
+                            continue;
+                        }
+
+                        int targetLeft =
+                                current.tabView.getLeft();
+
+                        int startLeft;
+
+                        if (current == draggedTab) {
+
+                            startLeft =
+                                    draggedVisualLeft;
+
+                        } else {
+
+                            startLeft =
+                                    previous;
+                        }
+
+                        int delta =
+                                startLeft -
+                                        targetLeft;
+
+                        current.tabView.setTranslationX(
+                                delta);
+
+                        current.tabView.animate()
+                                .translationX(0f)
+                                .setDuration(180)
+                                .start();
+                    }
+
+                    draggedTab.tabView.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(180)
+                            .start();
+
+                    tabsLayout.setLayoutTransition(
+                            tabTransition);
+
+                    updateTabAppearanceColors();
+                });
+    }
+
     public BrowserTab addTab(
             String url) {
 
@@ -495,68 +579,59 @@ public class TabManager {
             return;
         }
 
-        int targetIndex =
-                getDragTargetIndex(tab);
-
         int currentIndex =
                 tabs.indexOf(tab);
 
+        int targetIndex =
+                getDragTargetIndex(tab);
+
+        int oldLeft =
+                tab.tabView.getLeft();
+
+        int oldTranslation =
+                Math.round(
+                        tab.tabView
+                                .getTranslationX());
+
         if (currentIndex != targetIndex) {
-
-            int tabWidth =
-                    tab.tabView.getWidth();
-
-            if (tabWidth <= 0) {
-                tabWidth = dp(181);
-            }
-
-            float visualLeft =
-                    (currentIndex * tabWidth) +
-                            tab.tabView
-                                    .getTranslationX();
-
-            tabsLayout.setLayoutTransition(
-                    tabTransition);
 
             tabs.remove(currentIndex);
 
-            tabsLayout.removeView(
-                    tab.tabView);
-
+            /*
+             * Removing first means targetIndex is the exact
+             * final slot in the remaining list. Reinsert
+             * without any off-by-one correction.
+             */
             tabs.add(
                     targetIndex,
                     tab);
-
-            tabsLayout.addView(
-                    tab.tabView,
-                    targetIndex);
-
-            float targetLeft =
-                    targetIndex * tabWidth;
-
-            tab.tabView.setTranslationX(
-                    visualLeft -
-                            targetLeft);
         }
 
         tab.dragging = false;
         cancelDragTimer(tab);
 
-        tab.tabView.animate()
-                .translationX(0f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setDuration(180)
-                .start();
+        if (currentIndex != targetIndex) {
 
-        tabsLayout.post(
-                () -> {
+            rebuildTabOrderWithAnimation(
+                    tab,
+                    oldLeft,
+                    oldTranslation);
 
-                    tabsLayout.setLayoutTransition(
-                            tabTransition);
+        } else {
 
-                    updateTabAppearanceColors();
-                });
+            tab.tabView.animate()
+                    .translationX(0f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(180)
+                    .start();
+
+            tabsLayout.setLayoutTransition(
+                    tabTransition);
+        }
+
+        tab.tabView
+                .setAlpha(1f);
 
         selectTab(tab);
     }
