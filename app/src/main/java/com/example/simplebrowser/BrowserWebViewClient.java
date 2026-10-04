@@ -25,15 +25,19 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
-        if ("browser://settings".equals(
-                url.toLowerCase())) {
+        if (url != null &&
+                "browser://settings"
+                        .equalsIgnoreCase(url)) {
 
             activity.showSettings(tab);
 
             return true;
         }
 
-        // Leaving the internal settings page.
+        /*
+         * Never allow the Android bridge to
+         * survive into a normal website.
+         */
         if (tab.settingsPage) {
 
             activity.removeSettingsBridge(tab);
@@ -48,19 +52,25 @@ public class BrowserWebViewClient
             String url,
             Bitmap favicon) {
 
-        // If we are navigating away from settings,
-        // remove the bridge immediately.
+        /*
+         * loadDataWithBaseURL() uses the internal
+         * browser.local base URL. Keep settings
+         * marked as an internal page.
+         */
         if (tab.settingsPage &&
-                !"browser://settings".equals(
-                        url.toLowerCase())) {
+                (url == null ||
+                 !url.startsWith(
+                         "https://browser.local"))) {
 
             activity.removeSettingsBridge(tab);
         }
 
-        tab.url = url;
-        tab.loading = true;
-        tab.sslError = false;
-        tab.settingsPage = false;
+        if (!tab.settingsPage) {
+
+            tab.url = url;
+            tab.loading = true;
+            tab.sslError = false;
+        }
 
         activity.pageStarted(tab, url);
     }
@@ -70,8 +80,11 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
-        tab.url = url;
-        tab.loading = false;
+        if (!tab.settingsPage) {
+
+            tab.url = url;
+            tab.loading = false;
+        }
 
         activity.pageFinished(tab, url);
     }
@@ -86,7 +99,9 @@ public class BrowserWebViewClient
 
         activity.updateSecurity(tab);
 
-        // Never bypass an invalid certificate.
+        /*
+         * Do not allow invalid certificates.
+         */
         handler.cancel();
     }
-        }
+}
