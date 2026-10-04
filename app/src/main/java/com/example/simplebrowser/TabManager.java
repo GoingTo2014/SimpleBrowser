@@ -829,6 +829,22 @@ public class TabManager {
                     activity.getSettingsUrl(
                             tab.settingsSection);
 
+        } else if (tab.defaultPage) {
+
+            url = "";
+
+        } else if (tab.historyPage) {
+
+            url = "browser://history";
+
+        } else if (tab.downloadsPage) {
+
+            url = "browser://downloads";
+
+        } else if (tab.errorPage) {
+
+            url = tab.url;
+
         } else {
 
             url = tab.webView.getUrl();
