@@ -905,6 +905,35 @@ public class TabManager {
                 browserSettings
                         .isStorageEnabled());
 
+        boolean imagesEnabled =
+                browserSettings.areImagesEnabled();
+
+        webSettings.setLoadsImagesAutomatically(
+                imagesEnabled);
+
+        webSettings.setBlockNetworkImage(
+                !imagesEnabled);
+
+        boolean zoomEnabled =
+                browserSettings.isZoomEnabled();
+
+        webSettings.setSupportZoom(
+                zoomEnabled);
+
+        webSettings.setBuiltInZoomControls(
+                zoomEnabled);
+
+        webSettings.setDisplayZoomControls(
+                false);
+
+        webSettings.setGeolocationEnabled(
+                browserSettings
+                        .isGeolocationEnabled());
+
+        webSettings.setMediaPlaybackRequiresUserGesture(
+                !browserSettings
+                        .isMediaAutoplayEnabled());
+
         webSettings.setCacheMode(
                 WebSettings.LOAD_DEFAULT);
 
