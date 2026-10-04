@@ -164,25 +164,66 @@ public class TabManager {
 
         return addTab(
                 url,
-                false);
+                incognitoMode,
+                true);
+    }
+
+    public BrowserTab addCurrentModeTab(
+            String url) {
+
+        return addTab(
+                url,
+                incognitoMode,
+                true);
     }
 
     public BrowserTab addIncognitoTab(
             String url) {
 
+        switchToSession(true);
+
         return addTab(
                 url,
+                true,
                 true);
+    }
+
+    public BrowserTab addRestoredTab(
+            String url,
+            String title) {
+
+        BrowserTab tab =
+                addTab(
+                        url,
+                        false,
+                        false);
+
+        if (title != null &&
+                !title.trim().isEmpty()) {
+
+            tab.title =
+                    title.trim();
+
+            updateTabTitle(tab);
+        }
+
+        return tab;
     }
 
     private BrowserTab addTab(
             String url,
-            boolean incognito) {
+            boolean incognito,
+            boolean select) {
 
         BrowserTab tab =
                 new BrowserTab();
 
         tab.isIncognito = incognito;
+        tab.pendingUrl =
+                url == null ||
+                url.trim().isEmpty()
+                        ? "about:blank"
+                        : url;
 
         tab.webView =
                 new WebView(activity);
@@ -198,15 +239,8 @@ public class TabManager {
         webViewContainer.addView(
                 tab.webView);
 
-        selectTab(tab);
-
-        activity.loadTabUrl(
-                tab,
-                url);
-
-        if (incognito) {
-            tab.webView.clearHistory();
-            tab.webView.clearCache(true);
+        if (select) {
+            selectTab(tab);
         }
 
         return tab;
@@ -728,6 +762,29 @@ public class TabManager {
 
         activeTab = tab;
 
+        if (incognitoMode) {
+            incognitoActiveTab = tab;
+        } else {
+            normalActiveTab = tab;
+        }
+
+        if (!tab.hasLoaded) {
+
+            tab.hasLoaded = true;
+
+            String pending =
+                    tab.pendingUrl;
+
+            if (pending == null ||
+                    pending.trim().isEmpty()) {
+                pending = "about:blank";
+            }
+
+            activity.loadTabUrl(
+                    tab,
+                    pending);
+        }
+
         for (BrowserTab current :
                 tabs) {
 
@@ -866,8 +923,21 @@ public class TabManager {
 
             activeTab = null;
 
-            activity.saveTabs();
-            activity.finish();
+            if (incognitoMode) {
+
+                incognitoActiveTab = null;
+                switchToSession(false);
+
+                if (normalTabs.isEmpty()) {
+                    activity.finish();
+                }
+
+            } else {
+
+                normalActiveTab = null;
+                activity.saveTabs();
+                activity.finish();
+            }
 
             return;
         }
@@ -914,33 +984,27 @@ public class TabManager {
         int activePersistentIndex = -1;
         int persistentIndex = 0;
 
-        for (BrowserTab tab : tabs) {
-
-            if (tab.isIncognito) {
-                continue;
-            }
+        for (BrowserTab tab : normalTabs) {
 
             String url;
 
             if (tab.settingsPage) {
-
-                url =
-                        activity.getSettingsUrl(
-                                tab.settingsSection);
+                url = activity.getSettingsUrl(
+                        tab.settingsSection);
 
             } else if (tab.defaultPage) {
-
                 url = "browser://default";
 
             } else if (tab.historyPage) {
-
                 url = "browser://history";
 
-            } else if (tab.errorPage) {
+            } else if (tab.downloadsPage) {
+                url = "browser://downloads";
 
+            } else if (tab.errorPage) {
                 url = tab.url;
 
-            } else {
+            } else if (tab.hasLoaded) {
 
                 url = tab.webView.getUrl();
 
@@ -948,6 +1012,10 @@ public class TabManager {
                         url.trim().isEmpty()) {
                     url = tab.url;
                 }
+
+            } else {
+
+                url = tab.pendingUrl;
             }
 
             if (url == null ||
@@ -970,7 +1038,10 @@ public class TabManager {
 
                 array.put(object);
 
-                if (tab == activeTab) {
+                if (tab == normalActiveTab ||
+                        (!incognitoMode &&
+                         tab == activeTab)) {
+
                     activePersistentIndex =
                             persistentIndex;
                 }
@@ -983,10 +1054,7 @@ public class TabManager {
 
         try {
 
-            state.put(
-                    "tabs",
-                    array);
-
+            state.put("tabs", array);
             state.put(
                     "active",
                     activePersistentIndex);
@@ -1000,6 +1068,10 @@ public class TabManager {
     }
 
     public boolean restoreTabs() {
+
+        if (incognitoMode) {
+            switchToSession(false);
+        }
 
         String json =
                 activity.getBrowserSettings()
@@ -1016,8 +1088,7 @@ public class TabManager {
                     new JSONObject(json);
 
             JSONArray array =
-                    state.optJSONArray(
-                            "tabs");
+                    state.optJSONArray("tabs");
 
             if (array == null ||
                     array.length() == 0) {
@@ -1031,29 +1102,24 @@ public class TabManager {
                 JSONObject object =
                         array.getJSONObject(i);
 
-                String url =
+                addRestoredTab(
                         object.optString(
                                 "url",
-                                "about:blank");
-
-                addTab(
-                        url,
-                        false);
+                                "about:blank"),
+                        object.optString(
+                                "title",
+                                "New Tab"));
             }
 
             int activeIndex =
-                    state.optInt(
-                            "active",
-                            tabs.size() - 1);
+                    state.optInt("active", 0);
 
             if (activeIndex < 0 ||
                     activeIndex >= tabs.size()) {
-
-                activeIndex =
-                        tabs.size() - 1;
+                activeIndex = 0;
             }
 
-            if (activeIndex >= 0) {
+            if (!tabs.isEmpty()) {
                 selectTab(
                         tabs.get(activeIndex));
             }
@@ -1062,10 +1128,6 @@ public class TabManager {
 
         } catch (Exception e) {
 
-            /*
-             * Also accept the old saved JSONArray format
-             * from earlier versions of the browser.
-             */
             try {
 
                 JSONArray array =
@@ -1079,18 +1141,20 @@ public class TabManager {
                         i < array.length();
                         i++) {
 
-                    addTab(
-                            array
-                                    .getJSONObject(i)
-                                    .optString(
-                                            "url",
-                                            "about:blank"),
-                            false);
+                    JSONObject object =
+                            array.getJSONObject(i);
+
+                    addRestoredTab(
+                            object.optString(
+                                    "url",
+                                    "about:blank"),
+                            object.optString(
+                                    "title",
+                                    "New Tab"));
                 }
 
                 selectTab(
-                        tabs.get(
-                                tabs.size() - 1));
+                        tabs.get(0));
 
                 return true;
 
@@ -1102,6 +1166,92 @@ public class TabManager {
                 return false;
             }
         }
+    }
+
+    public void enterIncognitoMode(
+            String homeUrl) {
+
+        switchToSession(true);
+
+        if (incognitoTabs.isEmpty()) {
+
+            addTab(
+                    homeUrl,
+                    true,
+                    true);
+
+        } else if (activeTab != null) {
+
+            selectTab(activeTab);
+        }
+    }
+
+    public void exitIncognitoMode() {
+
+        switchToSession(false);
+
+        if (normalTabs.isEmpty()) {
+
+            addTab(
+                    activity.getBrowserSettings()
+                            .getHomePage(),
+                    false,
+                    true);
+
+        } else if (activeTab != null) {
+
+            selectTab(activeTab);
+        }
+    }
+
+    private void switchToSession(
+            boolean incognito) {
+
+        if (incognitoMode == incognito) {
+            return;
+        }
+
+        if (activeTab != null) {
+
+            if (incognitoMode) {
+                incognitoActiveTab = activeTab;
+            } else {
+                normalActiveTab = activeTab;
+            }
+        }
+
+        incognitoMode = incognito;
+
+        tabs =
+                incognito
+                        ? incognitoTabs
+                        : normalTabs;
+
+        activeTab =
+                incognito
+                        ? incognitoActiveTab
+                        : normalActiveTab;
+
+        if (activeTab != null &&
+                tabs.contains(activeTab)) {
+
+            selectTab(activeTab);
+
+        } else if (!tabs.isEmpty()) {
+
+            selectTab(tabs.get(0));
+
+        } else {
+
+            activeTab = null;
+            activity.setUrlText("");
+            activity.updateNavigationButtonsForTabs();
+            activity.applyActiveTabAppearance();
+        }
+    }
+
+    public boolean isIncognitoMode() {
+        return incognitoMode;
     }
 
     public BrowserTab getActiveTab() {
@@ -1118,14 +1268,20 @@ public class TabManager {
                 activity.getBrowserSettings();
 
         for (BrowserTab tab :
-                tabs) {
-
-            WebSettings webSettings =
-                    tab.webView.getSettings();
+                normalTabs) {
 
             applyWebSettings(
                     tab,
-                    webSettings,
+                    tab.webView.getSettings(),
+                    browserSettings);
+        }
+
+        for (BrowserTab tab :
+                incognitoTabs) {
+
+            applyWebSettings(
+                    tab,
+                    tab.webView.getSettings(),
                     browserSettings);
         }
 
