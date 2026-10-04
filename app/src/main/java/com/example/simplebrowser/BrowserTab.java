@@ -20,9 +20,17 @@ public class BrowserTab {
     public boolean sslError = false;
     public boolean settingsPage = false;
 
+    public String settingsSection = "general";
+
     /** Original WebView UA used when Desktop mode is off. */
     public String defaultUserAgent = "";
 
-    public float dragStartX = 0;
+    /*
+     * Long-press tab dragging state. The Runnable is owned by
+     * this tab so one tab cannot cancel another tab's timer.
+     */
+    public float dragStartX = 0f;
+    public float dragStartY = 0f;
     public boolean dragging = false;
+    public Runnable dragRunnable;
 }
