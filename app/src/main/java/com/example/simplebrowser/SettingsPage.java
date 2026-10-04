@@ -167,6 +167,12 @@ public class SettingsPage {
                 ";" +
                 "}" +
 
+                ".nav:hover{" +
+                "background:" +
+                (dark ? "#2A2A2A" : "#E8E8E8") +
+                ";cursor:pointer;" +
+                "}" +
+
                 ".nav.active{" +
                 "color:" +
                 accent +
@@ -481,6 +487,20 @@ public class SettingsPage {
                 "</div>" +
 
                 "</div>" +
+
+                "<script>" +
+                "function showSection(name){" +
+                "var names=['general','privacy','websites','appearance'];" +
+                "for(var i=0;i<names.length;i++){" +
+                "var n=names[i];" +
+                "var section=document.getElementById('section-'+n);" +
+                "var nav=document.getElementById('nav-'+n);" +
+                "if(section) section.style.display=(n===name?'block':'none');" +
+                "if(nav) nav.className='nav'+(n===name?' active':'');" +
+                "}" +
+                "}" +
+                "showSection('general');" +
+                "</script>" +
 
                 "</body>" +
 
