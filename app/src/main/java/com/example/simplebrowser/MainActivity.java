@@ -44,6 +44,17 @@ public class MainActivity extends Activity {
     private SettingsPage settingsPage;
     private SecurityManager securityManager;
 
+    private BrowserHistory browserHistory;
+    private DefaultPage defaultPage;
+    private HistoryPage historyPage;
+    private ErrorPage errorPage;
+
+    private static final int INCOGNITO_CHROME =
+            Color.rgb(32, 33, 36);
+
+    private static final int INCOGNITO_URL =
+            Color.rgb(48, 49, 52);
+
     private GeolocationPermissions.Callback
             pendingGeolocationCallback;
 
@@ -99,21 +110,53 @@ public class MainActivity extends Activity {
                         this,
                         security);
 
+        browserHistory =
+                new BrowserHistory(this);
+
+        defaultPage =
+                new DefaultPage(this);
+
+        historyPage =
+                new HistoryPage(
+                        this,
+                        browserHistory);
+
+        errorPage =
+                new ErrorPage(this);
+
         setupToolbarIcons();
         setupButtons();
         applyBrowserAppearance();
 
-        BrowserTab initialTab =
-                tabManager.addTab("about:blank");
-
         String launchUrl =
                 getLaunchUrl();
 
-        loadTabUrl(
-                initialTab,
-                launchUrl == null
-                        ? browserSettings.getHomePage()
-                        : launchUrl);
+        if (launchUrl != null) {
+
+            BrowserTab initialTab =
+                    tabManager.addTab(
+                            "about:blank");
+
+            loadTabUrl(
+                    initialTab,
+                    launchUrl);
+
+        } else if (
+                browserSettings.isRestoreTabsEnabled() &&
+                tabManager.restoreTabs()) {
+
+            // Restored tabs are already loaded.
+
+        } else {
+
+            BrowserTab initialTab =
+                    tabManager.addTab(
+                            "about:blank");
+
+            loadTabUrl(
+                    initialTab,
+                    browserSettings.getHomePage());
+        }
     }
 
     private String getLaunchUrl() {
@@ -415,6 +458,40 @@ public class MainActivity extends Activity {
         menu.setBackgroundColor(
                 menuBackground);
 
+        addMenuActionButton(
+                menu,
+                "History",
+                () -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showHistory(tab, "");
+                    }
+                },
+                accent,
+                readable);
+
+        addMenuActionButton(
+                menu,
+                "New Incognito Tab",
+                () -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    tabManager.addIncognitoTab(
+                            browserSettings.getHomePage());
+                },
+                accent,
+                readable);
+
         addMenuSectionButton(
                 menu,
                 "General",
@@ -507,6 +584,31 @@ public class MainActivity extends Activity {
                 0);
     }
 
+    private void addMenuActionButton(
+            LinearLayout menu,
+            String text,
+            final Runnable action,
+            int accent,
+            int readable) {
+
+        Button button =
+                new Button(this);
+
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextColor(readable);
+        button.setBackgroundColor(accent);
+
+        button.setOnClickListener(
+                v -> action.run());
+
+        menu.addView(
+                button,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)));
+    }
+
     private void addMenuSectionButton(
             LinearLayout menu,
             String text,
@@ -549,17 +651,31 @@ public class MainActivity extends Activity {
     public void openUrlOrSearch(
             String input) {
 
+        openUrlOrSearchForTab(
+                getActiveTab(),
+                input);
+    }
+
+    public void openUrlOrSearchForTab(
+            BrowserTab tab,
+            String input) {
+
         hideKeyboard();
 
-        BrowserTab tab =
-                getActiveTab();
+        if (tab == null ||
+                input == null) {
+            return;
+        }
 
-        if (tab == null) {
+        String value =
+                input.trim();
+
+        if (value.isEmpty()) {
             return;
         }
 
         String settingsSection =
-                getSettingsSection(input);
+                getSettingsSection(value);
 
         if (settingsSection != null) {
 
@@ -570,39 +686,51 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (isLocalPath(input)) {
+        if ("browser://default".equalsIgnoreCase(value)) {
+
+            showDefaultPage(tab);
+            return;
+        }
+
+        if ("browser://history".equalsIgnoreCase(value)) {
+
+            showHistory(tab, "");
+            return;
+        }
+
+        if (isLocalPath(value)) {
 
             loadTabUrl(
                     tab,
-                    toLocalUri(input));
+                    toLocalUri(value));
 
             return;
         }
 
-        if (isUrl(input)) {
+        if (isUrl(value)) {
 
-            if (!input.startsWith("http://") &&
-                    !input.startsWith("https://") &&
-                    !input.startsWith("file://") &&
-                    !input.startsWith("content://")) {
+            if (!value.startsWith("http://") &&
+                    !value.startsWith("https://") &&
+                    !value.startsWith("file://") &&
+                    !value.startsWith("content://")) {
 
-                input =
-                        "https://" + input;
+                value =
+                        "https://" + value;
             }
 
             loadTabUrl(
                     tab,
-                    input);
+                    value);
 
             return;
         }
 
         loadTabUrl(
                 tab,
-                buildSearchUrl(input));
+                buildSearchUrl(value));
     }
 
-    private String getSettingsSection(
+        private String getSettingsSection(
             String url) {
 
         if (url == null) {
@@ -825,17 +953,208 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (tab.settingsPage) {
-            removeSettingsBridge(tab);
+        if ("browser://default".equalsIgnoreCase(url)) {
+
+            showDefaultPage(tab);
+            return;
         }
 
-        tab.settingsPage = false;
-        tab.settingsSection = "general";
+        if ("browser://history".equalsIgnoreCase(url)) {
+
+            showHistory(tab, "");
+            return;
+        }
+
+        removeInternalPageState(tab);
 
         tab.webView.loadUrl(url);
     }
 
-    public void showSettings(
+    private void removeInternalPageState(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        settingsPage.remove(tab);
+
+        defaultPage.remove(tab);
+        historyPage.remove(tab);
+
+        tab.settingsPage = false;
+        tab.defaultPage = false;
+        tab.historyPage = false;
+        tab.errorPage = false;
+        tab.settingsSection = "general";
+    }
+
+    public void showDefaultPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        defaultPage.show(tab);
+        tabManager.selectTab(tab);
+    }
+
+    public void showHistory(
+            BrowserTab tab,
+            String query) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        historyPage.show(
+                tab,
+                query);
+        tabManager.selectTab(tab);
+    }
+
+    public void recordVisit(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                tab.settingsPage ||
+                tab.defaultPage ||
+                tab.historyPage ||
+                tab.errorPage ||
+                url == null) {
+            return;
+        }
+
+        browserHistory.addVisit(
+                url,
+                tab.title);
+    }
+
+    public void saveTabs() {
+
+        if (browserSettings
+                .isRestoreTabsEnabled()) {
+
+            tabManager.saveTabs();
+
+        } else {
+
+            browserSettings.setSavedTabsJson("");
+        }
+    }
+
+    public void applyActiveTabAppearance() {
+
+        BrowserTab tab =
+                getActiveTab();
+
+        int chromeColor;
+        int urlBackground;
+
+        if (tab != null &&
+                tab.isIncognito) {
+
+            chromeColor =
+                    INCOGNITO_CHROME;
+
+            urlBackground =
+                    INCOGNITO_URL;
+
+        } else {
+
+            int accent =
+                    getAccentColor();
+
+            chromeColor =
+                    accent;
+
+            urlBackground =
+                    ColorUtils.darken(
+                            accent,
+                            0.12f);
+        }
+
+        int readable =
+                ColorUtils.getReadableTextColor(
+                        chromeColor);
+
+        toolbar.setBackgroundColor(
+                chromeColor);
+
+        setToolbarIcon(
+                R.id.back,
+                BrowserIconDrawable.BACK,
+                readable);
+
+        setToolbarIcon(
+                R.id.forward,
+                BrowserIconDrawable.FORWARD,
+                readable);
+
+        setToolbarIcon(
+                R.id.home,
+                BrowserIconDrawable.HOME,
+                readable);
+
+        setToolbarIcon(
+                R.id.settings,
+                BrowserIconDrawable.MORE,
+                readable);
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        newTab.setColorFilter(
+                readable,
+                PorterDuff.Mode.SRC_IN);
+
+        urlBox.setBackgroundColor(
+                Color.TRANSPARENT);
+
+        GradientDrawable urlDrawable =
+                new GradientDrawable();
+
+        urlDrawable.setColor(
+                urlBackground);
+
+        urlDrawable.setCornerRadius(
+                dp(5));
+
+        urlDrawable.setStroke(
+                dp(1),
+                ColorUtils.darken(
+                        urlBackground,
+                        0.25f));
+
+        urlBox.setBackground(
+                urlDrawable);
+
+        int urlText =
+                ColorUtils.getReadableTextColor(
+                        urlBackground);
+
+        urlBox.setTextColor(urlText);
+
+        urlBox.setHintTextColor(
+                ColorUtils.mix(
+                        urlBackground,
+                        urlText,
+                        0.50f));
+
+        securityManager.applyAppearance();
+
+        tabManager.updateTabAppearanceColors();
+        tabManager.updateTitles();
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+        public void showSettings(
             BrowserTab tab) {
 
         showSettings(
@@ -1205,125 +1524,10 @@ public class MainActivity extends Activity {
 
     public void applyBrowserAppearance() {
 
-        int accent =
-                getAccentColor();
-
-        int readable =
-                ColorUtils
-                        .getReadableTextColor(
-                                accent);
-
-        toolbar.setBackgroundColor(
-                accent);
-
-        setToolbarIcon(
-                R.id.back,
-                BrowserIconDrawable.BACK,
-                readable);
-
-        setToolbarIcon(
-                R.id.forward,
-                BrowserIconDrawable.FORWARD,
-                readable);
-
-        setToolbarIcon(
-                R.id.home,
-                BrowserIconDrawable.HOME,
-                readable);
-
-        setToolbarIcon(
-                R.id.settings,
-                BrowserIconDrawable.MORE,
-                readable);
-
-        for (int id :
-                new int[] {
-                        R.id.back,
-                        R.id.forward,
-                        R.id.home,
-                        R.id.reload,
-                        R.id.settings
-                }) {
-
-            ImageButton button =
-                    findViewById(id);
-
-            button.setBackgroundColor(
-                    Color.TRANSPARENT);
-        }
-
-        LinearLayout tabBar =
-                findViewById(R.id.tab_bar);
-
-        int tabBarBackground =
-                ColorUtils.darken(
-                        accent,
-                        0.14f);
-
-        tabBar.setBackgroundColor(
-                tabBarBackground);
-
-        ImageButton newTab =
-                findViewById(R.id.new_tab);
-
-        newTab.setBackgroundColor(
-                Color.TRANSPARENT);
-
-        newTab.setColorFilter(
-                ColorUtils.getReadableTextColor(
-                        tabBarBackground),
-                PorterDuff.Mode.SRC_IN);
-
-        int urlBackground =
-                ColorUtils.darken(
-                        accent,
-                        0.12f);
-
-        int urlBorder =
-                ColorUtils.darken(
-                        accent,
-                        0.25f);
-
-        int urlText =
-                ColorUtils
-                        .getReadableTextColor(
-                                urlBackground);
-
-        GradientDrawable urlDrawable =
-                new GradientDrawable();
-
-        urlDrawable.setColor(
-                urlBackground);
-
-        urlDrawable.setCornerRadius(
-                dp(5));
-
-        urlDrawable.setStroke(
-                dp(1),
-                urlBorder);
-
-        urlBox.setBackground(
-                urlDrawable);
-
-        urlBox.setTextColor(
-                urlText);
-
-        urlBox.setHintTextColor(
-                ColorUtils.mix(
-                        urlBackground,
-                        urlText,
-                        0.50f));
-
-        updateReloadButton(
-                getActiveTab());
-
-        securityManager.applyAppearance();
-
-        tabManager.updateTabAppearanceColors();
-        tabManager.updateTitles();
+        applyActiveTabAppearance();
     }
 
-    public void updateNavigationButtonsForTabs() {
+        public void updateNavigationButtonsForTabs() {
         updateNavigationButtons();
     }
 
@@ -1384,6 +1588,23 @@ public class MainActivity extends Activity {
         }
 
         urlBox.clearFocus();
+    }
+
+    @Override
+    protected void onPause() {
+
+        saveTabs();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        if (browserHistory != null) {
+            browserHistory.close();
+        }
+
+        super.onDestroy();
     }
 
     public void openLocalFilePicker() {
