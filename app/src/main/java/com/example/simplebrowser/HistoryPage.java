@@ -27,6 +27,8 @@ public class HistoryPage {
 
         tab.settingsPage = false;
         tab.errorPage = false;
+        tab.defaultPage = false;
+        tab.historyPage = true;
         tab.loading = false;
         tab.url = "browser://history";
         tab.title = "History";
@@ -53,6 +55,17 @@ public class HistoryPage {
         activity.updateTabTitle(tab);
         activity.setUrlText("browser://history");
         activity.updateSecurity(tab);
+    }
+
+    public void remove(BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        tab.webView.removeJavascriptInterface(
+                "HistoryPage");
+        tab.historyPage = false;
     }
 
     private String createHtml(
