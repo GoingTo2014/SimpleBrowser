@@ -6,6 +6,10 @@
     <uses-permission
         android:name="android.permission.INTERNET" />
 
+    <!-- Needed for direct file:// HTML access on Android 4.4. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:theme="@style/BrowserTheme"
         android:label="Simple Browser"
@@ -18,6 +22,7 @@
             android:exported="true"
             android:hardwareAccelerated="true">
 
+            <!-- Normal app launcher. -->
             <intent-filter>
 
                 <action
@@ -25,6 +30,66 @@
 
                 <category
                     android:name="android.intent.category.LAUNCHER" />
+
+            </intent-filter>
+
+            <!-- Make Simple Browser eligible to open HTTP/HTTPS links
+                 and therefore appear as a browser/default-browser choice. -->
+            <intent-filter>
+
+                <action
+                    android:name="android.intent.action.VIEW" />
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+
+                <category
+                    android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="http" />
+
+                <data
+                    android:scheme="https" />
+
+            </intent-filter>
+
+            <!-- Accept local HTML files passed from file managers. -->
+            <intent-filter>
+
+                <action
+                    android:name="android.intent.action.VIEW" />
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:scheme="file"
+                    android:mimeType="text/html" />
+
+                <data
+                    android:scheme="file"
+                    android:mimeType="application/xhtml+xml" />
+
+            </intent-filter>
+
+            <!-- Accept content-provider HTML documents from modern
+                 document/file picker apps. -->
+            <intent-filter>
+
+                <action
+                    android:name="android.intent.action.VIEW" />
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:scheme="content"
+                    android:mimeType="text/html" />
+
+                <data
+                    android:scheme="content"
+                    android:mimeType="application/xhtml+xml" />
 
             </intent-filter>
 
