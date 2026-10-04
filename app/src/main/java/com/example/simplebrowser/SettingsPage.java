@@ -434,6 +434,26 @@ public class SettingsPage {
                 "border-radius:5px;" +
                 "}" +
 
+                "input[type=text]{" +
+                "width:100%;" +
+                "margin-top:8px;" +
+                "padding:9px;" +
+                "font-size:14px;" +
+                "border:1px solid " +
+                accentBorderHex +
+                ";" +
+                "background:" +
+                cardBackgroundHex +
+                ";" +
+                "color:" +
+                cardTextHex +
+                ";" +
+                "}" +
+
+                ".custom-hidden{" +
+                "display:none;" +
+                "}" +
+
                 ".section{display:none;}" +
 
                 ".section.active{display:block;}" +
@@ -447,6 +467,16 @@ public class SettingsPage {
                 "}" +
 
                 "</style>" +
+                "<script>" +
+                "function updateHomeVisibility(value){" +
+                "var element=document.getElementById('custom-home');" +
+                "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
+                "}" +
+                "function updateSearchVisibility(value){" +
+                "var element=document.getElementById('custom-search');" +
+                "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
+                "}" +
+                "</script>" +
                 "</head>" +
                 "<body>" +
 
@@ -495,7 +525,7 @@ public class SettingsPage {
                 "<div class='row'>" +
                 "<div class='title'>Home page</div>" +
 
-                "<select onchange="updateHomeVisibility(this.value);Android.setHome(this.value)">" +
+                "<select onchange=\"updateHomeVisibility(this.value);Android.setHome(this.value)\">" +
 
                 homeOption(
                         "https://www.google.com/",
@@ -534,13 +564,13 @@ public class SettingsPage {
                 "<input type='text' value='" +
                 htmlAttribute(
                         settings.getCustomHomePage()) +
-                "' onchange="Android.setCustomHome(this.value)">" +
+                "' onchange=\"Android.setCustomHome(this.value)\">" +
                 "</div>" +
 
                 "<div class='row'>" +
                 "<div class='title'>Search engine</div>" +
 
-                "<select onchange="updateSearchVisibility(this.value);Android.setSearch(this.value)">" +
+                "<select onchange=\"updateSearchVisibility(this.value);Android.setSearch(this.value)\">" +
 
                 searchOption(
                         "google",
@@ -579,7 +609,7 @@ public class SettingsPage {
                 "<input type='text' value='" +
                 htmlAttribute(
                         settings.getCustomSearchUrl()) +
-                "' onchange="Android.setCustomSearch(this.value)">" +
+                "' onchange=\"Android.setCustomSearch(this.value)\">" +
                 "</div>" +
 
                 "</div>" +
@@ -764,6 +794,21 @@ public class SettingsPage {
                 "</option>";
     }
 
+    private String htmlAttribute(
+            String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace(""", "&quot;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("'", "&#39;");
+    }
+
     private String settingRow(
             String title,
             String description,
@@ -821,9 +866,23 @@ public class SettingsPage {
         }
 
         @JavascriptInterface
+        public void setCustomHome(
+                String value) {
+
+            settings.setCustomHomePage(value);
+        }
+
+        @JavascriptInterface
         public void setSearch(
                 String value) {
             settings.setSearchEngine(value);
+        }
+
+        @JavascriptInterface
+        public void setCustomSearch(
+                String value) {
+
+            settings.setCustomSearchUrl(value);
         }
 
         @JavascriptInterface
