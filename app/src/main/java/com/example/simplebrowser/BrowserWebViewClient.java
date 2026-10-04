@@ -52,6 +52,23 @@ public class BrowserWebViewClient
         return false;
     }
 
+    private boolean isBrowserLocalPage(
+            String url,
+            String path) {
+
+        if (url == null) {
+            return false;
+        }
+
+        String lower =
+                url.trim()
+                        .toLowerCase();
+
+        return lower.equals(
+                "https://browser.local" +
+                        path);
+    }
+
     private String getSettingsSection(
             String url) {
 
@@ -142,6 +159,16 @@ public class BrowserWebViewClient
         String settingsSection =
                 getSettingsSection(url);
 
+        boolean defaultPage =
+                isBrowserLocalPage(
+                        url,
+                        "/default");
+
+        boolean historyPage =
+                isBrowserLocalPage(
+                        url,
+                        "/history");
+
         if (settingsSection != null) {
 
             if (!tab.settingsPage) {
@@ -159,12 +186,43 @@ public class BrowserWebViewClient
                                 settingsSection);
             }
 
-        } else if (tab.settingsPage) {
+        } else if (defaultPage ||
+                historyPage ||
+                tab.errorPage) {
+
+            /*
+             * These are browser-owned HTML documents.
+             * Keep their bridges/state and do not treat the
+             * browser.local base URL as a real website.
+             */
+            if (defaultPage) {
+                tab.defaultPage = true;
+            }
+
+            if (historyPage) {
+                tab.historyPage = true;
+            }
+
+            tab.loading = false;
+
+        } else if (tab.settingsPage ||
+                tab.defaultPage ||
+                tab.historyPage) {
 
             activity.removeSettingsBridge(tab);
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.settingsPage = false;
+            tab.webView.removeJavascriptInterface(
+                    "DefaultPage");
+            tab.webView.removeJavascriptInterface(
+                    "HistoryPage");
         }
 
-        if (!tab.settingsPage) {
+        if (!tab.settingsPage &&
+                !tab.defaultPage &&
+                !tab.historyPage &&
+                !tab.errorPage) {
 
             tab.url = url;
             tab.loading = true;
@@ -173,7 +231,9 @@ public class BrowserWebViewClient
 
         activity.pageStarted(
                 tab,
-                url);
+                tab.errorPage
+                        ? tab.url
+                        : url);
     }
 
     @Override
@@ -181,15 +241,61 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
-        if (!tab.settingsPage) {
+        if (tab.errorPage) {
+
+            activity.pageFinished(
+                    tab,
+                    tab.url);
+
+            return;
+        }
+
+        if (!tab.settingsPage &&
+                !tab.defaultPage &&
+                !tab.historyPage) {
 
             tab.url = url;
             tab.loading = false;
+
+            activity.recordVisit(
+                    tab,
+                    url);
         }
 
         activity.pageFinished(
                 tab,
-                url);
+                tab.settingsPage
+                        ? activity.getSettingsUrl(
+                                tab.settingsSection)
+                        : url);
+    }
+
+    @Override
+    public void onReceivedError(
+            WebView view,
+            int errorCode,
+            String description,
+            String failingUrl) {
+
+        if (tab.isIncognito) {
+            // Incognito still gets the improved error page,
+            // but it is never written to browsing history.
+        }
+
+        String current =
+                view.getUrl();
+
+        if (failingUrl != null &&
+                (current == null ||
+                 failingUrl.equals(current))) {
+
+            tab.sslError = false;
+
+            activity.showErrorPage(
+                    tab,
+                    failingUrl,
+                    description);
+        }
     }
 
     @Override
