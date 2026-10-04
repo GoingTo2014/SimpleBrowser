@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -14,6 +15,8 @@ import android.widget.EditText;
 public class MainActivity extends Activity {
 
     private static final String HOME_URL = "https://www.google.com/";
+    private static final String SEARCH_URL =
+            "https://www.google.com/search?q=";
 
     private WebView webView;
     private EditText urlBox;
@@ -31,16 +34,16 @@ public class MainActivity extends Activity {
         Button homeButton = findViewById(R.id.home);
         Button reloadButton = findViewById(R.id.reload);
 
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                urlBox.setText(url);
-                urlBox.setSelection(urlBox.length());
-            }
-        });
+        WebSettings settings = webView.getSettings();
 
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setSupportZoom(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+
+        webView.setWebViewClient(new WebViewClient());
 
         webView.loadUrl(HOME_URL);
 
@@ -93,17 +96,10 @@ public class MainActivity extends Activity {
                 actionId == EditorInfo.IME_ACTION_DONE ||
                 enterPressed) {
 
-                String url = urlBox.getText().toString().trim();
+                String input = urlBox.getText().toString().trim();
 
-                if (!url.isEmpty()) {
-                    if (!url.startsWith("http://") &&
-                        !url.startsWith("https://")) {
-                        url = "https://" + url;
-                    }
-
-                    hideKeyboard();
-                    urlBox.clearFocus();
-                    webView.loadUrl(url);
+                if (!input.isEmpty()) {
+                    openUrlOrSearch(input);
                 }
 
                 return true;
@@ -111,6 +107,49 @@ public class MainActivity extends Activity {
 
             return false;
         });
+    }
+
+    private void openUrlOrSearch(String input) {
+        hideKeyboard();
+        urlBox.clearFocus();
+
+        if (isUrl(input)) {
+            String url = input;
+
+            if (!url.startsWith("http://") &&
+                !url.startsWith("https://")) {
+                url = "https://" + url;
+            }
+
+            webView.loadUrl(url);
+
+        } else {
+            String searchUrl = SEARCH_URL + urlEncode(input);
+            webView.loadUrl(searchUrl);
+        }
+    }
+
+    private boolean isUrl(String input) {
+        if (input.startsWith("http://") ||
+            input.startsWith("https://")) {
+            return true;
+        }
+
+        if (input.contains(" ")) {
+            return false;
+        }
+
+        return input.contains(".") ||
+               input.startsWith("localhost:") ||
+               input.startsWith("127.0.0.1:");
+    }
+
+    private String urlEncode(String text) {
+        try {
+            return java.net.URLEncoder.encode(text, "UTF-8");
+        } catch (Exception e) {
+            return text;
+        }
     }
 
     private void hideKeyboard() {
