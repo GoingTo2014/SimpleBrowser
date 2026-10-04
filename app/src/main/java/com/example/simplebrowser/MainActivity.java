@@ -2,6 +2,7 @@ package com.example.simplebrowser;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
@@ -41,6 +42,9 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
+        // Keep the WebView using hardware rendering.
+        webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);
+
         webView.setWebViewClient(new WebViewClient());
 
         webView.loadUrl(HOME_URL);
@@ -75,12 +79,24 @@ public class MainActivity extends Activity {
             webView.reload();
         });
 
+        // Close the keyboard when the user taps the webpage.
+        webView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                hideKeyboard();
+                urlBox.clearFocus();
+            }
+
+            return false;
+        });
+
         urlBox.setOnEditorActionListener((v, actionId, event) -> {
 
             boolean enterPressed =
                     event != null &&
-                    event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER &&
-                    event.getAction() == android.view.KeyEvent.ACTION_DOWN;
+                    event.getKeyCode() ==
+                            android.view.KeyEvent.KEYCODE_ENTER &&
+                    event.getAction() ==
+                            android.view.KeyEvent.ACTION_DOWN;
 
             if (actionId == EditorInfo.IME_ACTION_GO ||
                 actionId == EditorInfo.IME_ACTION_DONE ||
@@ -104,15 +120,16 @@ public class MainActivity extends Activity {
         urlBox.clearFocus();
 
         if (isUrl(input)) {
+
             if (!input.startsWith("http://") &&
                 !input.startsWith("https://")) {
-
                 input = "https://" + input;
             }
 
             webView.loadUrl(input);
 
         } else {
+
             try {
                 String encoded =
                         URLEncoder.encode(input, "UTF-8");
