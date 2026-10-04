@@ -1,149 +1,189 @@
 package com.example.simplebrowser;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.net.http.SslCertificate;
-import android.net.http.SslError;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.SslErrorHandler;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.content.Context;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import java.net.URLEncoder;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
-    private static final String HOME_URL =
-            "https://www.google.com/";
+    private static final String SETTINGS_URL =
+            "browser://settings";
 
-    private static final String SEARCH_URL =
-            "https://www.google.com/search?q=";
-
-    private WebView webViewContainerDummy;
-    private FrameLayout webViewContainer;
-    private LinearLayout tabsLayout;
     private EditText urlBox;
     private ProgressBar progressBar;
-    private ImageButton securityButton;
 
-    private final List<TabData> tabs = new ArrayList<>();
-    private TabData activeTab;
-
-    private static class TabData {
-        WebView webView;
-        Button tabButton;
-
-        String title = "New Tab";
-        String url = "";
-
-        boolean loading = false;
-        boolean sslError = false;
-    }
+    private BrowserSettings browserSettings;
+    private TabManager tabManager;
+    private SettingsPage settingsPage;
+    private SecurityManager securityManager;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(
+            Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.main);
 
-        webViewContainer = findViewById(R.id.webview_container);
-        tabsLayout = findViewById(R.id.tabs);
+        urlBox =
+                findViewById(R.id.url);
 
-        urlBox = findViewById(R.id.url);
-        progressBar = findViewById(R.id.progress);
-        securityButton = findViewById(R.id.security);
+        progressBar =
+                findViewById(R.id.progress);
 
-        Button backButton = findViewById(R.id.back);
-        Button forwardButton = findViewById(R.id.forward);
-        Button homeButton = findViewById(R.id.home);
-        Button reloadButton = findViewById(R.id.reload);
-        Button newTabButton = findViewById(R.id.new_tab);
+        FrameLayout webViewContainer =
+                findViewById(
+                        R.id.webview_container);
 
-        backButton.setOnClickListener(v -> {
+        LinearLayout tabsLayout =
+                findViewById(R.id.tabs);
+
+        ImageButton security =
+                findViewById(R.id.security);
+
+        browserSettings =
+                new BrowserSettings(this);
+
+        tabManager =
+                new TabManager(
+                        this,
+                        webViewContainer,
+                        tabsLayout);
+
+        settingsPage =
+                new SettingsPage(
+                        this,
+                        browserSettings);
+
+        securityManager =
+                new SecurityManager(
+                        this,
+                        security);
+
+        setupButtons();
+
+        applyBrowserAppearance();
+
+        tabManager.addTab(
+                browserSettings.getHomePage());
+    }
+
+    private void setupButtons() {
+
+        Button back =
+                findViewById(R.id.back);
+
+        Button forward =
+                findViewById(R.id.forward);
+
+        Button home =
+                findViewById(R.id.home);
+
+        Button reload =
+                findViewById(R.id.reload);
+
+        Button newTab =
+                findViewById(R.id.new_tab);
+
+        back.setOnClickListener(v -> {
+
             hideKeyboard();
-            urlBox.clearFocus();
 
-            if (activeTab != null &&
-                activeTab.webView.canGoBack()) {
-                activeTab.webView.goBack();
+            BrowserTab tab =
+                    getActiveTab();
+
+            if (tab != null &&
+                    tab.webView.canGoBack()) {
+
+                tab.webView.goBack();
             }
         });
 
-        forwardButton.setOnClickListener(v -> {
-            hideKeyboard();
-            urlBox.clearFocus();
+        forward.setOnClickListener(v -> {
 
-            if (activeTab != null &&
-                activeTab.webView.canGoForward()) {
-                activeTab.webView.goForward();
+            hideKeyboard();
+
+            BrowserTab tab =
+                    getActiveTab();
+
+            if (tab != null &&
+                    tab.webView.canGoForward()) {
+
+                tab.webView.goForward();
             }
         });
 
-        homeButton.setOnClickListener(v -> {
-            hideKeyboard();
-            urlBox.clearFocus();
+        home.setOnClickListener(v -> {
 
-            if (activeTab != null) {
-                activeTab.webView.loadUrl(HOME_URL);
+            hideKeyboard();
+
+            BrowserTab tab =
+                    getActiveTab();
+
+            if (tab != null) {
+
+                loadTabUrl(
+                        tab,
+                        browserSettings
+                                .getHomePage());
             }
         });
 
-        reloadButton.setOnClickListener(v -> {
-            hideKeyboard();
-            urlBox.clearFocus();
+        reload.setOnClickListener(v -> {
 
-            if (activeTab != null) {
-                activeTab.webView.reload();
+            hideKeyboard();
+
+            BrowserTab tab =
+                    getActiveTab();
+
+            if (tab != null) {
+                tab.webView.reload();
             }
         });
 
-        newTabButton.setOnClickListener(v -> {
+        newTab.setOnClickListener(v -> {
+
             hideKeyboard();
-            urlBox.clearFocus();
 
-            addTab(HOME_URL);
+            tabManager.addTab(
+                    browserSettings
+                            .getHomePage());
         });
 
-        securityButton.setOnClickListener(v -> {
-            if (activeTab != null) {
-                showSecurityInfo(activeTab);
-            }
-        });
-
-        urlBox.setOnEditorActionListener((v, actionId, event) -> {
+        urlBox.setOnEditorActionListener(
+                (v, actionId, event) -> {
 
             boolean enterPressed =
                     event != null &&
                     event.getKeyCode() ==
-                            android.view.KeyEvent.KEYCODE_ENTER &&
+                            android.view.KeyEvent
+                                    .KEYCODE_ENTER &&
                     event.getAction() ==
-                            android.view.KeyEvent.ACTION_DOWN;
+                            android.view.KeyEvent
+                                    .ACTION_DOWN;
 
-            if (actionId == EditorInfo.IME_ACTION_GO ||
-                actionId == EditorInfo.IME_ACTION_DONE ||
+            if (actionId ==
+                    EditorInfo.IME_ACTION_GO ||
+                actionId ==
+                    EditorInfo.IME_ACTION_DONE ||
                 enterPressed) {
 
                 String input =
-                        urlBox.getText().toString().trim();
+                        urlBox.getText()
+                                .toString()
+                                .trim();
 
                 if (!input.isEmpty()) {
                     openUrlOrSearch(input);
@@ -154,492 +194,38 @@ public class MainActivity extends Activity {
 
             return false;
         });
-
-        addTab(HOME_URL);
     }
 
-    private void addTab(String initialUrl) {
-
-        TabData tab = new TabData();
-
-        tab.webView = new WebView(this);
-
-        FrameLayout.LayoutParams params =
-                new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT);
-
-        tab.webView.setLayoutParams(params);
-
-        WebSettings settings =
-                tab.webView.getSettings();
-
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-
-        // Keep the behavior from the current version.
-        tab.webView.setLayerType(
-                WebView.LAYER_TYPE_HARDWARE, null);
-
-        tab.webView.setWebViewClient(
-                new WebViewClient() {
-
-                    @Override
-                    public void onPageStarted(
-                            WebView view,
-                            String url,
-                            android.graphics.Bitmap favicon) {
-
-                        tab.url = url;
-                        tab.loading = true;
-                        tab.sslError = false;
-
-                        if (tab == activeTab) {
-                            urlBox.setText(url);
-
-                            progressBar.setProgress(0);
-                            progressBar.setVisibility(
-                                    View.VISIBLE);
-                        }
-
-                        updateSecurityIcon(tab);
-                    }
-
-                    @Override
-                    public void onPageFinished(
-                            WebView view,
-                            String url) {
-
-                        tab.url = url;
-                        tab.loading = false;
-
-                        if (tab == activeTab) {
-                            urlBox.setText(url);
-
-                            progressBar.setProgress(100);
-
-                            progressBar.postDelayed(() -> {
-                                if (tab == activeTab &&
-                                    !tab.loading) {
-                                    progressBar.setVisibility(
-                                            View.GONE);
-                                }
-                            }, 150);
-                        }
-
-                        updateSecurityIcon(tab);
-                    }
-
-                    @Override
-                    public void onReceivedSslError(
-                            WebView view,
-                            SslErrorHandler handler,
-                            SslError error) {
-
-                        tab.sslError = true;
-
-                        if (tab == activeTab) {
-                            updateSecurityIcon(tab);
-                        }
-
-                        // Do not continue through an invalid
-                        // SSL certificate.
-                        handler.cancel();
-                    }
-                });
-
-        tab.webView.setWebChromeClient(
-                new WebChromeClient() {
-
-                    @Override
-                    public void onProgressChanged(
-                            WebView view,
-                            int newProgress) {
-
-                        if (tab == activeTab) {
-
-                            progressBar.setProgress(
-                                    newProgress);
-
-                            if (newProgress < 100) {
-                                progressBar.setVisibility(
-                                        View.VISIBLE);
-                            } else if (!tab.loading) {
-                                progressBar.setVisibility(
-                                        View.GONE);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onReceivedTitle(
-                            WebView view,
-                            String title) {
-
-                        if (title == null ||
-                            title.trim().isEmpty()) {
-                            tab.title = "New Tab";
-                        } else {
-                            tab.title = title.trim();
-                        }
-
-                        updateTabTitle(tab);
-                    }
-                });
-
-        // Close the keyboard when touching the webpage.
-        tab.webView.setOnTouchListener(
-                (v, event) -> {
-
-                    if (event.getAction() ==
-                            MotionEvent.ACTION_DOWN) {
-
-                        hideKeyboard();
-                        urlBox.clearFocus();
-                    }
-
-                    return false;
-                });
-
-        tab.tabButton = new Button(this);
-        tab.tabButton.setText(tab.title);
-        tab.tabButton.setSingleLine(true);
-
-        tab.tabButton.setOnClickListener(v -> {
-            selectTab(tab);
-        });
-
-        // Long-press a tab to close it.
-        tab.tabButton.setOnLongClickListener(v -> {
-
-            if (tabs.size() == 1) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "At least one tab must stay open",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                return true;
-            }
-
-            new AlertDialog.Builder(
-                    MainActivity.this)
-                    .setTitle("Close tab?")
-                    .setMessage(tab.title)
-                    .setPositiveButton(
-                            "Close",
-                            (dialog, which) ->
-                                    closeTab(tab))
-                    .setNegativeButton(
-                            "Cancel",
-                            null)
-                    .show();
-
-            return true;
-        });
-
-        tabs.add(tab);
-
-        tabsLayout.addView(tab.tabButton);
-
-        webViewContainer.addView(tab.webView);
-
-        selectTab(tab);
-
-        tab.webView.loadUrl(initialUrl);
-    }
-
-    private void selectTab(TabData tab) {
-
-        activeTab = tab;
+    public void openUrlOrSearch(
+            String input) {
 
         hideKeyboard();
-        urlBox.clearFocus();
 
-        for (TabData current : tabs) {
+        BrowserTab tab =
+                getActiveTab();
 
-            if (current == tab) {
-                current.webView.setVisibility(
-                        View.VISIBLE);
-
-                current.tabButton.setSelected(true);
-
-            } else {
-                current.webView.setVisibility(
-                        View.GONE);
-
-                current.tabButton.setSelected(false);
-            }
-        }
-
-        String url = tab.webView.getUrl();
-
-        if (url == null) {
-            url = tab.url;
-        }
-
-        if (url == null) {
-            url = "";
-        }
-
-        urlBox.setText(url);
-
-        if (tab.loading) {
-            progressBar.setVisibility(
-                    View.VISIBLE);
-        } else {
-            progressBar.setVisibility(
-                    View.GONE);
-        }
-
-        updateSecurityIcon(tab);
-    }
-
-    private void closeTab(TabData tab) {
-
-        int index = tabs.indexOf(tab);
-
-        if (index == -1) {
+        if (tab == null) {
             return;
         }
 
-        boolean wasActive =
-                tab == activeTab;
+        if (SETTINGS_URL.equalsIgnoreCase(
+                input)) {
 
-        tabs.remove(tab);
+            showSettings(tab);
 
-        tabsLayout.removeView(
-                tab.tabButton);
-
-        webViewContainer.removeView(
-                tab.webView);
-
-        tab.webView.stopLoading();
-        tab.webView.destroy();
-
-        if (wasActive) {
-
-            int newIndex =
-                    Math.min(index, tabs.size() - 1);
-
-            selectTab(tabs.get(newIndex));
-        }
-    }
-
-    private void updateTabTitle(TabData tab) {
-
-        String title = tab.title;
-
-        if (title.length() > 18) {
-            title =
-                    title.substring(0, 18) + "...";
-        }
-
-        tab.tabButton.setText(title);
-    }
-
-    private void updateSecurityIcon(TabData tab) {
-
-        String url = tab.webView.getUrl();
-
-        if (url == null) {
-            url = tab.url;
-        }
-
-        boolean https =
-                url != null &&
-                url.startsWith("https://");
-
-        if (tab.sslError) {
-
-            securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert);
-
-            securityButton.setContentDescription(
-                    "Connection is not secure");
-
-            return;
-        }
-
-        if (https) {
-
-            securityButton.setImageResource(
-                    android.R.drawable.ic_lock_lock);
-
-            securityButton.setContentDescription(
-                    "Secure connection");
-
-        } else {
-
-            securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert);
-
-            securityButton.setContentDescription(
-                    "Connection is not secure");
-        }
-    }
-
-    private void showSecurityInfo(TabData tab) {
-
-        String url = tab.webView.getUrl();
-
-        if (url == null) {
-            url = tab.url;
-        }
-
-        boolean https =
-                url != null &&
-                url.startsWith("https://");
-
-        if (!https) {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Connection")
-                    .setMessage(
-                            "This page is not using HTTPS.\n\n" +
-                            "The connection is not protected " +
-                            "by HTTPS.\n\n" +
-                            "URL:\n" + safeText(url))
-                    .setPositiveButton("OK", null)
-                    .show();
-
-            return;
-        }
-
-        if (tab.sslError) {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Connection is not secure")
-                    .setMessage(
-                            "The site's SSL certificate " +
-                            "could not be trusted.\n\n" +
-                            "The page was blocked.")
-                    .setPositiveButton("OK", null)
-                    .show();
-
-            return;
-        }
-
-        SslCertificate certificate =
-                tab.webView.getCertificate();
-
-        if (certificate == null) {
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Certificate")
-                    .setMessage(
-                            "No certificate information " +
-                            "is available for this page.")
-                    .setPositiveButton("OK", null)
-                    .show();
-
-            return;
-        }
-
-        SslCertificate.DName issuedTo =
-                certificate.getIssuedTo();
-
-        SslCertificate.DName issuedBy =
-                certificate.getIssuedBy();
-
-        Date validFrom =
-                certificate.getValidNotBeforeDate();
-
-        Date validTo =
-                certificate.getValidNotAfterDate();
-
-        DateFormat dateFormat =
-                DateFormat.getDateTimeInstance();
-
-        StringBuilder info =
-                new StringBuilder();
-
-        info.append("Connection is secure\n\n");
-
-        info.append("URL:\n");
-        info.append(safeText(url));
-        info.append("\n\n");
-
-        info.append("Issued to:\n");
-
-        if (issuedTo != null) {
-            info.append(safeText(
-                    issuedTo.getCName()));
-        } else {
-            info.append("Unknown");
-        }
-
-        info.append("\n\n");
-
-        info.append("Issued by:\n");
-
-        if (issuedBy != null) {
-            info.append(safeText(
-                    issuedBy.getCName()));
-
-            if (issuedBy.getOName() != null &&
-                !issuedBy.getOName().isEmpty()) {
-
-                info.append("\n");
-                info.append(
-                        issuedBy.getOName());
-            }
-
-        } else {
-            info.append("Unknown");
-        }
-
-        info.append("\n\n");
-
-        info.append("Valid from:\n");
-        info.append(validFrom == null
-                ? "Unknown"
-                : dateFormat.format(validFrom));
-
-        info.append("\n\n");
-
-        info.append("Valid until:\n");
-        info.append(validTo == null
-                ? "Unknown"
-                : dateFormat.format(validTo));
-
-        new AlertDialog.Builder(this)
-                .setTitle("Certificate")
-                .setMessage(info.toString())
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
-    private String safeText(String value) {
-
-        if (value == null ||
-            value.trim().isEmpty()) {
-
-            return "Unknown";
-        }
-
-        return value;
-    }
-
-    private void openUrlOrSearch(String input) {
-
-        hideKeyboard();
-        urlBox.clearFocus();
-
-        if (activeTab == null) {
             return;
         }
 
         if (isUrl(input)) {
 
             if (!input.startsWith("http://") &&
-                !input.startsWith("https://")) {
+                    !input.startsWith("https://")) {
 
-                input = "https://" + input;
+                input =
+                        "https://" + input;
             }
 
-            activeTab.webView.loadUrl(input);
+            loadTabUrl(tab, input);
 
         } else {
 
@@ -650,21 +236,56 @@ public class MainActivity extends Activity {
                                 input,
                                 "UTF-8");
 
-                activeTab.webView.loadUrl(
-                        SEARCH_URL + encoded);
+                String searchUrl =
+                        getSearchUrl();
+
+                loadTabUrl(
+                        tab,
+                        searchUrl + encoded);
 
             } catch (Exception e) {
 
-                activeTab.webView.loadUrl(
-                        SEARCH_URL + input);
+                loadTabUrl(
+                        tab,
+                        getSearchUrl() + input);
             }
         }
     }
 
-    private boolean isUrl(String input) {
+    private String getSearchUrl() {
+
+        String engine =
+                browserSettings
+                        .getSearchEngine();
+
+        if ("bing".equals(engine)) {
+
+            return
+                    "https://www.bing.com/search?q=";
+
+        }
+
+        if ("duckduckgo".equals(engine)) {
+
+            return
+                    "https://duckduckgo.com/?q=";
+        }
+
+        if ("yahoo".equals(engine)) {
+
+            return
+                    "https://search.yahoo.com/search?p=";
+        }
+
+        return
+                "https://www.google.com/search?q=";
+    }
+
+    private boolean isUrl(
+            String input) {
 
         if (input.startsWith("http://") ||
-            input.startsWith("https://")) {
+                input.startsWith("https://")) {
 
             return true;
         }
@@ -678,7 +299,190 @@ public class MainActivity extends Activity {
                 input.startsWith("127.0.0.1:");
     }
 
-    private void hideKeyboard() {
+    public void loadTabUrl(
+            BrowserTab tab,
+            String url) {
+
+        if (SETTINGS_URL.equalsIgnoreCase(
+                url)) {
+
+            showSettings(tab);
+
+            return;
+        }
+
+        if (tab.settingsPage) {
+
+            removeSettingsBridge(tab);
+        }
+
+        tab.settingsPage = false;
+
+        tab.webView.loadUrl(url);
+    }
+
+    public void showSettings(
+            BrowserTab tab) {
+
+        settingsPage.show(tab);
+
+        tabManager.selectTab(tab);
+
+        updateSecurity(tab);
+    }
+
+    public void removeSettingsBridge(
+            BrowserTab tab) {
+
+        settingsPage.remove(tab);
+    }
+
+    public void pageStarted(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == getActiveTab()) {
+
+            setUrlText(url);
+
+            progressBar.setProgress(0);
+
+            progressBar.setVisibility(
+                    View.VISIBLE);
+        }
+
+        updateSecurity(tab);
+    }
+
+    public void pageFinished(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == getActiveTab()) {
+
+            setUrlText(url);
+
+            progressBar.setProgress(100);
+
+            progressBar.postDelayed(
+                    () -> {
+
+                if (tab == getActiveTab() &&
+                        !tab.loading) {
+
+                    progressBar.setVisibility(
+                            View.GONE);
+                }
+
+            }, 150);
+        }
+
+        updateSecurity(tab);
+    }
+
+    public void pageProgress(
+            BrowserTab tab,
+            int progress) {
+
+        if (tab != getActiveTab()) {
+            return;
+        }
+
+        progressBar.setProgress(progress);
+
+        if (progress < 100) {
+
+            progressBar.setVisibility(
+                    View.VISIBLE);
+
+        } else if (!tab.loading) {
+
+            progressBar.setVisibility(
+                    View.GONE);
+        }
+    }
+
+    public void settingsLoaded(
+            BrowserTab tab) {
+
+        if (tab == getActiveTab()) {
+
+            setUrlText(
+                    SETTINGS_URL);
+
+            progressBar.setVisibility(
+                    View.GONE);
+        }
+    }
+
+    public void updateTabTitle(
+            BrowserTab tab) {
+
+        tabManager.updateTabTitle(tab);
+    }
+
+    public void updateSecurity(
+            BrowserTab tab) {
+
+        securityManager.updateIcon(tab);
+    }
+
+    public BrowserTab getActiveTab() {
+
+        return tabManager.getActiveTab();
+    }
+
+    public BrowserSettings
+            getBrowserSettings() {
+
+        return browserSettings;
+    }
+
+    public void applyWebsiteSettings() {
+
+        tabManager.applyWebSettings();
+    }
+
+    public void applyBrowserAppearance() {
+
+        View root =
+                findViewById(R.id.root);
+
+        if (root == null) {
+            return;
+        }
+
+        if (browserSettings.isDarkMode()) {
+
+            root.setBackgroundColor(
+                    Color.BLACK);
+
+        } else {
+
+            root.setBackgroundColor(
+                    Color.WHITE);
+        }
+    }
+
+    public void setUrlText(
+            String text) {
+
+        urlBox.setText(
+                text == null
+                        ? ""
+                        : text);
+    }
+
+    public void setLoading(
+            boolean loading) {
+
+        progressBar.setVisibility(
+                loading
+                        ? View.VISIBLE
+                        : View.GONE);
+    }
+
+    public void hideKeyboard() {
 
         InputMethodManager manager =
                 (InputMethodManager)
@@ -691,22 +495,34 @@ public class MainActivity extends Activity {
                     urlBox.getWindowToken(),
                     0);
         }
+
+        urlBox.clearFocus();
+    }
+
+    private int findTabIndex(
+            BrowserTab tab) {
+
+        return tabManager
+                .getTabs()
+                .indexOf(tab);
     }
 
     @Override
     public void onBackPressed() {
 
-        if (activeTab != null &&
-            activeTab.webView.canGoBack()) {
+        BrowserTab tab =
+                getActiveTab();
+
+        if (tab != null &&
+                tab.webView.canGoBack()) {
 
             hideKeyboard();
-            urlBox.clearFocus();
 
-            activeTab.webView.goBack();
+            tab.webView.goBack();
 
         } else {
 
             super.onBackPressed();
         }
     }
-                }
+                    }
