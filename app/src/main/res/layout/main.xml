@@ -2,6 +2,7 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -62,33 +63,24 @@
         android:max="100"
         android:visibility="gone" />
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:scrollbars="none">
 
-        <HorizontalScrollView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fillViewport="false"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/tabs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" />
-
-        </HorizontalScrollView>
-
-        <Button
-            android:id="@+id/new_tab"
+        <LinearLayout
+            android:id="@+id/tabs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+" />
+            android:orientation="horizontal" />
 
-    </LinearLayout>
+    </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/new_tab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New Tab" />
 
     <FrameLayout
         android:id="@+id/webview_container"
