@@ -1,6 +1,7 @@
 package com.example.simplebrowser;
 
 import android.os.Message;
+import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 
@@ -48,6 +49,16 @@ public class BrowserChromeClient
         }
 
         activity.updateTabTitle(tab);
+    }
+
+    @Override
+    public void onGeolocationPermissionsShowPrompt(
+            String origin,
+            GeolocationPermissions.Callback callback) {
+
+        activity.handleGeolocationRequest(
+                origin,
+                callback);
     }
 
     @Override
