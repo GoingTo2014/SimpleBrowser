@@ -16,6 +16,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -181,6 +184,11 @@ public class TabManager {
         activity.loadTabUrl(
                 tab,
                 url);
+
+        if (incognito) {
+            tab.webView.clearHistory();
+            tab.webView.clearCache(true);
+        }
 
         return tab;
     }
@@ -740,6 +748,7 @@ public class TabManager {
                 tab.loading);
 
         activity.updateSecurity(tab);
+        activity.applyActiveTabAppearance();
     }
 
     public void updateTabAppearance(
@@ -790,13 +799,22 @@ public class TabManager {
                         activity
                                 .getBrowserSettings()
                                 .getAccentColor(),
-                        Color.rgb(
-                                63, 81, 181));
+                        Color.WHITE);
+
+        BrowserTab current =
+                activeTab;
+
+        int tabBarBackground =
+                current != null &&
+                        current.isIncognito
+                        ? Color.rgb(
+                                30, 30, 32)
+                        : ColorUtils.darken(
+                                accent,
+                                0.14f);
 
         tabsLayout.setBackgroundColor(
-                ColorUtils.darken(
-                        accent,
-                        0.14f));
+                tabBarBackground);
 
         for (BrowserTab tab :
                 tabs) {
@@ -808,18 +826,32 @@ public class TabManager {
     public void closeTab(
             BrowserTab tab) {
 
-        if (tabs.size() <= 1) {
-
-            Toast.makeText(
-                    activity,
-                    "At least one tab must stay open",
-                    Toast.LENGTH_SHORT)
-                    .show();
-
+        if (!tabs.contains(tab)) {
             return;
         }
 
         cancelDragTimer(tab);
+
+        if (tabs.size() == 1) {
+
+            tabs.remove(tab);
+
+            tabsLayout.removeView(
+                    tab.tabView);
+
+            webViewContainer.removeView(
+                    tab.webView);
+
+            tab.webView.stopLoading();
+            tab.webView.destroy();
+
+            activeTab = null;
+
+            activity.saveTabs();
+            activity.finish();
+
+            return;
+        }
 
         int index =
                 tabs.indexOf(tab);
@@ -850,6 +882,174 @@ public class TabManager {
         }
 
         activity.updateNavigationButtonsForTabs();
+    }
+
+    public void saveTabs() {
+
+        JSONArray array =
+                new JSONArray();
+
+        int activeIndex = -1;
+
+        for (int i = 0; i < tabs.size(); i++) {
+
+            BrowserTab tab =
+                    tabs.get(i);
+
+            if (tab == activeTab) {
+                activeIndex = i;
+            }
+
+            if (tab.isIncognito) {
+                continue;
+            }
+
+            String url;
+
+            if (tab.settingsPage) {
+
+                url =
+                        activity.getSettingsUrl(
+                                tab.settingsSection);
+
+            } else if (tab.errorPage) {
+
+                url = tab.url;
+
+            } else {
+
+                url = tab.webView.getUrl();
+
+                if (url == null ||
+                        url.trim().isEmpty()) {
+                    url = tab.url;
+                }
+            }
+
+            if (url == null ||
+                    url.trim().isEmpty()) {
+                url = "about:blank";
+            }
+
+            try {
+
+                JSONObject object =
+                        new JSONObject();
+
+                object.put(
+                        "url",
+                        url);
+
+                object.put(
+                        "title",
+                        tab.title);
+
+                array.put(object);
+
+            } catch (Exception ignored) {
+            }
+        }
+
+        /*
+         * Active index is translated from the original list
+         * into the list of persistent tabs.
+         */
+        int persistentIndex = -1;
+
+        if (activeIndex >= 0) {
+
+            persistentIndex = 0;
+
+            for (int i = 0;
+                    i < activeIndex;
+                    i++) {
+
+                if (!tabs.get(i).isIncognito) {
+                    persistentIndex++;
+                }
+            }
+
+            if (tabs.get(activeIndex).isIncognito) {
+                persistentIndex = -1;
+            }
+        }
+
+        activity.getBrowserSettings()
+                .setSavedTabsJson(
+                        array.toString());
+
+        activity.getBrowserSettings()
+                .setBoolean(
+                        "saved_active_tab",
+                        persistentIndex >= 0);
+
+        activity.getBrowserSettings()
+                .setBoolean(
+                        "saved_tabs_has_state",
+                        array.length() > 0);
+    }
+
+    public boolean restoreTabs() {
+
+        String json =
+                activity.getBrowserSettings()
+                        .getSavedTabsJson();
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+
+            JSONArray array =
+                    new JSONArray(json);
+
+            if (array.length() == 0) {
+                return false;
+            }
+
+            for (int i = 0;
+                    i < array.length();
+                    i++) {
+
+                JSONObject object =
+                        array.getJSONObject(i);
+
+                String url =
+                        object.optString(
+                                "url",
+                                "about:blank");
+
+                addTab(
+                        url,
+                        false);
+            }
+
+            int target =
+                    tabs.size() - 1;
+
+            for (int i = 0; i < tabs.size(); i++) {
+
+                if (tabs.get(i).isIncognito) {
+                    continue;
+                }
+            }
+
+            if (target >= 0) {
+                selectTab(tabs.get(target));
+            }
+
+            return true;
+
+        } catch (Exception e) {
+
+            activity.getBrowserSettings()
+                    .setSavedTabsJson(
+                            "");
+
+            return false;
+        }
     }
 
     public BrowserTab getActiveTab() {
@@ -902,8 +1102,10 @@ public class TabManager {
         }
 
         webSettings.setDomStorageEnabled(
-                browserSettings
-                        .isStorageEnabled());
+                tab.isIncognito
+                        ? false
+                        : browserSettings
+                                .isStorageEnabled());
 
         boolean imagesEnabled =
                 browserSettings.areImagesEnabled();
@@ -935,7 +1137,15 @@ public class TabManager {
                         .isMediaAutoplayEnabled());
 
         webSettings.setCacheMode(
-                WebSettings.LOAD_DEFAULT);
+                tab.isIncognito
+                        ? WebSettings.LOAD_NO_CACHE
+                        : WebSettings.LOAD_DEFAULT);
+
+        if (tab.isIncognito) {
+
+            webSettings.setSaveFormData(false);
+            webSettings.setSavePassword(false);
+        }
 
         webSettings.setSupportMultipleWindows(
                 browserSettings
