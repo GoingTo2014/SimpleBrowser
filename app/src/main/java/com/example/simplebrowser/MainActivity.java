@@ -430,18 +430,31 @@ public class MainActivity extends Activity {
             return;
         }
 
+        BrowserTab active =
+                getActiveTab();
+
+        boolean incognito =
+                active != null &&
+                        active.isIncognito;
+
         int accent =
-                getAccentColor();
+                incognito
+                        ? Color.rgb(
+                                48, 49, 52)
+                        : getAccentColor();
 
         int readable =
                 ColorUtils.getReadableTextColor(
                         accent);
 
         int menuBackground =
-                ColorUtils.mix(
-                        accent,
-                        Color.WHITE,
-                        0.90f);
+                incognito
+                        ? Color.rgb(
+                                32, 33, 36)
+                        : ColorUtils.mix(
+                                accent,
+                                Color.WHITE,
+                                0.90f);
 
         LinearLayout menu =
                 new LinearLayout(this);
