@@ -15,16 +15,14 @@ public class BrowserSettings {
         preferences =
                 context.getSharedPreferences(
                         PREFS,
-                        Context.MODE_PRIVATE
-                );
+                        Context.MODE_PRIVATE);
     }
 
     public String getHomePage() {
 
         return preferences.getString(
                 "home",
-                "https://www.google.com/"
-        );
+                "https://www.google.com/");
     }
 
     public void setHomePage(String value) {
@@ -38,8 +36,7 @@ public class BrowserSettings {
 
         return preferences.getString(
                 "search",
-                "google"
-        );
+                "google");
     }
 
     public void setSearchEngine(String value) {
@@ -53,48 +50,42 @@ public class BrowserSettings {
 
         return preferences.getBoolean(
                 "javascript",
-                true
-        );
+                true);
     }
 
     public boolean arePopupsEnabled() {
 
         return preferences.getBoolean(
                 "popups",
-                true
-        );
+                true);
     }
 
     public boolean areCookiesEnabled() {
 
         return preferences.getBoolean(
                 "cookies",
-                true
-        );
+                true);
     }
 
     public boolean isStorageEnabled() {
 
         return preferences.getBoolean(
                 "storage",
-                true
-        );
+                true);
     }
 
     public boolean isDarkMode() {
 
         return preferences.getBoolean(
                 "dark",
-                false
-        );
+                false);
     }
 
     public String getAccentColor() {
 
         return preferences.getString(
                 "color",
-                "#3F51B5"
-        );
+                "#3F51B5");
     }
 
     public void setBoolean(
@@ -111,6 +102,13 @@ public class BrowserSettings {
 
         preferences.edit()
                 .putString("color", color)
+                .apply();
+    }
+
+    public void reset() {
+
+        preferences.edit()
+                .clear()
                 .apply();
     }
 }
