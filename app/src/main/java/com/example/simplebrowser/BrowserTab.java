@@ -19,6 +19,8 @@ public class BrowserTab {
     public boolean loading = false;
     public boolean sslError = false;
     public boolean settingsPage = false;
+    public boolean errorPage = false;
+    public boolean isIncognito = false;
 
     public String settingsSection = "general";
 
