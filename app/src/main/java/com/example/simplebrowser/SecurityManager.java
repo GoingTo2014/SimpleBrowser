@@ -54,11 +54,11 @@ public class SecurityManager {
         securityButton.setOnClickListener(
                 v -> {
 
-                    BrowserTab tab =
+                    BrowserTab currentTab =
                             activity.getActiveTab();
 
-                    if (tab != null) {
-                        showInfo(tab);
+                    if (currentTab != null) {
+                        showInfo(currentTab);
                     }
                 });
     }
