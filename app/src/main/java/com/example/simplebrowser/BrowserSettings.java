@@ -155,6 +155,40 @@ public class BrowserSettings {
                 false);
     }
 
+    public boolean isRestoreTabsEnabled() {
+        return preferences.getBoolean(
+                "restore_tabs",
+                true);
+    }
+
+    public void setRestoreTabsEnabled(
+            boolean enabled) {
+
+        preferences.edit()
+                .putBoolean(
+                        "restore_tabs",
+                        enabled)
+                .apply();
+    }
+
+    public String getSavedTabsJson() {
+        return preferences.getString(
+                "saved_tabs",
+                "");
+    }
+
+    public void setSavedTabsJson(
+            String value) {
+
+        preferences.edit()
+                .putString(
+                        "saved_tabs",
+                        value == null
+                                ? ""
+                                : value)
+                .apply();
+    }
+
     public String getAccentColor() {
         return preferences.getString(
                 "color",
