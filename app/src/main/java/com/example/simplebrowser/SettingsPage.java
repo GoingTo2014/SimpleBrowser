@@ -61,7 +61,8 @@ public class SettingsPage {
                 "Android");
 
         webView.loadDataWithBaseURL(
-                "https://browser.local/",
+                "https://browser.local/settings/" +
+                        section,
                 createHtml(section),
                 "text/html",
                 "UTF-8",
@@ -69,6 +70,38 @@ public class SettingsPage {
 
         activity.updateTabTitle(tab);
         activity.settingsLoaded(tab);
+    }
+
+    public void restore(
+            BrowserTab tab,
+            String section) {
+
+        section =
+                normalizeSection(section);
+
+        tab.settingsPage = true;
+        tab.loading = false;
+        tab.sslError = false;
+        tab.settingsSection = section;
+        tab.url =
+                activity.getSettingsUrl(
+                        section);
+        tab.title = "Settings";
+
+        WebView webView =
+                tab.webView;
+
+        webView.removeJavascriptInterface(
+                "Android");
+
+        webView.getSettings()
+                .setJavaScriptEnabled(true);
+
+        webView.addJavascriptInterface(
+                new SettingsBridge(tab),
+                "Android");
+
+        activity.updateTabTitle(tab);
     }
 
     private String normalizeSection(
@@ -119,17 +152,49 @@ public class SettingsPage {
                         Color.WHITE,
                         0.16f);
 
+        int accentSoftText =
+                ColorUtils.getReadableTextColor(
+                        accentSoft);
+
         int accentContent =
                 ColorUtils.mix(
                         accentColor,
                         Color.WHITE,
                         0.94f);
 
-        int accentBorder =
+        int cardBackground =
                 ColorUtils.mix(
                         accentColor,
                         Color.WHITE,
-                        0.35f);
+                        0.90f);
+
+        int cardText =
+                ColorUtils.getReadableTextColor(
+                        cardBackground);
+
+        int headingColor =
+                ColorUtils.ensureContrast(
+                        accentColor,
+                        accentContent,
+                        4.5d);
+
+        int accentBorder =
+                ColorUtils.ensureContrast(
+                        accentColor,
+                        cardBackground,
+                        2.5d);
+
+        int secondaryText =
+                ColorUtils.ensureContrast(
+                        Color.rgb(95, 95, 95),
+                        cardBackground,
+                        4.5d);
+
+        int contentSecondaryText =
+                ColorUtils.ensureContrast(
+                        Color.rgb(95, 95, 95),
+                        accentContent,
+                        4.5d);
 
         String accent =
                 ColorUtils.toHex(accentColor);
@@ -140,11 +205,29 @@ public class SettingsPage {
         String accentSoftHex =
                 ColorUtils.toHex(accentSoft);
 
+        String accentSoftTextHex =
+                ColorUtils.toHex(accentSoftText);
+
         String accentContentHex =
                 ColorUtils.toHex(accentContent);
 
+        String cardBackgroundHex =
+                ColorUtils.toHex(cardBackground);
+
+        String cardTextHex =
+                ColorUtils.toHex(cardText);
+
+        String headingColorHex =
+                ColorUtils.toHex(headingColor);
+
         String accentBorderHex =
                 ColorUtils.toHex(accentBorder);
+
+        String secondaryTextHex =
+                ColorUtils.toHex(secondaryText);
+
+        String contentSecondaryTextHex =
+                ColorUtils.toHex(contentSecondaryText);
 
         return "<!DOCTYPE html>" +
                 "<html>" +
@@ -166,7 +249,7 @@ public class SettingsPage {
                 "background:" +
                 accentContentHex +
                 ";" +
-                "color:#202124;" +
+                "color:" + cardTextHex + ";" +
                 "}" +
 
                 ".layout{" +
@@ -206,6 +289,9 @@ public class SettingsPage {
                 "background:" +
                 accentSoftHex +
                 ";" +
+                "color:" +
+                accentSoftTextHex +
+                ";" +
                 "opacity:1;" +
                 "}" +
 
@@ -213,10 +299,13 @@ public class SettingsPage {
                 "background:" +
                 accentSoftHex +
                 ";" +
+                "color:" +
+                accentSoftTextHex +
+                ";" +
                 "opacity:1;" +
                 "font-weight:bold;" +
                 "border-left:3px solid " +
-                accentTextHex +
+                accentSoftTextHex +
                 ";" +
                 "padding-left:15px;" +
                 "}" +
@@ -234,12 +323,15 @@ public class SettingsPage {
                 "font-size:28px;" +
                 "margin:0;" +
                 "color:" +
-                accent +
+                headingColorHex +
                 ";" +
                 "}" +
 
                 ".subtitle{" +
                 "color:#666;" +
+                "color:" +
+                contentSecondaryTextHex +
+                ";" +
                 "margin:5px 0 25px;" +
                 "}" +
 
@@ -252,7 +344,12 @@ public class SettingsPage {
                 "}" +
 
                 ".card{" +
-                "background:#FFFFFF;" +
+                "background:" +
+                cardBackgroundHex +
+                ";" +
+                "color:" +
+                cardTextHex +
+                ";" +
                 "border:1px solid " +
                 accentBorderHex +
                 ";" +
@@ -263,7 +360,9 @@ public class SettingsPage {
 
                 ".row{" +
                 "padding:15px 16px;" +
-                "border-bottom:1px solid #E5E5E5;" +
+                "border-bottom:1px solid " +
+                accentBorderHex +
+                ";" +
                 "}" +
 
                 ".row:last-child{border-bottom:0;}" +
@@ -275,11 +374,18 @@ public class SettingsPage {
                 "gap:12px;" +
                 "}" +
 
-                ".title{font-size:15px;}" +
+                ".title{" +
+                "font-size:15px;" +
+                "color:" +
+                cardTextHex +
+                ";" +
+                "}" +
 
                 ".description{" +
                 "font-size:12px;" +
-                "color:#666;" +
+                "color:" +
+                secondaryTextHex +
+                ";" +
                 "margin-top:3px;" +
                 "}" +
 
@@ -291,6 +397,12 @@ public class SettingsPage {
                 "border:1px solid " +
                 accentBorderHex +
                 ";" +
+                "background:" +
+                cardBackgroundHex +
+                ";" +
+                "color:" +
+                cardTextHex +
+                ";" +
                 "}" +
 
                 "input[type=color]{" +
@@ -300,7 +412,9 @@ public class SettingsPage {
                 "border:1px solid " +
                 accentBorderHex +
                 ";" +
-                "background:#FFFFFF;" +
+                "background:" +
+                cardBackgroundHex +
+                ";" +
                 "}" +
 
                 "input[type=checkbox]{" +
