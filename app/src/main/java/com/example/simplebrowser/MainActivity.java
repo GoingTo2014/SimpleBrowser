@@ -2,7 +2,6 @@ package com.example.simplebrowser;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
@@ -11,6 +10,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+
+import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
 
@@ -39,9 +40,6 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setSupportZoom(false);
-        settings.setBuiltInZoomControls(false);
-        settings.setDisplayZoomControls(false);
 
         webView.setWebViewClient(new WebViewClient());
 
@@ -77,20 +75,12 @@ public class MainActivity extends Activity {
             webView.reload();
         });
 
-        webView.setOnTouchListener((v, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                hideKeyboard();
-                urlBox.clearFocus();
-            }
-
-            return false;
-        });
-
         urlBox.setOnEditorActionListener((v, actionId, event) -> {
+
             boolean enterPressed =
                     event != null &&
-                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER &&
-                    event.getAction() == KeyEvent.ACTION_DOWN;
+                    event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER &&
+                    event.getAction() == android.view.KeyEvent.ACTION_DOWN;
 
             if (actionId == EditorInfo.IME_ACTION_GO ||
                 actionId == EditorInfo.IME_ACTION_DONE ||
@@ -114,22 +104,29 @@ public class MainActivity extends Activity {
         urlBox.clearFocus();
 
         if (isUrl(input)) {
-            String url = input;
+            if (!input.startsWith("http://") &&
+                !input.startsWith("https://")) {
 
-            if (!url.startsWith("http://") &&
-                !url.startsWith("https://")) {
-                url = "https://" + url;
+                input = "https://" + input;
             }
 
-            webView.loadUrl(url);
+            webView.loadUrl(input);
 
         } else {
-            String searchUrl = SEARCH_URL + urlEncode(input);
-            webView.loadUrl(searchUrl);
+            try {
+                String encoded =
+                        URLEncoder.encode(input, "UTF-8");
+
+                webView.loadUrl(SEARCH_URL + encoded);
+
+            } catch (Exception e) {
+                webView.loadUrl(SEARCH_URL + input);
+            }
         }
     }
 
     private boolean isUrl(String input) {
+
         if (input.startsWith("http://") ||
             input.startsWith("https://")) {
             return true;
@@ -144,25 +141,20 @@ public class MainActivity extends Activity {
                input.startsWith("127.0.0.1:");
     }
 
-    private String urlEncode(String text) {
-        try {
-            return java.net.URLEncoder.encode(text, "UTF-8");
-        } catch (Exception e) {
-            return text;
-        }
-    }
-
     private void hideKeyboard() {
         InputMethodManager manager =
-                (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                (InputMethodManager) getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
 
         if (manager != null) {
-            manager.hideSoftInputFromWindow(urlBox.getWindowToken(), 0);
+            manager.hideSoftInputFromWindow(
+                    urlBox.getWindowToken(), 0);
         }
     }
 
     @Override
     public void onBackPressed() {
+
         if (webView.canGoBack()) {
             hideKeyboard();
             urlBox.clearFocus();
