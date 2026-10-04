@@ -63,7 +63,9 @@ public class SettingsPage {
         webView.loadDataWithBaseURL(
                 "https://browser.local/settings/" +
                         section,
-                createHtml(section),
+                createHtml(
+                        section,
+                        tab.isIncognito),
                 "text/html",
                 "UTF-8",
                 null);
@@ -134,67 +136,95 @@ public class SettingsPage {
     }
 
     private String createHtml(
-            String currentSection) {
+            String currentSection,
+            boolean incognito) {
 
         int accentColor =
                 ColorUtils.parseColor(
                         settings.getAccentColor(),
-                        Color.rgb(
-                                63, 81, 181));
+                        Color.WHITE);
+
+        int sidebarColor =
+                incognito
+                        ? Color.rgb(
+                                30, 30, 32)
+                        : accentColor;
 
         int accentText =
                 ColorUtils.getReadableTextColor(
-                        accentColor);
+                        sidebarColor);
 
         int accentSoft =
-                ColorUtils.mix(
-                        accentColor,
-                        Color.WHITE,
-                        0.16f);
+                incognito
+                        ? Color.rgb(
+                                55, 56, 60)
+                        : ColorUtils.mix(
+                                accentColor,
+                                Color.WHITE,
+                                0.16f);
 
         int accentSoftText =
                 ColorUtils.getReadableTextColor(
                         accentSoft);
 
         int accentContent =
-                ColorUtils.mix(
-                        accentColor,
-                        Color.WHITE,
-                        0.94f);
+                incognito
+                        ? Color.rgb(
+                                32, 33, 36)
+                        : ColorUtils.mix(
+                                accentColor,
+                                Color.WHITE,
+                                0.94f);
 
         int cardBackground =
-                ColorUtils.mix(
-                        accentColor,
-                        Color.WHITE,
-                        0.90f);
+                incognito
+                        ? Color.rgb(
+                                48, 49, 52)
+                        : ColorUtils.mix(
+                                accentColor,
+                                Color.WHITE,
+                                0.90f);
 
         int cardText =
-                ColorUtils.getReadableTextColor(
-                        cardBackground);
+                incognito
+                        ? Color.WHITE
+                        : ColorUtils.getReadableTextColor(
+                                cardBackground);
 
         int headingColor =
-                ColorUtils.ensureContrast(
-                        accentColor,
-                        accentContent,
-                        4.5d);
+                incognito
+                        ? Color.WHITE
+                        : ColorUtils.ensureContrast(
+                                accentColor,
+                                accentContent,
+                                4.5d);
 
         int accentBorder =
-                ColorUtils.ensureContrast(
-                        accentColor,
-                        cardBackground,
-                        2.5d);
+                incognito
+                        ? Color.rgb(
+                                95, 99, 104)
+                        : ColorUtils.ensureContrast(
+                                accentColor,
+                                cardBackground,
+                                2.5d);
 
         int secondaryText =
-                ColorUtils.ensureContrast(
-                        Color.rgb(95, 95, 95),
-                        cardBackground,
-                        4.5d);
+                incognito
+                        ? Color.rgb(
+                                190, 190, 195)
+                        : ColorUtils.ensureContrast(
+                                Color.rgb(95, 95, 95),
+                                cardBackground,
+                                4.5d);
 
         int contentSecondaryText =
-                ColorUtils.ensureContrast(
-                        Color.rgb(95, 95, 95),
-                        accentContent,
-                        4.5d);
+                incognito
+                        ? Color.rgb(
+                                190, 190, 195)
+                        : ColorUtils.ensureContrast(
+                                Color.rgb(95, 95, 95),
+                                accentContent,
+                                4.5d);
 
         String accent =
                 ColorUtils.toHex(accentColor);
@@ -260,7 +290,7 @@ public class SettingsPage {
                 ".sidebar{" +
                 "width:205px;" +
                 "background:" +
-                accent +
+                ColorUtils.toHex(sidebarColor) +
                 ";" +
                 "padding:18px 0;" +
                 "flex-shrink:0;" +
