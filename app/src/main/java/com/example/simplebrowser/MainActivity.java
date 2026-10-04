@@ -7,29 +7,31 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 
-import java.net.URLEncoder;
 import java.io.File;
+import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
 
-    private static final String SETTINGS_URL =
+    private static final String SETTINGS_ROOT =
             "browser://settings";
-
-    private static final int LOCAL_FILE_REQUEST =
-            1401;
 
     private EditText urlBox;
     private ProgressBar progressBar;
     private LinearLayout toolbar;
+    private PopupWindow browserMenu;
 
     private BrowserSettings browserSettings;
     private TabManager tabManager;
@@ -108,6 +110,7 @@ public class MainActivity extends Activity {
         if (intent == null ||
                 !Intent.ACTION_VIEW.equals(
                         intent.getAction())) {
+
             return null;
         }
 
@@ -135,9 +138,7 @@ public class MainActivity extends Activity {
     private void setupToolbarIcons() {
 
         int accent =
-                ColorUtils.parseColor(
-                        browserSettings.getAccentColor(),
-                        Color.rgb(63, 81, 181));
+                getAccentColor();
 
         int iconColor =
                 ColorUtils.getReadableTextColor(
@@ -160,19 +161,21 @@ public class MainActivity extends Activity {
 
         setToolbarIcon(
                 R.id.reload,
-                BrowserIconDrawable.RELOAD,
+                browserSettings == null
+                        ? BrowserIconDrawable.RELOAD
+                        : BrowserIconDrawable.RELOAD,
                 iconColor);
 
         setToolbarIcon(
                 R.id.settings,
-                BrowserIconDrawable.SETTINGS,
+                BrowserIconDrawable.MORE,
                 iconColor);
     }
 
     private void setToolbarIcon(
             int id,
             int type,
-            int iconColor) {
+            int color) {
 
         ImageButton button =
                 findViewById(id);
@@ -180,13 +183,49 @@ public class MainActivity extends Activity {
         button.setImageDrawable(
                 new BrowserIconDrawable(
                         type,
-                        iconColor));
+                        color));
 
         button.setBackgroundColor(
                 Color.TRANSPARENT);
 
         button.setScaleType(
                 ImageButton.ScaleType.CENTER_INSIDE);
+    }
+
+    private void setupButtonPressAnimation(
+            final ImageButton button) {
+
+        button.setOnTouchListener(
+                (v, event) -> {
+
+                    if (!button.isEnabled()) {
+                        return false;
+                    }
+
+                    if (event.getAction() ==
+                            MotionEvent.ACTION_DOWN) {
+
+                        button.animate()
+                                .scaleX(0.90f)
+                                .scaleY(0.90f)
+                                .setDuration(90)
+                                .start();
+
+                    } else if (
+                            event.getAction() ==
+                                    MotionEvent.ACTION_UP ||
+                            event.getAction() ==
+                                    MotionEvent.ACTION_CANCEL) {
+
+                        button.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(120)
+                                .start();
+                    }
+
+                    return false;
+                });
     }
 
     private void setupButtons() {
@@ -202,9 +241,6 @@ public class MainActivity extends Activity {
 
         ImageButton reload =
                 findViewById(R.id.reload);
-
-        ImageButton newTab =
-                findViewById(R.id.new_tab);
 
         ImageButton settings =
                 findViewById(R.id.settings);
@@ -279,67 +315,199 @@ public class MainActivity extends Activity {
                 updateReloadButton(tab);
                 updateNavigationButtons();
 
-                return;
+            } else {
+
+                tab.webView.reload();
             }
-
-            tab.webView.reload();
-        });
-
-        newTab.setOnClickListener(v -> {
-
-            hideKeyboard();
-
-            tabManager.addTab(
-                    browserSettings
-                            .getHomePage());
         });
 
         settings.setOnClickListener(v -> {
 
             hideKeyboard();
 
-            BrowserTab tab =
-                    getActiveTab();
-
-            if (tab != null) {
-                showSettings(tab);
-            }
+            showBrowserMenu(settings);
         });
+
+        setupButtonPressAnimation(back);
+        setupButtonPressAnimation(forward);
+        setupButtonPressAnimation(home);
+        setupButtonPressAnimation(reload);
+        setupButtonPressAnimation(settings);
 
         urlBox.setOnEditorActionListener(
                 (v, actionId, event) -> {
 
-            boolean enter =
-                    event != null &&
-                    event.getKeyCode() ==
-                            android.view.KeyEvent
-                                    .KEYCODE_ENTER &&
-                    event.getAction() ==
-                            android.view.KeyEvent
-                                    .ACTION_DOWN;
+                    boolean enter =
+                            event != null &&
+                            event.getKeyCode() ==
+                                    android.view.KeyEvent
+                                            .KEYCODE_ENTER &&
+                            event.getAction() ==
+                                    android.view.KeyEvent
+                                            .ACTION_DOWN;
 
-            if (actionId ==
-                    EditorInfo.IME_ACTION_GO ||
-                actionId ==
-                    EditorInfo.IME_ACTION_DONE ||
-                enter) {
+                    if (actionId ==
+                            EditorInfo.IME_ACTION_GO ||
+                        actionId ==
+                            EditorInfo.IME_ACTION_DONE ||
+                        enter) {
 
-                String input =
-                        urlBox.getText()
-                                .toString()
-                                .trim();
+                        String input =
+                                urlBox.getText()
+                                        .toString()
+                                        .trim();
 
-                if (!input.isEmpty()) {
-                    openUrlOrSearch(input);
-                }
+                        if (!input.isEmpty()) {
+                            openUrlOrSearch(input);
+                        }
 
-                return true;
-            }
+                        return true;
+                    }
 
-            return false;
-        });
+                    return false;
+                });
 
         updateNavigationButtons();
+    }
+
+    private void showBrowserMenu(
+            ImageButton anchor) {
+
+        if (browserMenu != null &&
+                browserMenu.isShowing()) {
+
+            browserMenu.dismiss();
+            return;
+        }
+
+        int accent =
+                getAccentColor();
+
+        int readable =
+                ColorUtils.getReadableTextColor(
+                        accent);
+
+        int menuBackground =
+                ColorUtils.mix(
+                        accent,
+                        Color.WHITE,
+                        0.90f);
+
+        LinearLayout menu =
+                new LinearLayout(this);
+
+        menu.setOrientation(
+                LinearLayout.VERTICAL);
+
+        menu.setPadding(
+                dp(8),
+                dp(8),
+                dp(8),
+                dp(8));
+
+        menu.setBackgroundColor(
+                menuBackground);
+
+        Button settingsButton =
+                new Button(this);
+
+        settingsButton.setText(
+                "Settings");
+
+        settingsButton.setAllCaps(false);
+
+        settingsButton.setTextColor(
+                readable);
+
+        settingsButton.setBackgroundColor(
+                accent);
+
+        settingsButton.setOnClickListener(
+                v -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showSettings(
+                                tab,
+                                "general");
+                    }
+                });
+
+        menu.addView(
+                settingsButton,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(44)));
+
+        CheckBox desktop =
+                new CheckBox(this);
+
+        desktop.setText(
+                "Desktop mode");
+
+        desktop.setTextColor(
+                ColorUtils
+                        .getReadableTextColor(
+                                menuBackground));
+
+        desktop.setChecked(
+                browserSettings
+                        .isDesktopMode());
+
+        desktop.setPadding(
+                dp(4),
+                dp(2),
+                dp(4),
+                dp(2));
+
+        desktop.setOnCheckedChangeListener(
+                (button, checked) -> {
+
+                    browserSettings
+                            .setBoolean(
+                                    "desktop_mode",
+                                    checked);
+
+                    applyDesktopMode();
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+                });
+
+        menu.addView(
+                desktop,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(48)));
+
+        browserMenu =
+                new PopupWindow(
+                        menu,
+                        dp(220),
+                        android.view.ViewGroup
+                                .LayoutParams
+                                .WRAP_CONTENT,
+                        true);
+
+        browserMenu.setBackgroundDrawable(
+                new android.graphics.drawable
+                        .ColorDrawable(
+                                menuBackground));
+
+        browserMenu.setOutsideTouchable(true);
+
+        browserMenu.showAsDropDown(
+                anchor,
+                anchor.getWidth() -
+                        dp(220),
+                0);
     }
 
     public void openUrlOrSearch(
@@ -354,10 +522,15 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (SETTINGS_URL.equalsIgnoreCase(
-                input)) {
+        String settingsSection =
+                getSettingsSection(input);
 
-            showSettings(tab);
+        if (settingsSection != null) {
+
+            showSettings(
+                    tab,
+                    settingsSection);
+
             return;
         }
 
@@ -409,6 +582,72 @@ public class MainActivity extends Activity {
         }
     }
 
+    private String getSettingsSection(
+            String url) {
+
+        if (url == null) {
+            return null;
+        }
+
+        String lower =
+                url.trim()
+                        .toLowerCase();
+
+        if (!lower.startsWith(
+                SETTINGS_ROOT)) {
+
+            return null;
+        }
+
+        if (lower.equals(
+                SETTINGS_ROOT)) {
+
+            return "general";
+        }
+
+        String suffix =
+                lower.substring(
+                        SETTINGS_ROOT.length());
+
+        if (suffix.startsWith("/")) {
+            suffix = suffix.substring(1);
+        }
+
+        if ("general".equals(suffix)) {
+            return "general";
+        }
+
+        if ("websites".equals(suffix)) {
+            return "websites";
+        }
+
+        if ("appearance".equals(suffix)) {
+            return "appearance";
+        }
+
+        if ("privacy".equals(suffix) ||
+                "privacy-security"
+                        .equals(suffix)) {
+            return "privacy-security";
+        }
+
+        return null;
+    }
+
+    public String getSettingsUrl(
+            String section) {
+
+        if (!"websites".equals(section) &&
+                !"appearance".equals(section) &&
+                !"privacy-security".equals(section)) {
+            section = "general";
+        }
+
+        return SETTINGS_ROOT +
+                "/" +
+                section;
+    }
+
     private boolean isLocalPath(
             String input) {
 
@@ -442,7 +681,6 @@ public class MainActivity extends Activity {
 
         if (input.startsWith("file://") ||
                 input.startsWith("content://")) {
-
             return input;
         }
 
@@ -458,7 +696,6 @@ public class MainActivity extends Activity {
                 input.startsWith("https://") ||
                 input.startsWith("file://") ||
                 input.startsWith("content://")) {
-
             return true;
         }
 
@@ -500,10 +737,20 @@ public class MainActivity extends Activity {
             BrowserTab tab,
             String url) {
 
-        if (SETTINGS_URL.equalsIgnoreCase(
-                url)) {
+        if (tab == null ||
+                tab.webView == null) {
+            return;
+        }
 
-            showSettings(tab);
+        String settingsSection =
+                getSettingsSection(url);
+
+        if (settingsSection != null) {
+
+            showSettings(
+                    tab,
+                    settingsSection);
+
             return;
         }
 
@@ -512,16 +759,44 @@ public class MainActivity extends Activity {
         }
 
         tab.settingsPage = false;
+        tab.settingsSection = "general";
+
         tab.webView.loadUrl(url);
     }
 
     public void showSettings(
             BrowserTab tab) {
 
-        settingsPage.show(tab);
+        showSettings(
+                tab,
+                "general");
+    }
+
+    public void showSettings(
+            BrowserTab tab,
+            String section) {
+
+        if (tab == null) {
+            return;
+        }
+
+        settingsPage.show(
+                tab,
+                section);
+
         tabManager.selectTab(tab);
+
         updateSecurity(tab);
         updateNavigationButtons();
+    }
+
+    public void showSettingsSection(
+            BrowserTab tab,
+            String section) {
+
+        showSettings(
+                tab,
+                section);
     }
 
     public void removeSettingsBridge(
@@ -537,9 +812,13 @@ public class MainActivity extends Activity {
         if (tab == getActiveTab()) {
 
             if (tab.settingsPage) {
+
                 setUrlText(
-                        SETTINGS_URL);
+                        getSettingsUrl(
+                                tab.settingsSection));
+
             } else {
+
                 setUrlText(url);
             }
 
@@ -560,9 +839,13 @@ public class MainActivity extends Activity {
         if (tab == getActiveTab()) {
 
             if (tab.settingsPage) {
+
                 setUrlText(
-                        SETTINGS_URL);
+                        getSettingsUrl(
+                                tab.settingsSection));
+
             } else {
+
                 setUrlText(url);
             }
 
@@ -579,11 +862,13 @@ public class MainActivity extends Activity {
             progressBar.postDelayed(
                     () -> {
 
-                        if (tab == getActiveTab() &&
+                        if (tab ==
+                                getActiveTab() &&
                                 !tab.loading) {
 
-                            progressBar.setVisibility(
-                                    View.GONE);
+                            progressBar
+                                    .setVisibility(
+                                            View.GONE);
                         }
 
                     },
@@ -599,7 +884,8 @@ public class MainActivity extends Activity {
             return;
         }
 
-        progressBar.setProgress(progress);
+        progressBar.setProgress(
+                progress);
 
         if (progress < 100) {
             progressBar.setVisibility(
@@ -619,7 +905,8 @@ public class MainActivity extends Activity {
         if (tab == getActiveTab()) {
 
             setUrlText(
-                    SETTINGS_URL);
+                    getSettingsUrl(
+                            tab.settingsSection));
 
             progressBar.setVisibility(
                     View.GONE);
@@ -662,8 +949,14 @@ public class MainActivity extends Activity {
             boolean enabled) {
 
         button.setEnabled(enabled);
+
         button.setAlpha(
-                enabled ? 1f : 0.35f);
+                enabled
+                        ? 1f
+                        : 0.30f);
+
+        button.setScaleX(1f);
+        button.setScaleY(1f);
     }
 
     private void updateReloadButton(
@@ -677,15 +970,10 @@ public class MainActivity extends Activity {
         ImageButton reload =
                 findViewById(R.id.reload);
 
-        int accent =
-                ColorUtils.parseColor(
-                        browserSettings
-                                .getAccentColor(),
-                        Color.rgb(63, 81, 181));
-
         int iconColor =
-                ColorUtils.getReadableTextColor(
-                        accent);
+                ColorUtils
+                        .getReadableTextColor(
+                                getAccentColor());
 
         reload.setImageDrawable(
                 new BrowserIconDrawable(
@@ -700,24 +988,46 @@ public class MainActivity extends Activity {
                         : "Reload");
     }
 
+    private int getAccentColor() {
+
+        return ColorUtils.parseColor(
+                browserSettings.getAccentColor(),
+                Color.rgb(
+                        63,
+                        81,
+                        181));
+    }
+
     public void applyWebsiteSettings() {
+
         tabManager.applyWebSettings();
         updateNavigationButtons();
         updateReloadButton(
                 getActiveTab());
     }
 
+    public void applyDesktopMode() {
+
+        tabManager.applyWebSettings();
+
+        for (BrowserTab tab :
+                tabManager.getTabs()) {
+
+            if (!tab.settingsPage) {
+                tab.webView.reload();
+            }
+        }
+    }
+
     public void applyBrowserAppearance() {
 
         int accent =
-                ColorUtils.parseColor(
-                        browserSettings
-                                .getAccentColor(),
-                        Color.rgb(63, 81, 181));
+                getAccentColor();
 
-        int toolbarText =
-                ColorUtils.getReadableTextColor(
-                        accent);
+        int readable =
+                ColorUtils
+                        .getReadableTextColor(
+                                accent);
 
         toolbar.setBackgroundColor(
                 accent);
@@ -725,22 +1035,22 @@ public class MainActivity extends Activity {
         setToolbarIcon(
                 R.id.back,
                 BrowserIconDrawable.BACK,
-                toolbarText);
+                readable);
 
         setToolbarIcon(
                 R.id.forward,
                 BrowserIconDrawable.FORWARD,
-                toolbarText);
+                readable);
 
         setToolbarIcon(
                 R.id.home,
                 BrowserIconDrawable.HOME,
-                toolbarText);
+                readable);
 
         setToolbarIcon(
                 R.id.settings,
-                BrowserIconDrawable.SETTINGS,
-                toolbarText);
+                BrowserIconDrawable.MORE,
+                readable);
 
         for (int id :
                 new int[] {
@@ -765,13 +1075,15 @@ public class MainActivity extends Activity {
                         0.82f);
 
         int urlText =
-                ColorUtils.getReadableTextColor(
-                        urlBackground);
+                ColorUtils
+                        .getReadableTextColor(
+                                urlBackground);
 
         urlBox.setBackgroundColor(
                 urlBackground);
 
-        urlBox.setTextColor(urlText);
+        urlBox.setTextColor(
+                urlText);
 
         urlBox.setHintTextColor(
                 ColorUtils.mix(
@@ -788,143 +1100,17 @@ public class MainActivity extends Activity {
         tabManager.updateTitles();
     }
 
-    public void applyDesktopMode() {
-
-        tabManager.applyWebSettings();
-
-        for (BrowserTab tab :
-                tabManager.getTabs()) {
-
-            if (!tab.settingsPage) {
-                tab.webView.reload();
-            }
-        }
-    }
-
-    public void openLocalFilePicker() {
-
-        Intent intent =
-                new Intent(
-                        Intent.ACTION_GET_CONTENT);
-
-        intent.addCategory(
-                Intent.CATEGORY_OPENABLE);
-
-        intent.setType(
-                "text/html");
-
-        try {
-
-            startActivityForResult(
-                    intent,
-                    LOCAL_FILE_REQUEST);
-
-        } catch (Exception e) {
-
-            Intent fallback =
-                    new Intent(
-                            Intent.ACTION_OPEN_DOCUMENT);
-
-            fallback.addCategory(
-                    Intent.CATEGORY_OPENABLE);
-
-            fallback.setType(
-                    "text/html");
-
-            try {
-                startActivityForResult(
-                        fallback,
-                        LOCAL_FILE_REQUEST);
-            } catch (Exception ignored) {
-                // No compatible file picker is installed.
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(
-            int requestCode,
-            int resultCode,
-            Intent data) {
-
-        super.onActivityResult(
-                requestCode,
-                resultCode,
-                data);
-
-        if (requestCode !=
-                LOCAL_FILE_REQUEST ||
-                resultCode != RESULT_OK ||
-                data == null) {
-            return;
-        }
-
-        Uri uri =
-                data.getData();
-
-        if (uri == null) {
-            return;
-        }
-
-        BrowserTab tab =
-                getActiveTab();
-
-        if (tab != null) {
-            loadTabUrl(
-                    tab,
-                    uri.toString());
-        }
-    }
-
-    public void chooseDefaultBrowser() {
-
-        Intent intent =
-                new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(
-                                "http://example.com/"));
-
-        intent.addCategory(
-                Intent.CATEGORY_BROWSABLE);
-
-        try {
-            startActivity(intent);
-        } catch (Exception e) {
-            // No browser activity is registered.
-        }
-    }
-
-    public void updateTabTitle(
-            BrowserTab tab) {
-        tabManager.updateTabTitle(tab);
-    }
-
     public void updateNavigationButtonsForTabs() {
         updateNavigationButtons();
     }
 
-    public void updateSecurity(
-            BrowserTab tab) {
-        securityManager.updateIcon(tab);
-    }
-
-    public BrowserTab getActiveTab() {
-        return tabManager.getActiveTab();
-    }
-
-    public TabManager getTabManager() {
-        return tabManager;
-    }
-
-    public BrowserSettings
-            getBrowserSettings() {
-        return browserSettings;
-    }
-
     public void setUrlText(
             String text) {
+
         urlBox.setText(
-                text == null ? "" : text);
+                text == null
+                        ? ""
+                        : text);
     }
 
     public void setLoading(
@@ -946,12 +1132,26 @@ public class MainActivity extends Activity {
         updateNavigationButtons();
     }
 
+    public BrowserTab getActiveTab() {
+        return tabManager.getActiveTab();
+    }
+
+    public TabManager getTabManager() {
+        return tabManager;
+    }
+
+    public BrowserSettings
+            getBrowserSettings() {
+        return browserSettings;
+    }
+
     public void hideKeyboard() {
 
         InputMethodManager manager =
                 (InputMethodManager)
                         getSystemService(
-                                Context.INPUT_METHOD_SERVICE);
+                                Context
+                                        .INPUT_METHOD_SERVICE);
 
         if (manager != null) {
 
@@ -963,11 +1163,94 @@ public class MainActivity extends Activity {
         urlBox.clearFocus();
     }
 
+    public void openLocalFilePicker() {
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_GET_CONTENT);
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE);
+
+        intent.setType(
+                "text/html");
+
+        try {
+            startActivityForResult(
+                    intent,
+                    1401);
+        } catch (Exception e) {
+            startActivityForResult(
+                    new Intent(
+                            Intent.ACTION_OPEN_DOCUMENT)
+                            .addCategory(
+                                    Intent.CATEGORY_OPENABLE)
+                            .setType("text/html"),
+                    1401);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data) {
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data);
+
+        if (requestCode != 1401 ||
+                resultCode != RESULT_OK ||
+                data == null ||
+                data.getData() == null) {
+            return;
+        }
+
+        BrowserTab tab =
+                getActiveTab();
+
+        if (tab != null) {
+            loadTabUrl(
+                    tab,
+                    data.getData().toString());
+        }
+    }
+
+    public void chooseDefaultBrowser() {
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(
+                                "http://example.com/"));
+
+        intent.addCategory(
+                Intent.CATEGORY_BROWSABLE);
+
+        try {
+            startActivity(intent);
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
     public void onBackPressed() {
 
         BrowserTab tab =
                 getActiveTab();
+
+        if (tab != null &&
+                tab.settingsPage &&
+                !"general".equals(
+                        tab.settingsSection)) {
+
+            showSettings(
+                    tab,
+                    "general");
+
+            return;
+        }
 
         if (tab != null &&
                 tab.webView.canGoBack()) {
@@ -978,5 +1261,15 @@ public class MainActivity extends Activity {
         }
 
         super.onBackPressed();
+    }
+
+    public int dp(int value) {
+
+        return (int) (
+                value *
+                getResources()
+                        .getDisplayMetrics()
+                        .density +
+                0.5f);
     }
 }
