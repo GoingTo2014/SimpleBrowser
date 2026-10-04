@@ -762,7 +762,7 @@ public class SettingsPage {
 
         String selected =
                 value.equals(
-                        settings.getHomePage())
+                        settings.getHomeSelection())
                         ? " selected"
                         : "";
 
@@ -803,7 +803,7 @@ public class SettingsPage {
 
         return value
                 .replace("&", "&amp;")
-                .replace(""", "&quot;")
+                .replace("\"", "&quot;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("'", "&#39;");
@@ -870,6 +870,7 @@ public class SettingsPage {
                 String value) {
 
             settings.setCustomHomePage(value);
+            settings.setHomePage("custom");
         }
 
         @JavascriptInterface
@@ -883,6 +884,7 @@ public class SettingsPage {
                 String value) {
 
             settings.setCustomSearchUrl(value);
+            settings.setSearchEngine("custom");
         }
 
         @JavascriptInterface
