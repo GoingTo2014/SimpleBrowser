@@ -103,7 +103,11 @@ public class TabManager {
         WebSettings settings =
                 tab.webView.getSettings();
 
+        tab.defaultUserAgent =
+                settings.getUserAgentString();
+
         applyWebSettings(
+                tab,
                 settings,
                 activity.getBrowserSettings());
 
@@ -600,6 +604,7 @@ public class TabManager {
                     tab.webView.getSettings();
 
             applyWebSettings(
+                    tab,
                     settings,
                     browserSettings);
         }
@@ -613,6 +618,7 @@ public class TabManager {
     }
 
     private void applyWebSettings(
+            BrowserTab tab,
             WebSettings settings,
             BrowserSettings browserSettings) {
 
@@ -652,7 +658,8 @@ public class TabManager {
              * null tells WebView to return to its
              * built-in user agent.
              */
-            settings.setUserAgentString(null);
+            settings.setUserAgentString(
+                    tab.defaultUserAgent);
             settings.setUseWideViewPort(false);
             settings.setLoadWithOverviewMode(false);
         }
