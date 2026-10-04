@@ -3,13 +3,14 @@ package com.example.simplebrowser;
 import android.graphics.Color;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
 import android.widget.Toast;
 
 /**
- * Built-in settings UI.
+ * Self-contained browser settings page.
  *
- * The page is self-contained HTML/CSS/JS so it works on the
- * Android 4.4 WebView without external web dependencies.
+ * Sections have their own browser://settings/<section>
+ * addresses while sharing one lightweight HTML renderer.
  */
 public class SettingsPage {
 
@@ -27,10 +28,23 @@ public class SettingsPage {
     public void show(
             BrowserTab tab) {
 
+        show(tab, "general");
+    }
+
+    public void show(
+            BrowserTab tab,
+            String section) {
+
+        section =
+                normalizeSection(section);
+
         tab.settingsPage = true;
         tab.loading = false;
         tab.sslError = false;
-        tab.url = "browser://settings";
+        tab.settingsSection = section;
+        tab.url =
+                activity.getSettingsUrl(
+                        section);
         tab.title = "Settings";
 
         WebView webView =
@@ -43,18 +57,32 @@ public class SettingsPage {
                 .setJavaScriptEnabled(true);
 
         webView.addJavascriptInterface(
-                new SettingsBridge(),
+                new SettingsBridge(tab),
                 "Android");
 
         webView.loadDataWithBaseURL(
                 "https://browser.local/",
-                createHtml(),
+                createHtml(section),
                 "text/html",
                 "UTF-8",
                 null);
 
         activity.updateTabTitle(tab);
         activity.settingsLoaded(tab);
+    }
+
+    private String normalizeSection(
+            String section) {
+
+        if ("websites".equals(section) ||
+                "appearance".equals(section) ||
+                "privacy-security"
+                        .equals(section)) {
+
+            return section;
+        }
+
+        return "general";
     }
 
     public void remove(
@@ -72,7 +100,8 @@ public class SettingsPage {
                                 .isJavaScriptEnabled());
     }
 
-    private String createHtml() {
+    private String createHtml(
+            String currentSection) {
 
         int accentColor =
                 ColorUtils.parseColor(
@@ -81,21 +110,26 @@ public class SettingsPage {
                                 63, 81, 181));
 
         int accentText =
-                ColorUtils
-                        .getReadableTextColor(
-                                accentColor);
+                ColorUtils.getReadableTextColor(
+                        accentColor);
 
         int accentSoft =
                 ColorUtils.mix(
                         accentColor,
-                        accentText,
+                        Color.WHITE,
                         0.16f);
+
+        int accentContent =
+                ColorUtils.mix(
+                        accentColor,
+                        Color.WHITE,
+                        0.94f);
 
         int accentBorder =
                 ColorUtils.mix(
                         accentColor,
                         Color.WHITE,
-                        0.28f);
+                        0.35f);
 
         String accent =
                 ColorUtils.toHex(accentColor);
@@ -105,6 +139,9 @@ public class SettingsPage {
 
         String accentSoftHex =
                 ColorUtils.toHex(accentSoft);
+
+        String accentContentHex =
+                ColorUtils.toHex(accentContent);
 
         String accentBorderHex =
                 ColorUtils.toHex(accentBorder);
@@ -126,7 +163,9 @@ public class SettingsPage {
                 "padding:0;" +
                 "min-height:100%;" +
                 "font-family:sans-serif;" +
-                "background:#F5F6F8;" +
+                "background:" +
+                accentContentHex +
+                ";" +
                 "color:#202124;" +
                 "}" +
 
@@ -186,6 +225,9 @@ public class SettingsPage {
                 "width:100%;" +
                 "max-width:820px;" +
                 "padding:28px;" +
+                "background:" +
+                accentContentHex +
+                ";" +
                 "}" +
 
                 "h1{" +
@@ -204,11 +246,16 @@ public class SettingsPage {
                 "h2{" +
                 "font-size:18px;" +
                 "margin:0 0 9px;" +
+                "color:" +
+                accent +
+                ";" +
                 "}" +
 
                 ".card{" +
                 "background:#FFFFFF;" +
-                "border:1px solid #DDDDDD;" +
+                "border:1px solid " +
+                accentBorderHex +
+                ";" +
                 "border-radius:8px;" +
                 "overflow:hidden;" +
                 "margin-bottom:25px;" +
@@ -241,6 +288,9 @@ public class SettingsPage {
                 "margin-top:8px;" +
                 "padding:8px;" +
                 "font-size:15px;" +
+                "border:1px solid " +
+                accentBorderHex +
+                ";" +
                 "}" +
 
                 "input[type=color]{" +
@@ -253,7 +303,10 @@ public class SettingsPage {
                 "background:#FFFFFF;" +
                 "}" +
 
-                "input[type=checkbox]{width:20px;height:20px;}" +
+                "input[type=checkbox]{" +
+                "width:20px;" +
+                "height:20px;" +
+                "}" +
 
                 "button{" +
                 "font-size:14px;" +
@@ -273,23 +326,15 @@ public class SettingsPage {
                 ".section.active{display:block;}" +
 
                 "@media(max-width:600px){" +
-
                 ".sidebar{width:145px;}" +
-
                 ".content{padding:20px 15px;}" +
-
                 ".brand{padding-left:13px;}" +
-
                 ".nav{padding-left:13px;}" +
-
                 ".nav.active{padding-left:10px;}" +
-
                 "}" +
 
                 "</style>" +
-
                 "</head>" +
-
                 "<body>" +
 
                 "<div class='layout'>" +
@@ -298,20 +343,24 @@ public class SettingsPage {
 
                 "<div class='brand'>Simple Browser</div>" +
 
-                "<div id='nav-general' class='nav active' " +
-                "onclick=\"showSection('general')\">" +
+                "<div class='nav " +
+                active(currentSection, "general") +
+                "' onclick=\"Android.navigate('general')\">" +
                 "General</div>" +
 
-                "<div id='nav-privacy' class='nav' " +
-                "onclick=\"showSection('privacy')\">" +
+                "<div class='nav " +
+                active(currentSection, "privacy-security") +
+                "' onclick=\"Android.navigate('privacy-security')\">" +
                 "Privacy &amp; Security</div>" +
 
-                "<div id='nav-websites' class='nav' " +
-                "onclick=\"showSection('websites')\">" +
+                "<div class='nav " +
+                active(currentSection, "websites") +
+                "' onclick=\"Android.navigate('websites')\">" +
                 "Websites</div>" +
 
-                "<div id='nav-appearance' class='nav' " +
-                "onclick=\"showSection('appearance')\">" +
+                "<div class='nav " +
+                active(currentSection, "appearance") +
+                "' onclick=\"Android.navigate('appearance')\">" +
                 "Appearance</div>" +
 
                 "</div>" +
@@ -319,17 +368,20 @@ public class SettingsPage {
                 "<div class='content'>" +
 
                 "<h1>Settings</h1>" +
-
                 "<div class='subtitle'>Configure Simple Browser</div>" +
 
-                "<div id='section-general' class='section active'>" +
+                "<div id='section-general' class='section " +
+                sectionActive(
+                        currentSection,
+                        "general") +
+                "'>" +
 
                 "<h2>General</h2>" +
-
                 "<div class='card'>" +
 
                 "<div class='row'>" +
                 "<div class='title'>Home page</div>" +
+
                 "<select onchange=\"Android.setHome(this.value)\">" +
 
                 homeOption(
@@ -353,6 +405,7 @@ public class SettingsPage {
 
                 "<div class='row'>" +
                 "<div class='title'>Search engine</div>" +
+
                 "<select onchange=\"Android.setSearch(this.value)\">" +
 
                 searchOption(
@@ -391,67 +444,39 @@ public class SettingsPage {
 
                 "</div>" +
 
-                "<div class='row'>" +
-
-                "<div class='title'>Default browser</div>" +
-
-                "<div class='description'>" +
-                "Ask Android to choose which installed browser should open web links." +
-                "</div>" +
-
-                "<br>" +
-
-                "<button onclick=\"Android.chooseDefaultBrowser()\">" +
-                "Choose browser" +
-                "</button>" +
-
-                "</div>" +
-
-                "<div class='row'>" +
-
-                "<div class='title'>Open local HTML file</div>" +
-
-                "<div class='description'>" +
-                "Choose an HTML file stored on the device." +
-                "</div>" +
-
-                "<br>" +
-
-                "<button onclick=\"Android.openLocalFile()\">" +
-                "Open HTML file" +
-                "</button>" +
-
-                "</div>" +
-
                 "</div>" +
                 "</div>" +
 
-                "<div id='section-privacy' class='section'>" +
+                "<div id='section-privacy-security' class='section " +
+                sectionActive(
+                        currentSection,
+                        "privacy-security") +
+                "'>" +
 
                 "<h2>Privacy &amp; Security</h2>" +
 
                 "<div class='card'>" +
 
                 "<div class='row'>" +
-
                 "<button onclick=\"Android.clearData()\">" +
                 "Clear browsing data" +
                 "</button>" +
-
                 "</div>" +
 
                 "<div class='row'>" +
-
                 "<button onclick=\"Android.resetSettings()\">" +
                 "Restore default settings" +
                 "</button>" +
-
                 "</div>" +
 
                 "</div>" +
                 "</div>" +
 
-                "<div id='section-websites' class='section'>" +
+                "<div id='section-websites' class='section " +
+                sectionActive(
+                        currentSection,
+                        "websites") +
+                "'>" +
 
                 "<h2>Websites</h2>" +
 
@@ -482,10 +507,13 @@ public class SettingsPage {
                         settings.isStorageEnabled()) +
 
                 "</div>" +
-
                 "</div>" +
 
-                "<div id='section-appearance' class='section'>" +
+                "<div id='section-appearance' class='section " +
+                sectionActive(
+                        currentSection,
+                        "appearance") +
+                "'>" +
 
                 "<h2>Appearance</h2>" +
 
@@ -496,12 +524,14 @@ public class SettingsPage {
                 "<div>" +
                 "<div class='title'>Browser color</div>" +
                 "<div class='description'>" +
-                "Changes the browser toolbar and this settings interface." +
+                "Changes the toolbar, tabs, menu, and every part of the built-in settings UI." +
                 "</div>" +
                 "</div>" +
 
                 "<input type='color' " +
-                "value='" + accent + "' " +
+                "value='" +
+                accent +
+                "' " +
                 "onchange=\"Android.setColor(this.value)\">" +
 
                 "</div>" +
@@ -512,30 +542,26 @@ public class SettingsPage {
                 "</div>" +
                 "</div>" +
 
-                "<script>" +
-
-                "function showSection(name){" +
-                "var names=['general','privacy','websites','appearance'];" +
-                "for(var i=0;i<names.length;i++){" +
-                "var n=names[i];" +
-                "var section=document.getElementById('section-'+n);" +
-                "var nav=document.getElementById('nav-'+n);" +
-                "if(section){" +
-                "section.className='section'+(n===name?' active':'');" +
-                "}" +
-                "if(nav){" +
-                "nav.className='nav'+(n===name?' active':'');" +
-                "}" +
-                "}" +
-                "}" +
-
-                "showSection('general');" +
-
-                "</script>" +
-
                 "</body>" +
-
                 "</html>";
+    }
+
+    private String active(
+            String current,
+            String section) {
+
+        return section.equals(current)
+                ? "active"
+                : "";
+    }
+
+    private String sectionActive(
+            String current,
+            String section) {
+
+        return section.equals(current)
+                ? "active"
+                : "";
     }
 
     private String homeOption(
@@ -592,6 +618,7 @@ public class SettingsPage {
                 "<div class='description'>" +
                 description +
                 "</div>" +
+
                 "</div>" +
 
                 "<input type='checkbox'" +
@@ -604,6 +631,26 @@ public class SettingsPage {
     }
 
     private class SettingsBridge {
+
+        private final BrowserTab tab;
+
+        SettingsBridge(
+                BrowserTab tab) {
+
+            this.tab = tab;
+        }
+
+        @JavascriptInterface
+        public void navigate(
+                String section) {
+
+            activity.runOnUiThread(
+                    () -> activity
+                            .showSettingsSection(
+                                    tab,
+                                    normalizeSection(
+                                            section)));
+        }
 
         @JavascriptInterface
         public void setHome(
@@ -659,12 +706,10 @@ public class SettingsPage {
 
                         activity.applyBrowserAppearance();
 
-                        BrowserTab tab =
-                                activity.getActiveTab();
-
-                        if (tab != null &&
-                                tab.settingsPage) {
-                            show(tab);
+                        if (tab.settingsPage) {
+                            show(
+                                    tab,
+                                    tab.settingsSection);
                         }
                     });
         }
@@ -675,13 +720,16 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
-                        for (BrowserTab tab :
+                        for (BrowserTab current :
                                 activity
                                         .getTabManager()
                                         .getTabs()) {
 
-                            tab.webView.clearCache(true);
-                            tab.webView.clearHistory();
+                            current.webView
+                                    .clearCache(true);
+
+                            current.webView
+                                    .clearHistory();
                         }
 
                         android.webkit.CookieManager
@@ -707,26 +755,12 @@ public class SettingsPage {
                         activity.applyWebsiteSettings();
                         activity.applyBrowserAppearance();
 
-                        BrowserTab tab =
-                                activity.getActiveTab();
-
-                        if (tab != null &&
-                                tab.settingsPage) {
-                            show(tab);
+                        if (tab.settingsPage) {
+                            show(
+                                    tab,
+                                    tab.settingsSection);
                         }
                     });
-        }
-
-        @JavascriptInterface
-        public void chooseDefaultBrowser() {
-            activity.runOnUiThread(
-                    () -> activity.chooseDefaultBrowser());
-        }
-
-        @JavascriptInterface
-        public void openLocalFile() {
-            activity.runOnUiThread(
-                    () -> activity.openLocalFilePicker());
         }
     }
 }
