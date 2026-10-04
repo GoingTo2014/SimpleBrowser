@@ -16,7 +16,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
+import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -45,8 +48,10 @@ public class MainActivity extends Activity {
     private SecurityManager securityManager;
 
     private BrowserHistory browserHistory;
+    private DownloadHistory downloadHistory;
     private DefaultPage defaultPage;
     private HistoryPage historyPage;
+    private DownloadsPage downloadsPage;
     private ErrorPage errorPage;
 
     private static final int INCOGNITO_CHROME =
@@ -113,6 +118,9 @@ public class MainActivity extends Activity {
         browserHistory =
                 new BrowserHistory(this);
 
+        downloadHistory =
+                new DownloadHistory(this);
+
         defaultPage =
                 new DefaultPage(this);
 
@@ -120,6 +128,11 @@ public class MainActivity extends Activity {
                 new HistoryPage(
                         this,
                         browserHistory);
+
+        downloadsPage =
+                new DownloadsPage(
+                        this,
+                        downloadHistory);
 
         errorPage =
                 new ErrorPage(this);
@@ -374,7 +387,7 @@ public class MainActivity extends Activity {
 
             hideKeyboard();
 
-            tabManager.addTab(
+            tabManager.addCurrentModeTab(
                     browserSettings.getHomePage());
         });
 
@@ -492,15 +505,40 @@ public class MainActivity extends Activity {
 
         addMenuActionButton(
                 menu,
-                "New Incognito Tab",
+                "Downloads",
                 () -> {
 
                     if (browserMenu != null) {
                         browserMenu.dismiss();
                     }
 
-                    tabManager.addIncognitoTab(
-                            browserSettings.getHomePage());
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showDownloads(tab, "");
+                    }
+                },
+                accent,
+                readable);
+
+        addMenuActionButton(
+                menu,
+                incognito
+                        ? "Exit Incognito Mode"
+                        : "Enter Incognito Mode",
+                () -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    if (incognito) {
+                        tabManager.exitIncognitoMode();
+                    } else {
+                        tabManager.enterIncognitoMode(
+                                browserSettings.getHomePage());
+                    }
                 },
                 accent,
                 readable);
@@ -708,6 +746,12 @@ public class MainActivity extends Activity {
         if ("browser://history".equalsIgnoreCase(value)) {
 
             showHistory(tab, "");
+            return;
+        }
+
+        if ("browser://downloads".equalsIgnoreCase(value)) {
+
+            showDownloads(tab, "");
             return;
         }
 
@@ -978,6 +1022,12 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if ("browser://downloads".equalsIgnoreCase(url)) {
+
+            showDownloads(tab, "");
+            return;
+        }
+
         removeInternalPageState(tab);
 
         tab.webView.loadUrl(url);
@@ -994,10 +1044,12 @@ public class MainActivity extends Activity {
 
         defaultPage.remove(tab);
         historyPage.remove(tab);
+        downloadsPage.remove(tab);
 
         tab.settingsPage = false;
         tab.defaultPage = false;
         tab.historyPage = false;
+        tab.downloadsPage = false;
         tab.errorPage = false;
         tab.settingsSection = "general";
     }
@@ -1051,10 +1103,135 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void showDownloads(
+            BrowserTab tab,
+            String query) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        downloadsPage.show(
+                tab,
+                query);
+        tabManager.selectTab(tab);
+    }
+
     public void clearBrowserHistory() {
 
         if (browserHistory != null) {
             browserHistory.clear();
+        }
+    }
+
+    public void clearDownloadHistory() {
+
+        if (downloadHistory != null) {
+            downloadHistory.clear();
+        }
+    }
+
+    public void startDownload(
+            BrowserTab tab,
+            String url,
+            String userAgent,
+            String contentDisposition,
+            String mimeType,
+            long contentLength) {
+
+        if (url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+
+            String filename =
+                    URLUtil.guessFileName(
+                            url,
+                            contentDisposition,
+                            mimeType);
+
+            if (filename == null ||
+                    filename.trim().isEmpty()) {
+                filename = "download";
+            }
+
+            android.app.DownloadManager.Request request =
+                    new android.app.DownloadManager.Request(
+                            Uri.parse(url));
+
+            request.setTitle(filename);
+            request.setDescription(
+                    "Simple Browser");
+
+            if (mimeType != null &&
+                    !mimeType.trim().isEmpty()) {
+                request.setMimeType(mimeType);
+            }
+
+            request.setNotificationVisibility(
+                    android.app.DownloadManager
+                            .Request
+                            .VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+            if (userAgent != null &&
+                    !userAgent.trim().isEmpty()) {
+                request.addRequestHeader(
+                        "User-Agent",
+                        userAgent);
+            }
+
+            String cookie =
+                    CookieManager
+                            .getInstance()
+                            .getCookie(url);
+
+            if (cookie != null &&
+                    !cookie.trim().isEmpty()) {
+                request.addRequestHeader(
+                        "Cookie",
+                        cookie);
+            }
+
+            android.app.DownloadManager manager =
+                    (android.app.DownloadManager)
+                            getSystemService(
+                                    DOWNLOAD_SERVICE);
+
+            if (manager == null) {
+                throw new IllegalStateException(
+                        "Download manager unavailable");
+            }
+
+            long downloadId =
+                    manager.enqueue(request);
+
+            if (tab == null ||
+                    !tab.isIncognito) {
+
+                downloadHistory.add(
+                        downloadId,
+                        url,
+                        filename,
+                        mimeType,
+                        System.currentTimeMillis());
+            }
+
+            android.widget.Toast.makeText(
+                    this,
+                    "Download started: " + filename,
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+
+        } catch (Exception e) {
+
+            android.widget.Toast.makeText(
+                    this,
+                    "Unable to start download",
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
         }
     }
 
@@ -1674,6 +1851,10 @@ public class MainActivity extends Activity {
 
         if (browserHistory != null) {
             browserHistory.close();
+        }
+
+        if (downloadHistory != null) {
+            downloadHistory.close();
         }
 
         super.onDestroy();
