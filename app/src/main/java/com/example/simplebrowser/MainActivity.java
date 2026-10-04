@@ -57,6 +57,7 @@ public class MainActivity extends Activity {
         ImageButton security =
                 findViewById(R.id.security);
 
+        tabManager =
                 new TabManager(
                         this,
                         container,
