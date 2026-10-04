@@ -21,7 +21,9 @@ public class DefaultPage {
         tab.historyPage = false;
         tab.defaultPage = true;
         tab.loading = false;
-        tab.url = "browser://default";
+        tab.url = "";
+        tab.pendingUrl = "browser://default";
+        tab.hasLoaded = true;
         tab.title = "New Tab";
 
         WebView webView = tab.webView;
@@ -44,7 +46,7 @@ public class DefaultPage {
                 null);
 
         activity.updateTabTitle(tab);
-        activity.setUrlText("browser://default");
+        activity.setUrlText("");
         activity.updateSecurity(tab);
     }
 
