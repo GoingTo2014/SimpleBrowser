@@ -18,6 +18,8 @@ public class DefaultPage {
 
         tab.settingsPage = false;
         tab.errorPage = false;
+        tab.historyPage = false;
+        tab.defaultPage = true;
         tab.loading = false;
         tab.url = "browser://default";
         tab.title = "New Tab";
@@ -44,6 +46,17 @@ public class DefaultPage {
         activity.updateTabTitle(tab);
         activity.setUrlText("browser://default");
         activity.updateSecurity(tab);
+    }
+
+    public void remove(BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        tab.webView.removeJavascriptInterface(
+                "DefaultPage");
+        tab.defaultPage = false;
     }
 
     private String createHtml(
