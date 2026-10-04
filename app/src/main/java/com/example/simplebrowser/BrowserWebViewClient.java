@@ -2,7 +2,7 @@ package com.example.simplebrowser;
 
 import android.graphics.Bitmap;
 import android.net.http.SslError;
-import android.net.http.SslErrorHandler;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
