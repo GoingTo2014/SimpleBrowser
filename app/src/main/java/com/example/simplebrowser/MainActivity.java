@@ -1386,18 +1386,6 @@ public class MainActivity extends Activity {
                 getActiveTab();
 
         if (tab != null &&
-                tab.settingsPage &&
-                !"general".equals(
-                        tab.settingsSection)) {
-
-            showSettings(
-                    tab,
-                    "general");
-
-            return;
-        }
-
-        if (tab != null &&
                 tab.webView.canGoBack()) {
 
             hideKeyboard();
