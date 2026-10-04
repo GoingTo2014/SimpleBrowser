@@ -22,31 +22,29 @@ public class SettingsPage {
 
         tab.settingsPage = true;
         tab.loading = false;
+        tab.sslError = false;
         tab.url = "browser://settings";
         tab.title = "Settings";
 
         WebView webView =
                 tab.webView;
 
-        /*
-         * The bridge is installed ONLY here.
-         * Normal websites never receive it.
-         */
-        webView.addJavascriptInterface(
-                new SettingsBridge(),
-                "Android"
-        );
+        webView.removeJavascriptInterface(
+                "Android");
 
         webView.getSettings()
                 .setJavaScriptEnabled(true);
+
+        webView.addJavascriptInterface(
+                new SettingsBridge(),
+                "Android");
 
         webView.loadDataWithBaseURL(
                 "https://browser.local/",
                 createHtml(),
                 "text/html",
                 "UTF-8",
-                null
-        );
+                null);
 
         activity.updateTabTitle(tab);
         activity.settingsLoaded(tab);
@@ -55,61 +53,59 @@ public class SettingsPage {
     public void remove(
             BrowserTab tab) {
 
+        /*
+         * Absolutely remove the bridge before
+         * the WebView becomes a normal webpage.
+         */
         tab.webView
                 .removeJavascriptInterface(
-                        "Android"
-                );
+                        "Android");
 
         tab.settingsPage = false;
+
+        tab.webView.getSettings()
+                .setJavaScriptEnabled(
+                        settings
+                                .isJavaScriptEnabled());
     }
 
     private String createHtml() {
 
-        String dark =
-                settings.isDarkMode()
-                        ? "checked"
-                        : "";
-
-        String javascript =
-                settings.isJavaScriptEnabled()
-                        ? "checked"
-                        : "";
-
-        String popups =
-                settings.arePopupsEnabled()
-                        ? "checked"
-                        : "";
-
-        String cookies =
-                settings.areCookiesEnabled()
-                        ? "checked"
-                        : "";
-
-        String storage =
-                settings.isStorageEnabled()
-                        ? "checked"
-                        : "";
-
-        String search =
-                settings.getSearchEngine();
-
-        String home =
-                settings.getHomePage();
+        boolean dark =
+                settings.isDarkMode();
 
         String background =
-                settings.isDarkMode()
-                        ? "#000000"
-                        : "#ffffff";
+                dark
+                        ? "#121212"
+                        : "#FFFFFF";
+
+        String sidebar =
+                dark
+                        ? "#1E1E1E"
+                        : "#F3F3F3";
+
+        String card =
+                dark
+                        ? "#1E1E1E"
+                        : "#FFFFFF";
 
         String text =
-                settings.isDarkMode()
-                        ? "#ffffff"
-                        : "#000000";
+                dark
+                        ? "#FFFFFF"
+                        : "#202124";
+
+        String secondary =
+                dark
+                        ? "#BDBDBD"
+                        : "#666666";
 
         String border =
-                settings.isDarkMode()
+                dark
                         ? "#333333"
-                        : "#dddddd";
+                        : "#DDDDDD";
+
+        String accent =
+                settings.getAccentColor();
 
         return "<!DOCTYPE html>" +
 
@@ -123,10 +119,15 @@ public class SettingsPage {
 
                 "<style>" +
 
-                "body{" +
-                "font-family:sans-serif;" +
+                "*{" +
+                "box-sizing:border-box;" +
+                "}" +
+
+                "html,body{" +
                 "margin:0;" +
-                "padding:20px;" +
+                "padding:0;" +
+                "min-height:100%;" +
+                "font-family:sans-serif;" +
                 "background:" +
                 background +
                 ";" +
@@ -135,36 +136,149 @@ public class SettingsPage {
                 ";" +
                 "}" +
 
+                ".layout{" +
+                "display:flex;" +
+                "min-height:100vh;" +
+                "}" +
+
+                ".sidebar{" +
+                "width:200px;" +
+                "background:" +
+                sidebar +
+                ";" +
+                "border-right:1px solid " +
+                border +
+                ";" +
+                "padding:18px 0;" +
+                "flex-shrink:0;" +
+                "}" +
+
+                ".brand{" +
+                "font-size:20px;" +
+                "font-weight:bold;" +
+                "padding:0 18px 20px;" +
+                "}" +
+
+                ".nav{" +
+                "padding:10px 18px;" +
+                "font-size:14px;" +
+                "color:" +
+                secondary +
+                ";" +
+                "}" +
+
+                ".nav.active{" +
+                "color:" +
+                accent +
+                ";" +
+                "font-weight:bold;" +
+                "background:" +
+                background +
+                ";" +
+                "}" +
+
+                ".content{" +
+                "width:100%;" +
+                "max-width:780px;" +
+                "padding:28px;" +
+                "}" +
+
                 "h1{" +
-                "font-size:28px;" +
+                "font-size:27px;" +
+                "margin:0;" +
+                "}" +
+
+                ".subtitle{" +
+                "color:" +
+                secondary +
+                ";" +
+                "margin-top:5px;" +
+                "margin-bottom:25px;" +
                 "}" +
 
                 "h2{" +
-                "font-size:20px;" +
-                "margin-top:28px;" +
+                "font-size:18px;" +
+                "margin:25px 0 9px;" +
                 "}" +
 
-                ".setting{" +
-                "padding:16px 0;" +
+                ".card{" +
+                "background:" +
+                card +
+                ";" +
+                "border:1px solid " +
+                border +
+                ";" +
+                "border-radius:7px;" +
+                "overflow:hidden;" +
+                "}" +
+
+                ".row{" +
+                "padding:14px 16px;" +
                 "border-bottom:1px solid " +
                 border +
                 ";" +
                 "}" +
 
-                "select{" +
-                "font-size:16px;" +
-                "padding:8px;" +
-                "margin-top:8px;" +
-                "max-width:100%;" +
+                ".row:last-child{" +
+                "border-bottom:0;" +
                 "}" +
 
-                "label{" +
-                "font-size:17px;" +
+                ".switchrow{" +
+                "display:flex;" +
+                "align-items:center;" +
+                "justify-content:space-between;" +
+                "}" +
+
+                ".title{" +
+                "font-size:15px;" +
+                "}" +
+
+                ".description{" +
+                "font-size:12px;" +
+                "color:" +
+                secondary +
+                ";" +
+                "margin-top:3px;" +
+                "}" +
+
+                "select{" +
+                "width:100%;" +
+                "margin-top:8px;" +
+                "padding:7px;" +
+                "font-size:15px;" +
+                "}" +
+
+                "input[type=color]{" +
+                "width:55px;" +
+                "height:32px;" +
+                "padding:0;" +
+                "border:0;" +
+                "background:transparent;" +
                 "}" +
 
                 "button{" +
-                "font-size:16px;" +
-                "padding:8px 14px;" +
+                "font-size:14px;" +
+                "padding:8px 12px;" +
+                "}" +
+
+                "@media(max-width:600px){" +
+
+                ".sidebar{" +
+                "width:135px;" +
+                "}" +
+
+                ".content{" +
+                "padding:20px 15px;" +
+                "}" +
+
+                ".brand{" +
+                "padding-left:13px;" +
+                "}" +
+
+                ".nav{" +
+                "padding-left:13px;" +
+                "}" +
+
                 "}" +
 
                 "</style>" +
@@ -173,124 +287,198 @@ public class SettingsPage {
 
                 "<body>" +
 
-                "<h1>Browser Settings</h1>" +
+                "<div class='layout'>" +
+
+                "<div class='sidebar'>" +
+
+                "<div class='brand'>" +
+                "Simple Browser" +
+                "</div>" +
+
+                "<div class='nav active'>" +
+                "General" +
+                "</div>" +
+
+                "<div class='nav'>" +
+                "Privacy & Security" +
+                "</div>" +
+
+                "<div class='nav'>" +
+                "Websites" +
+                "</div>" +
+
+                "<div class='nav'>" +
+                "Appearance" +
+                "</div>" +
+
+                "</div>" +
+
+                "<div class='content'>" +
+
+                "<h1>Settings</h1>" +
+
+                "<div class='subtitle'>" +
+                "Configure Simple Browser" +
+                "</div>" +
 
                 "<h2>General</h2>" +
 
-                "<div class='setting'>" +
+                "<div class='card'>" +
 
-                "<label>Home page</label><br>" +
+                "<div class='row'>" +
 
-                "<select onchange=" +
-                "\"Android.setHome(this.value)\">" +
+                "<div class='title'>" +
+                "Home page" +
+                "</div>" +
+
+                "<select onchange=\"" +
+                "Android.setHome(this.value)\">" +
 
                 homeOption(
                         "https://www.google.com/",
-                        "Google",
-                        home) +
+                        "Google") +
 
                 homeOption(
                         "https://www.bing.com/",
-                        "Bing",
-                        home) +
+                        "Bing") +
 
                 homeOption(
                         "https://duckduckgo.com/",
-                        "DuckDuckGo",
-                        home) +
+                        "DuckDuckGo") +
 
                 homeOption(
                         "about:blank",
-                        "Blank page",
-                        home) +
+                        "Blank page") +
 
                 "</select>" +
 
                 "</div>" +
 
-                "<div class='setting'>" +
+                "<div class='row'>" +
 
-                "<label>Search engine</label><br>" +
+                "<div class='title'>" +
+                "Search engine" +
+                "</div>" +
 
-                "<select onchange=" +
-                "\"Android.setSearch(this.value)\">" +
+                "<select onchange=\"" +
+                "Android.setSearch(this.value)\">" +
 
                 searchOption(
                         "google",
-                        "Google",
-                        search) +
+                        "Google") +
 
                 searchOption(
                         "bing",
-                        "Bing",
-                        search) +
+                        "Bing") +
 
                 searchOption(
                         "duckduckgo",
-                        "DuckDuckGo",
-                        search) +
+                        "DuckDuckGo") +
 
                 searchOption(
                         "yahoo",
-                        "Yahoo",
-                        search) +
+                        "Yahoo") +
 
                 "</select>" +
 
                 "</div>" +
 
-                "<h2>Website settings</h2>" +
+                "</div>" +
 
-                checkbox(
+                "<h2>Websites</h2>" +
+
+                "<div class='card'>" +
+
+                settingRow(
                         "JavaScript",
+                        "Allow websites to run JavaScript",
                         "javascript",
-                        javascript) +
+                        settings.isJavaScriptEnabled()) +
 
-                checkbox(
-                        "Pop-up windows",
+                settingRow(
+                        "Pop-ups",
+                        "Allow websites to open new windows",
                         "popups",
-                        popups) +
+                        settings.arePopupsEnabled()) +
 
-                checkbox(
+                settingRow(
                         "Cookies",
+                        "Allow websites to store cookies",
                         "cookies",
-                        cookies) +
+                        settings.areCookiesEnabled()) +
 
-                checkbox(
+                settingRow(
                         "Website storage",
+                        "Allow websites to use local storage",
                         "storage",
-                        storage) +
+                        settings.isStorageEnabled()) +
+
+                "</div>" +
 
                 "<h2>Appearance</h2>" +
 
-                checkbox(
-                        "Black mode",
+                "<div class='card'>" +
+
+                settingRow(
+                        "Dark mode",
+                        "Use a dark browser theme",
                         "dark",
-                        dark) +
+                        settings.isDarkMode()) +
 
-                "<div class='setting'>" +
+                "<div class='row switchrow'>" +
 
-                "<label>Browser color</label><br>" +
+                "<div>" +
+
+                "<div class='title'>" +
+                "Browser color" +
+                "</div>" +
+
+                "<div class='description'>" +
+                "Accent color for the browser" +
+                "</div>" +
+
+                "</div>" +
 
                 "<input type='color' " +
                 "value='" +
-                settings.getAccentColor() +
+                accent +
                 "' " +
-                "onchange=" +
-                "\"Android.setColor(this.value)\">" +
+                "onchange=\"" +
+                "Android.setColor(this.value)\">" +
+
+                "</div>" +
 
                 "</div>" +
 
                 "<h2>Privacy</h2>" +
 
-                "<div class='setting'>" +
+                "<div class='card'>" +
 
-                "<button onclick=" +
-                "\"Android.clearData()\">" +
+                "<div class='row'>" +
 
-                "Clear browser data" +
+                "<button onclick=\"" +
+                "Android.clearData()\">" +
+
+                "Clear browsing data" +
 
                 "</button>" +
+
+                "</div>" +
+
+                "<div class='row'>" +
+
+                "<button onclick=\"" +
+                "Android.resetSettings()\">" +
+
+                "Restore default settings" +
+
+                "</button>" +
+
+                "</div>" +
+
+                "</div>" +
+
+                "</div>" +
 
                 "</div>" +
 
@@ -301,11 +489,11 @@ public class SettingsPage {
 
     private String homeOption(
             String value,
-            String text,
-            String current) {
+            String label) {
 
         String selected =
-                value.equals(current)
+                value.equals(
+                        settings.getHomePage())
                         ? " selected"
                         : "";
 
@@ -314,17 +502,17 @@ public class SettingsPage {
                 "'" +
                 selected +
                 ">" +
-                text +
+                label +
                 "</option>";
     }
 
     private String searchOption(
             String value,
-            String text,
-            String current) {
+            String label) {
 
         String selected =
-                value.equals(current)
+                value.equals(
+                        settings.getSearchEngine())
                         ? " selected"
                         : "";
 
@@ -333,30 +521,41 @@ public class SettingsPage {
                 "'" +
                 selected +
                 ">" +
-                text +
+                label +
                 "</option>";
     }
 
-    private String checkbox(
-            String text,
+    private String settingRow(
+            String title,
+            String description,
             String name,
-            String checked) {
+            boolean enabled) {
 
-        return "<div class='setting'>" +
+        String checked =
+                enabled
+                        ? " checked"
+                        : "";
 
-                "<label>" +
+        return "<div class='row switchrow'>" +
 
-                "<input type='checkbox' " +
+                "<div>" +
+
+                "<div class='title'>" +
+                title +
+                "</div>" +
+
+                "<div class='description'>" +
+                description +
+                "</div>" +
+
+                "</div>" +
+
+                "<input type='checkbox'" +
                 checked +
                 " onchange=\"" +
                 "Android.setSetting('" +
                 name +
                 "',this.checked)\">" +
-
-                " " +
-                text +
-
-                "</label>" +
 
                 "</div>";
     }
@@ -365,16 +564,16 @@ public class SettingsPage {
 
         @JavascriptInterface
         public void setHome(
-                String home) {
+                String value) {
 
-            settings.setHomePage(home);
+            settings.setHomePage(value);
         }
 
         @JavascriptInterface
         public void setSearch(
-                String search) {
+                String value) {
 
-            settings.setSearchEngine(search);
+            settings.setSearchEngine(value);
         }
 
         @JavascriptInterface
@@ -389,18 +588,19 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
-                activity.applyWebsiteSettings();
-
                 if ("dark".equals(name)) {
 
-                    BrowserTab tab =
-                            activity.getActiveTab();
+                    /*
+                     * Recreate the Activity using
+                     * the correct Android theme.
+                     *
+                     * No CSS inversion is used.
+                     */
+                    activity.changeDarkMode();
 
-                    if (tab != null &&
-                            tab.settingsPage) {
+                } else {
 
-                        show(tab);
-                    }
+                    activity.applyWebsiteSettings();
                 }
             });
         }
@@ -409,11 +609,26 @@ public class SettingsPage {
         public void setColor(
                 String color) {
 
+            /*
+             * Only the actual accent color is stored.
+             * No website colors are inverted.
+             */
             settings.setAccentColor(color);
 
             activity.runOnUiThread(
-                    () -> activity
-                            .applyBrowserAppearance());
+                    () -> {
+
+                activity.applyBrowserAppearance();
+
+                BrowserTab tab =
+                        activity.getActiveTab();
+
+                if (tab != null &&
+                        tab.settingsPage) {
+
+                    show(tab);
+                }
+            });
         }
 
         @JavascriptInterface
@@ -422,28 +637,37 @@ public class SettingsPage {
             activity.runOnUiThread(
                     () -> {
 
+                for (BrowserTab tab :
+                        activity
+                                .getTabManager()
+                                .getTabs()) {
+
+                    tab.webView.clearCache(true);
+                    tab.webView.clearHistory();
+                }
+
                 android.webkit.CookieManager
                         .getInstance()
                         .removeAllCookie();
 
-                BrowserTab tab =
-                        activity.getActiveTab();
-
-                if (tab != null) {
-
-                    tab.webView
-                            .clearCache(true);
-
-                    tab.webView
-                            .clearHistory();
-                }
-
                 Toast.makeText(
                         activity,
-                        "Browser data cleared",
+                        "Browsing data cleared",
                         Toast.LENGTH_SHORT)
                         .show();
             });
         }
+
+        @JavascriptInterface
+        public void resetSettings() {
+
+            activity.runOnUiThread(
+                    () -> {
+
+                settings.reset();
+
+                activity.changeDarkMode();
+            });
+        }
     }
-              }
+}
