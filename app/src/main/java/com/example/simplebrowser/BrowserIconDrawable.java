@@ -19,6 +19,8 @@ public final class BrowserIconDrawable extends Drawable {
     public static final int SETTINGS_PAGE = 6;
     public static final int LOCAL_FILE = 7;
     public static final int SECURE = 8;
+    public static final int FILE = 9;
+    public static final int UNLOCK = 10;
 
     private final int type;
 
@@ -127,6 +129,14 @@ public final class BrowserIconDrawable extends Drawable {
 
             case SECURE:
                 drawLock(canvas);
+                break;
+
+            case FILE:
+                drawFile(canvas);
+                break;
+
+            case UNLOCK:
+                drawUnlock(canvas);
                 break;
         }
 
@@ -389,6 +399,69 @@ public final class BrowserIconDrawable extends Drawable {
         canvas.drawLine(
                 11f, 25f,
                 18f, 25f,
+                paint);
+    }
+
+    private void drawFile(
+            Canvas canvas) {
+
+        Path page =
+                new Path();
+
+        page.moveTo(8f, 4f);
+        page.lineTo(20f, 4f);
+        page.lineTo(25f, 9f);
+        page.lineTo(25f, 28f);
+        page.lineTo(8f, 28f);
+        page.close();
+
+        canvas.drawPath(
+                page,
+                paint);
+
+        canvas.drawLine(
+                20f, 4f,
+                20f, 9f,
+                paint);
+
+        canvas.drawLine(
+                20f, 9f,
+                25f, 9f,
+                paint);
+    }
+
+    private void drawUnlock(
+            Canvas canvas) {
+
+        RectF shackle =
+                new RectF(
+                        10f, 5f,
+                        22f, 19f);
+
+        /*
+         * One standalone open-padlock glyph.
+         */
+        canvas.drawArc(
+                shackle,
+                205f,
+                145f,
+                false,
+                paint);
+
+        canvas.drawLine(
+                20f, 10f,
+                20f, 15f,
+                paint);
+
+        RectF body =
+                new RectF(
+                        6f, 13f,
+                        26f, 28f);
+
+        canvas.drawRoundRect(
+                body,
+                2.5f,
+                2.5f,
                 paint);
     }
 
