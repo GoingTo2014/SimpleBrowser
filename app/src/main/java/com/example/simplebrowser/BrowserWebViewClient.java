@@ -169,6 +169,11 @@ public class BrowserWebViewClient
                         url,
                         "/history");
 
+        boolean downloadsPage =
+                isBrowserLocalPage(
+                        url,
+                        "/downloads");
+
         if (settingsSection != null) {
 
             if (!tab.settingsPage) {
@@ -188,6 +193,7 @@ public class BrowserWebViewClient
 
         } else if (defaultPage ||
                 historyPage ||
+                downloadsPage ||
                 (tab.errorPage &&
                  (url == null ||
                   url.equals(tab.url)))) {
@@ -205,6 +211,10 @@ public class BrowserWebViewClient
                 tab.historyPage = true;
             }
 
+            if (downloadsPage) {
+                tab.downloadsPage = true;
+            }
+
             tab.loading = false;
 
         } else if (tab.errorPage) {
@@ -217,17 +227,20 @@ public class BrowserWebViewClient
 
             if (tab.settingsPage ||
                     tab.defaultPage ||
-                    tab.historyPage) {
+                    tab.historyPage ||
+                    tab.downloadsPage) {
                 activity.removeSettingsBridge(tab);
             }
 
             tab.settingsPage = false;
             tab.defaultPage = false;
             tab.historyPage = false;
+            tab.downloadsPage = false;
 
         } else if (tab.settingsPage ||
                 tab.defaultPage ||
-                tab.historyPage) {
+                tab.historyPage ||
+                tab.downloadsPage) {
 
             activity.removeSettingsBridge(tab);
             tab.defaultPage = false;
@@ -242,6 +255,7 @@ public class BrowserWebViewClient
         if (!tab.settingsPage &&
                 !tab.defaultPage &&
                 !tab.historyPage &&
+                !tab.downloadsPage &&
                 !tab.errorPage) {
 
             tab.url = url;
@@ -272,7 +286,8 @@ public class BrowserWebViewClient
 
         if (!tab.settingsPage &&
                 !tab.defaultPage &&
-                !tab.historyPage) {
+                !tab.historyPage &&
+                !tab.downloadsPage) {
 
             tab.url = url;
             tab.loading = false;
