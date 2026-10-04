@@ -31,19 +31,19 @@ public class SecurityManager {
         this.securityButton =
                 securityButton;
 
+        int accent =
+                ColorUtils.parseColor(
+                        activity
+                                .getBrowserSettings()
+                                .getAccentColor(),
+                        Color.rgb(
+                                63, 81, 181));
+
         securityButton.setBackground(
                 ButtonFeedback.create(
-                        ColorUtils.getReadableTextColor(
-                                activity
-                                        .getBrowserSettings()
-                                        .getAccentColor()
-                                        .startsWith("#")
-                                        ? ColorUtils.parseColor(
-                                                activity
-                                                        .getBrowserSettings()
-                                                        .getAccentColor(),
-                                                Color.WHITE)
-                                        : Color.WHITE)));
+                        ColorUtils
+                                .getReadableTextColor(
+                                        accent)));
 
         securityButton.setOnClickListener(
                 v -> {
@@ -134,8 +134,8 @@ public class SecurityManager {
 
         } else {
 
-            setWarning(
-                    "Not secure");
+            setUnlockIcon(
+                    "Connection is not confirmed secure");
         }
     }
 
