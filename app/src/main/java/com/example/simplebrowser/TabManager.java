@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
@@ -26,9 +27,6 @@ public class TabManager {
             new ArrayList<>();
 
     private BrowserTab activeTab;
-
-    private float dragStartX;
-    private boolean dragging;
 
     public TabManager(
             MainActivity activity,
@@ -60,7 +58,6 @@ public class TabManager {
                 new WebView(activity);
 
         configureWebView(tab);
-
         createTabView(tab);
 
         tabs.add(tab);
@@ -104,6 +101,11 @@ public class TabManager {
                 browserSettings
                         .arePopupsEnabled());
 
+        CookieManager.getInstance()
+                .setAcceptCookie(
+                        browserSettings
+                                .areCookiesEnabled());
+
         tab.webView.setLayerType(
                 WebView.LAYER_TYPE_HARDWARE,
                 null);
@@ -144,7 +146,7 @@ public class TabManager {
                 Gravity.CENTER_VERTICAL);
 
         tab.tabView.setPadding(
-                8, 0, 2, 0);
+                2, 0, 0, 0);
 
         tab.titleView =
                 new TextView(activity);
@@ -157,8 +159,11 @@ public class TabManager {
         tab.titleView.setGravity(
                 Gravity.CENTER_VERTICAL);
 
+        tab.titleView.setPadding(
+                7, 0, 7, 0);
+
         tab.titleView.setMaxWidth(
-                dp(180));
+                dp(160));
 
         tab.closeButton =
                 new ImageButton(activity);
@@ -173,12 +178,14 @@ public class TabManager {
         tab.closeButton.setBackgroundColor(
                 Color.TRANSPARENT);
 
+        tab.closeButton.setPadding(
+                6, 6, 6, 6);
+
         tab.closeButton.setOnClickListener(
                 v -> closeTab(tab));
 
         /*
-         * The title area is the draggable area.
-         * The X button remains independently clickable.
+         * Drag from the title.
          */
         tab.titleView.setOnTouchListener(
                 (v, event) -> {
@@ -187,10 +194,10 @@ public class TabManager {
 
                 case MotionEvent.ACTION_DOWN:
 
-                    dragStartX =
+                    tab.dragStartX =
                             event.getRawX();
 
-                    dragging = false;
+                    tab.dragging = false;
 
                     return false;
 
@@ -198,25 +205,50 @@ public class TabManager {
 
                     float distance =
                             event.getRawX()
-                            - dragStartX;
+                            - tab.dragStartX;
 
-                    if (Math.abs(distance) >
-                            dp(20)) {
+                    if (!tab.dragging &&
+                            Math.abs(distance) >
+                                    dp(10)) {
 
-                        dragging = true;
-
-                        reorderTab(tab);
+                        tab.dragging = true;
                     }
 
-                    return true;
+                    if (tab.dragging) {
+
+                        tab.tabView
+                                .setTranslationX(
+                                        distance);
+
+                        return true;
+                    }
+
+                    return false;
 
                 case MotionEvent.ACTION_UP:
 
-                    if (!dragging) {
-                        selectTab(tab);
+                    if (tab.dragging) {
+
+                        finishDrag(tab);
+
+                        tab.dragging = false;
+
+                        return true;
                     }
 
-                    dragging = false;
+                    selectTab(tab);
+
+                    return true;
+
+                case MotionEvent.ACTION_CANCEL:
+
+                    tab.tabView
+                            .animate()
+                            .translationX(0)
+                            .setDuration(120)
+                            .start();
+
+                    tab.dragging = false;
 
                     return true;
             }
@@ -227,45 +259,35 @@ public class TabManager {
         tab.tabView.addView(
                 tab.titleView,
                 new LinearLayout.LayoutParams(
-                        dp(150),
-                        dp(48)));
+                        dp(145),
+                        dp(36)));
 
         tab.tabView.addView(
                 tab.closeButton,
                 new LinearLayout.LayoutParams(
-                        dp(42),
-                        dp(48)));
+                        dp(34),
+                        dp(36)));
 
         tab.tabView.setOnClickListener(
-                v -> {
-
-                    if (!dragging) {
-                        selectTab(tab);
-                    }
-                });
+                v -> selectTab(tab));
     }
 
-    private void reorderTab(
+    private void finishDrag(
             BrowserTab tab) {
+
+        float visualLeft =
+                tab.tabView.getLeft()
+                + tab.tabView.getTranslationX();
+
+        float center =
+                visualLeft
+                + tab.tabView.getWidth() / 2f;
 
         int oldIndex =
                 tabs.indexOf(tab);
 
-        if (oldIndex < 0) {
-            return;
-        }
-
-        int newIndex = oldIndex;
-
-        int[] tabLocation =
-                new int[2];
-
-        tab.titleView.getLocationOnScreen(
-                tabLocation);
-
-        float center =
-                tabLocation[0] +
-                tab.titleView.getWidth() / 2f;
+        int newIndex =
+                oldIndex;
 
         for (int i = 0;
              i < tabs.size();
@@ -278,16 +300,9 @@ public class TabManager {
             BrowserTab other =
                     tabs.get(i);
 
-            int[] location =
-                    new int[2];
-
-            other.tabView
-                    .getLocationOnScreen(
-                            location);
-
             float otherCenter =
-                    location[0] +
-                    other.tabView.getWidth()
+                    other.tabView.getLeft()
+                    + other.tabView.getWidth()
                     / 2f;
 
             if (center < otherCenter) {
@@ -299,39 +314,33 @@ public class TabManager {
             newIndex = i;
         }
 
-        if (newIndex == oldIndex) {
-            return;
+        if (newIndex != oldIndex) {
+
+            tabs.remove(oldIndex);
+
+            if (newIndex > oldIndex) {
+                newIndex--;
+            }
+
+            tabs.add(
+                    newIndex,
+                    tab);
+
+            tabsLayout.removeView(
+                    tab.tabView);
+
+            tabsLayout.addView(
+                    tab.tabView,
+                    newIndex);
         }
 
-        tabs.remove(oldIndex);
-
-        tabs.add(
-                newIndex,
-                tab);
-
-        tabsLayout.removeView(
-                tab.tabView);
-
-        tabsLayout.addView(
-                tab.tabView,
-                newIndex);
-
-        /*
-         * LayoutTransition animates the other
-         * tabs moving into their new positions.
-         */
-        tab.tabView.animate()
-                .scaleX(1.03f)
-                .scaleY(1.03f)
-                .setDuration(100)
-                .withEndAction(
-                        () -> tab.tabView
-                                .animate()
-                                .scaleX(1f)
-                                .scaleY(1f)
-                                .setDuration(100)
-                                .start())
+        tab.tabView
+                .animate()
+                .translationX(0)
+                .setDuration(180)
                 .start();
+
+        selectTab(tab);
     }
 
     public void selectTab(
@@ -339,31 +348,30 @@ public class TabManager {
 
         activeTab = tab;
 
-        activity.hideKeyboard();
-
         for (BrowserTab current : tabs) {
 
-            if (current == tab) {
+            current.webView.setVisibility(
+                    current == tab
+                            ? View.VISIBLE
+                            : View.GONE);
 
-                current.webView.setVisibility(
-                        View.VISIBLE);
-
-            } else {
-
-                current.webView.setVisibility(
-                        View.GONE);
-            }
+            updateTabAppearance(
+                    current);
         }
 
-        String url =
-                tab.webView.getUrl();
-
-        if (url == null) {
-            url = tab.url;
-        }
+        String url;
 
         if (tab.settingsPage) {
+
             url = "browser://settings";
+
+        } else {
+
+            url = tab.webView.getUrl();
+
+            if (url == null) {
+                url = tab.url;
+            }
         }
 
         if (url == null) {
@@ -378,10 +386,42 @@ public class TabManager {
         activity.updateSecurity(tab);
     }
 
+    private void updateTabAppearance(
+            BrowserTab tab) {
+
+        if (tab == activeTab) {
+
+            String accent =
+                    activity
+                            .getBrowserSettings()
+                            .getAccentColor();
+
+            try {
+
+                tab.titleView.setTextColor(
+                        Color.parseColor(accent));
+
+            } catch (Exception e) {
+
+                tab.titleView.setTextColor(
+                        Color.BLUE);
+            }
+
+        } else {
+
+            tab.titleView.setTextColor(
+                    activity
+                            .getBrowserSettings()
+                            .isDarkMode()
+                            ? Color.LTGRAY
+                            : Color.DKGRAY);
+        }
+    }
+
     public void closeTab(
             BrowserTab tab) {
 
-        if (tabs.size() == 1) {
+        if (tabs.size() <= 1) {
 
             Toast.makeText(
                     activity,
@@ -411,13 +451,13 @@ public class TabManager {
 
         if (wasActive) {
 
-            int newIndex =
+            int next =
                     Math.min(
                             index,
                             tabs.size() - 1);
 
             selectTab(
-                    tabs.get(newIndex));
+                    tabs.get(next));
         }
     }
 
@@ -439,9 +479,12 @@ public class TabManager {
             WebSettings settings =
                     tab.webView.getSettings();
 
-            settings.setJavaScriptEnabled(
-                    browserSettings
-                            .isJavaScriptEnabled());
+            if (!tab.settingsPage) {
+
+                settings.setJavaScriptEnabled(
+                        browserSettings
+                                .isJavaScriptEnabled());
+            }
 
             settings.setDomStorageEnabled(
                     browserSettings
@@ -452,11 +495,15 @@ public class TabManager {
                             .arePopupsEnabled());
         }
 
-        android.webkit.CookieManager
-                .getInstance()
+        CookieManager.getInstance()
                 .setAcceptCookie(
                         browserSettings
                                 .areCookiesEnabled());
+
+        for (BrowserTab tab : tabs) {
+
+            updateTabAppearance(tab);
+        }
     }
 
     public void updateTabTitle(
@@ -465,14 +512,27 @@ public class TabManager {
         String title =
                 tab.title;
 
-        if (title.length() > 20) {
+        if (title == null ||
+                title.trim().isEmpty()) {
+
+            title = "New Tab";
+        }
+
+        if (title.length() > 22) {
 
             title =
-                    title.substring(0, 20)
+                    title.substring(0, 22)
                     + "...";
         }
 
         tab.titleView.setText(title);
+    }
+
+    public void updateTitles() {
+
+        for (BrowserTab tab : tabs) {
+            updateTabTitle(tab);
+        }
     }
 
     private int dp(int value) {
@@ -482,7 +542,6 @@ public class TabManager {
                 activity.getResources()
                         .getDisplayMetrics()
                         .density
-                + 0.5f
-        );
+                + 0.5f);
     }
-          }
+}
