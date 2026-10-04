@@ -1009,6 +1009,8 @@ public class SettingsPage {
                                 .getInstance()
                                 .removeAllCookie();
 
+                        activity.clearBrowserHistory();
+
                         Toast.makeText(
                                 activity,
                                 "Browsing data cleared",
