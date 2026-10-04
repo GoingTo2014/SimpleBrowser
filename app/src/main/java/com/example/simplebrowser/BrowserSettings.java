@@ -11,7 +11,6 @@ public class BrowserSettings {
     private final SharedPreferences preferences;
 
     public BrowserSettings(Context context) {
-
         preferences =
                 context.getSharedPreferences(
                         PREFS,
@@ -19,70 +18,60 @@ public class BrowserSettings {
     }
 
     public String getHomePage() {
-
         return preferences.getString(
                 "home",
                 "https://www.google.com/");
     }
 
     public void setHomePage(String value) {
-
         preferences.edit()
                 .putString("home", value)
                 .apply();
     }
 
     public String getSearchEngine() {
-
         return preferences.getString(
                 "search",
                 "google");
     }
 
     public void setSearchEngine(String value) {
-
         preferences.edit()
                 .putString("search", value)
                 .apply();
     }
 
     public boolean isJavaScriptEnabled() {
-
         return preferences.getBoolean(
                 "javascript",
                 true);
     }
 
     public boolean arePopupsEnabled() {
-
         return preferences.getBoolean(
                 "popups",
                 true);
     }
 
     public boolean areCookiesEnabled() {
-
         return preferences.getBoolean(
                 "cookies",
                 true);
     }
 
     public boolean isStorageEnabled() {
-
         return preferences.getBoolean(
                 "storage",
                 true);
     }
 
-    public boolean isDarkMode() {
-
+    public boolean isDesktopMode() {
         return preferences.getBoolean(
-                "dark",
+                "desktop_mode",
                 false);
     }
 
     public String getAccentColor() {
-
         return preferences.getString(
                 "color",
                 "#3F51B5");
@@ -106,7 +95,6 @@ public class BrowserSettings {
     }
 
     public void reset() {
-
         preferences.edit()
                 .clear()
                 .apply();
