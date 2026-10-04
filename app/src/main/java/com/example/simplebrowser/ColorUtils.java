@@ -27,14 +27,118 @@ public final class ColorUtils {
     public static int getReadableTextColor(
             int background) {
 
-        double luminance =
-                (0.299d * Color.red(background)) +
-                (0.587d * Color.green(background)) +
-                (0.114d * Color.blue(background));
+        int darkText =
+                Color.rgb(32, 33, 36);
 
-        return luminance >= 160d
-                ? Color.rgb(32, 33, 36)
-                : Color.WHITE;
+        double whiteContrast =
+                getContrastRatio(
+                        Color.WHITE,
+                        background);
+
+        double darkContrast =
+                getContrastRatio(
+                        darkText,
+                        background);
+
+        return whiteContrast >= darkContrast
+                ? Color.WHITE
+                : darkText;
+    }
+
+    public static double getContrastRatio(
+            int first,
+            int second) {
+
+        double firstLuminance =
+                getRelativeLuminance(first);
+
+        double secondLuminance =
+                getRelativeLuminance(second);
+
+        double lighter =
+                Math.max(
+                        firstLuminance,
+                        secondLuminance);
+
+        double darker =
+                Math.min(
+                        firstLuminance,
+                        secondLuminance);
+
+        return (lighter + 0.05d) /
+                (darker + 0.05d);
+    }
+
+    public static double getRelativeLuminance(
+            int color) {
+
+        double red =
+                linearize(Color.red(color) / 255d);
+
+        double green =
+                linearize(Color.green(color) / 255d);
+
+        double blue =
+                linearize(Color.blue(color) / 255d);
+
+        return (0.2126d * red) +
+                (0.7152d * green) +
+                (0.0722d * blue);
+    }
+
+    private static double linearize(
+            double channel) {
+
+        if (channel <= 0.03928d) {
+            return channel / 12.92d;
+        }
+
+        return Math.pow(
+                (channel + 0.055d) / 1.055d,
+                2.4d);
+    }
+
+    public static int ensureContrast(
+            int color,
+            int background,
+            double minimumRatio) {
+
+        if (getContrastRatio(
+                color,
+                background) >= minimumRatio) {
+            return color;
+        }
+
+        for (int i = 1; i <= 20; i++) {
+
+            float amount =
+                    i / 20f;
+
+            int darker =
+                    mix(
+                            color,
+                            Color.BLACK,
+                            amount);
+
+            if (getContrastRatio(
+                    darker,
+                    background) >= minimumRatio) {
+                return darker;
+            }
+        }
+
+        return getReadableTextColor(
+                background);
+    }
+
+    public static int darken(
+            int color,
+            float amount) {
+
+        return mix(
+                color,
+                Color.BLACK,
+                amount);
     }
 
     public static int mix(
