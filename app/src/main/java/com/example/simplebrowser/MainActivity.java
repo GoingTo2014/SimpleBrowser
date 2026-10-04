@@ -1526,8 +1526,7 @@ public class MainActivity extends Activity {
 
             } else if (tab.defaultPage) {
 
-                setUrlText(
-                        "browser://default");
+                setUrlText("");
 
             } else if (tab.historyPage) {
 
@@ -1572,8 +1571,7 @@ public class MainActivity extends Activity {
 
             } else if (tab.defaultPage) {
 
-                setUrlText(
-                        "browser://default");
+                setUrlText("");
 
             } else if (tab.historyPage) {
 
