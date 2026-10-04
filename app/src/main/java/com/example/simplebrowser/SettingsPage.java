@@ -543,6 +543,10 @@ public class SettingsPage {
                         "about:blank",
                         "Blank page") +
 
+                homeOption(
+                        "browser://default",
+                        "Default page") +
+
                 "<option value='custom'" +
                 ("custom".equals(
                         settings.getHomeSelection())
@@ -610,6 +614,18 @@ public class SettingsPage {
                 htmlAttribute(
                         settings.getCustomSearchUrl()) +
                 "' onchange=\"Android.setCustomSearch(this.value)\">" +
+                "</div>" +
+
+                "<div class='row switchrow'>" +
+                "<div>" +
+                "<div class='title'>Restore tabs on startup</div>" +
+                "<div class='description'>Reopen your normal tabs when Simple Browser starts again.</div>" +
+                "</div>" +
+                "<input type='checkbox'" +
+                (settings.isRestoreTabsEnabled()
+                        ? " checked"
+                        : "") +
+                " onchange=\"Android.setSetting('restore_tabs',this.checked)\">" +
                 "</div>" +
 
                 "</div>" +
@@ -904,6 +920,11 @@ public class SettingsPage {
 
                             activity.applyDesktopMode();
 
+                        } else if ("restore_tabs"
+                                .equals(name)) {
+
+                            activity.saveTabs();
+
                         } else {
 
                             activity.applyWebsiteSettings();
@@ -918,8 +939,7 @@ public class SettingsPage {
             int parsed =
                     ColorUtils.parseColor(
                             color,
-                            Color.rgb(
-                                    63, 81, 181));
+                            Color.WHITE);
 
             settings.setAccentColor(
                     ColorUtils.toHex(parsed));
