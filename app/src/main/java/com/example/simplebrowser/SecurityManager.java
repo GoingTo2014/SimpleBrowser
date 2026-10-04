@@ -3,7 +3,6 @@ package com.example.simplebrowser;
 import android.app.AlertDialog;
 import android.net.http.SslCertificate;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.ImageButton;
 
 import java.text.DateFormat;
@@ -45,12 +44,7 @@ public class SecurityManager {
         if (tab.settingsPage) {
 
             securityButton.setImageResource(
-                    android.R.drawable.ic_menu_manage
-            );
-
-            securityButton.setContentDescription(
-                    "Browser settings"
-            );
+                    android.R.drawable.ic_menu_manage);
 
             return;
         }
@@ -69,58 +63,42 @@ public class SecurityManager {
         if (tab.sslError) {
 
             securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert
-            );
-
-            securityButton.setContentDescription(
-                    "Connection is not secure"
-            );
+                    android.R.drawable.ic_dialog_alert);
 
         } else if (https) {
 
             securityButton.setImageResource(
-                    android.R.drawable.ic_lock_lock
-            );
-
-            securityButton.setContentDescription(
-                    "Secure connection"
-            );
+                    android.R.drawable.ic_lock_lock);
 
         } else {
 
             securityButton.setImageResource(
-                    android.R.drawable.ic_dialog_alert
-            );
-
-            securityButton.setContentDescription(
-                    "Connection is not secure"
-            );
+                    android.R.drawable.ic_dialog_alert);
         }
     }
 
     private void showInfo(
             BrowserTab tab) {
 
-        String url =
-                tab.webView.getUrl();
-
-        if (url == null) {
-            url = tab.url;
-        }
-
         if (tab.settingsPage) {
 
             new AlertDialog.Builder(activity)
                     .setTitle("Browser Settings")
                     .setMessage(
-                            "This is a built-in browser page."
-                    )
+                            "This is a built-in browser page.")
                     .setPositiveButton(
                             "OK",
                             null)
                     .show();
 
             return;
+        }
+
+        String url =
+                tab.webView.getUrl();
+
+        if (url == null) {
+            url = tab.url;
         }
 
         boolean https =
@@ -130,14 +108,11 @@ public class SecurityManager {
         if (!https) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Connection")
+                    .setTitle("Not secure")
                     .setMessage(
                             "This page is not using HTTPS.\n\n" +
-                            "The connection is not protected " +
-                            "by HTTPS.\n\n" +
                             "URL:\n" +
-                            safe(url)
-                    )
+                            safe(url))
                     .setPositiveButton(
                             "OK",
                             null)
@@ -149,13 +124,11 @@ public class SecurityManager {
         if (tab.sslError) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle(
-                            "Connection is not secure")
+                    .setTitle("Connection is not secure")
                     .setMessage(
-                            "The site's SSL certificate " +
-                            "could not be trusted.\n\n" +
-                            "The page was blocked."
-                    )
+                            "The SSL certificate could not " +
+                            "be trusted.\n\n" +
+                            "The page was blocked.")
                     .setPositiveButton(
                             "OK",
                             null)
@@ -173,8 +146,7 @@ public class SecurityManager {
                     .setTitle("Certificate")
                     .setMessage(
                             "No certificate information " +
-                            "is available for this page."
-                    )
+                            "is available.")
                     .setPositiveButton(
                             "OK",
                             null)
@@ -200,59 +172,61 @@ public class SecurityManager {
         DateFormat format =
                 DateFormat.getDateTimeInstance();
 
-        StringBuilder text =
+        StringBuilder message =
                 new StringBuilder();
 
-        text.append(
+        message.append(
                 "Connection is secure\n\n");
 
-        text.append("URL:\n");
-        text.append(safe(url));
+        message.append("URL:\n");
+        message.append(safe(url));
 
-        text.append("\n\nIssued to:\n");
+        message.append("\n\nIssued to:\n");
 
         if (issuedTo != null) {
-            text.append(
+            message.append(
                     safe(issuedTo.getCName()));
         } else {
-            text.append("Unknown");
+            message.append("Unknown");
         }
 
-        text.append("\n\nIssued by:\n");
+        message.append("\n\nIssued by:\n");
 
         if (issuedBy != null) {
-            text.append(
+
+            message.append(
                     safe(issuedBy.getCName()));
 
             if (issuedBy.getOName() != null &&
                     !issuedBy.getOName().isEmpty()) {
 
-                text.append("\n");
-                text.append(
+                message.append("\n");
+                message.append(
                         issuedBy.getOName());
             }
 
         } else {
-            text.append("Unknown");
+
+            message.append("Unknown");
         }
 
-        text.append("\n\nValid from:\n");
+        message.append("\n\nValid from:\n");
 
-        text.append(
+        message.append(
                 validFrom == null
                         ? "Unknown"
                         : format.format(validFrom));
 
-        text.append("\n\nValid until:\n");
+        message.append("\n\nValid until:\n");
 
-        text.append(
+        message.append(
                 validTo == null
                         ? "Unknown"
                         : format.format(validTo));
 
         new AlertDialog.Builder(activity)
                 .setTitle("Certificate")
-                .setMessage(text.toString())
+                .setMessage(message.toString())
                 .setPositiveButton(
                         "OK",
                         null)
@@ -269,4 +243,4 @@ public class SecurityManager {
 
         return value;
     }
-          }
+}
