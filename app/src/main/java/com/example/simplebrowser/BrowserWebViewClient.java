@@ -63,33 +63,70 @@ public class BrowserWebViewClient
                 url.trim()
                         .toLowerCase();
 
-        String root =
+        String browserRoot =
                 "browser://settings";
 
-        if (!lower.startsWith(root)) {
-            return null;
-        }
-
-        if (lower.equals(root) ||
+        if (lower.equals(browserRoot) ||
                 lower.equals(
-                        root + "/general")) {
+                        browserRoot + "/general")) {
             return "general";
         }
 
         if (lower.equals(
-                root + "/websites")) {
+                browserRoot + "/websites")) {
             return "websites";
         }
 
         if (lower.equals(
-                root + "/appearance")) {
+                browserRoot + "/appearance")) {
             return "appearance";
         }
 
         if (lower.equals(
-                root + "/privacy") ||
+                browserRoot + "/privacy") ||
                 lower.equals(
-                        root + "/privacy-security")) {
+                        browserRoot + "/privacy-security")) {
+            return "privacy-security";
+        }
+
+        /*
+         * Settings HTML uses this HTTPS base URL so the
+         * WebView can keep the page in its back/forward
+         * history. The address bar still displays the
+         * browser://settings URL.
+         */
+        String localRoot =
+                "https://browser.local";
+
+        if (lower.equals(localRoot) ||
+                lower.equals(localRoot + "/") ||
+                lower.equals(
+                        localRoot + "/settings") ||
+                lower.equals(
+                        localRoot + "/settings/") ||
+                lower.equals(
+                        localRoot + "/settings/general")) {
+            return "general";
+        }
+
+        if (lower.equals(
+                localRoot +
+                        "/settings/websites")) {
+            return "websites";
+        }
+
+        if (lower.equals(
+                localRoot +
+                        "/settings/appearance")) {
+            return "appearance";
+        }
+
+        if (lower.equals(
+                localRoot +
+                        "/settings/privacy") ||
+                lower.equals(
+                        localRoot +
+                                "/settings/privacy-security")) {
             return "privacy-security";
         }
 
@@ -102,10 +139,27 @@ public class BrowserWebViewClient
             String url,
             Bitmap favicon) {
 
-        if (tab.settingsPage &&
-                (url == null ||
-                 !url.startsWith(
-                         "https://browser.local"))) {
+        String settingsSection =
+                getSettingsSection(url);
+
+        if (settingsSection != null) {
+
+            if (!tab.settingsPage) {
+
+                activity.restoreSettingsPage(
+                        tab,
+                        settingsSection);
+
+            } else {
+
+                tab.settingsSection =
+                        settingsSection;
+                tab.url =
+                        activity.getSettingsUrl(
+                                settingsSection);
+            }
+
+        } else if (tab.settingsPage) {
 
             activity.removeSettingsBridge(tab);
         }
