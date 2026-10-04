@@ -33,15 +33,18 @@ public class BrowserChromeClient
             WebView view,
             String title) {
 
-        if (title == null ||
+        if (tab.settingsPage) {
+
+            tab.title = "Settings";
+
+        } else if (title == null ||
                 title.trim().isEmpty()) {
 
             tab.title = "New Tab";
 
         } else {
 
-            tab.title =
-                    title.trim();
+            tab.title = title.trim();
         }
 
         activity.updateTabTitle(tab);
@@ -62,10 +65,9 @@ public class BrowserChromeClient
         }
 
         BrowserTab newTab =
-                activity.getTabManager().addTab(
-                        activity
-                                .getBrowserSettings()
-                                .getHomePage());
+                activity
+                        .getTabManager()
+                        .addTab("about:blank");
 
         WebView.WebViewTransport transport =
                 (WebView.WebViewTransport)
@@ -78,4 +80,4 @@ public class BrowserChromeClient
 
         return true;
     }
-        }
+}
