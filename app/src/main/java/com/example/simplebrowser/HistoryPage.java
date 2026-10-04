@@ -75,22 +75,20 @@ public class HistoryPage {
             boolean incognito) {
 
         List<BrowserHistory.Entry> entries =
-                history.getEntries(query);
+                incognito
+                        ? java.util.Collections
+                                .<BrowserHistory.Entry>
+                                emptyList()
+                        : history.getEntries(query);
 
-        StringBuilder html =
-                new StringBuilder();
-
-        html.append(
-                "<!DOCTYPE html><html><head>");
-
-        html.append(
-                "<meta name='viewport' " +
-                "content='width=device-width,initial-scale=1'>");
-
-        html.append("<style>");
         String background =
                 incognito
                         ? "#202124"
+                        : "#F6F7F9";
+
+        String surface =
+                incognito
+                        ? "#303134"
                         : "#FFFFFF";
 
         String text =
@@ -101,76 +99,144 @@ public class HistoryPage {
         String secondary =
                 incognito
                         ? "#B9B9B9"
-                        : "#555555";
+                        : "#5F6368";
+
+        String border =
+                incognito
+                        ? "#4A4B4F"
+                        : "#E1E4E8";
+
+        StringBuilder html =
+                new StringBuilder();
 
         html.append(
-                "html,body{margin:0;background:" +
-                background +
-                ";color:" +
-                text +
-                ";font-family:sans-serif;}");
+                "<!DOCTYPE html><html><head>" +
+                "<meta name='viewport' " +
+                "content='width=device-width,initial-scale=1'>");
+
+        html.append("<style>");
+
         html.append(
-                ".page{max-width:900px;margin:0 auto;padding:24px;}");
+                "html,body{margin:0;padding:0;" +
+                "background:" + background + ";" +
+                "color:" + text + ";" +
+                "font-family:sans-serif;}");
+
         html.append(
-                "h1{margin:0 0 6px;font-size:28px;}");
+                ".page{max-width:920px;margin:0 auto;" +
+                "padding:22px 18px 30px;}");
+
         html.append(
-                ".top{display:flex;gap:10px;margin:18px 0;}");
+                "h1{margin:0;font-size:27px;}");
+
         html.append(
-                "input{flex:1;padding:11px;font-size:15px;" +
-                "border:1px solid #6B6D70;border-radius:5px;" +
-                "background:" +
-                (incognito ? "#303134" : "#FFFFFF") +
-                ";color:" +
-                text +
-                ";}");
+                ".sub{margin:5px 0 18px;color:" +
+                secondary + ";font-size:13px;}");
+
         html.append(
-                "button{padding:10px 13px;border:0;" +
-                "border-radius:5px;background:#202124;" +
-                "color:#FFFFFF;}");
+                ".top{display:flex;gap:8px;" +
+                "margin-bottom:18px;align-items:center;}");
+
         html.append(
-                ".entry{padding:13px 0;border-top:1px solid " +
-                (incognito ? "#4A4B4F" : "#E5E5E5") +
-                ";}");
+                "input{flex:1;min-width:0;height:42px;" +
+                "box-sizing:border-box;padding:0 12px;" +
+                "font-size:15px;border:1px solid " +
+                border + ";border-radius:9px;" +
+                "background:" + surface + ";color:" + text + ";}");
+
         html.append(
-                ".title{font-weight:bold;font-size:15px;color:" +
-                text +
-                ";}");
+                "button{height:42px;flex:0 0 auto;" +
+                "border:0;border-radius:9px;" +
+                "padding:0 13px;background:#202124;color:#FFF;}");
+
         html.append(
-                ".url{color:" +
-                secondary +
-                ";font-size:13px;" +
-                "word-break:break-all;margin-top:3px;}");
+                ".entry{background:" + surface + ";" +
+                "border:1px solid " + border + ";" +
+                "border-radius:12px;padding:14px;" +
+                "margin-bottom:10px;}");
+
         html.append(
-                ".time{color:" +
-                secondary +
-                ";font-size:12px;margin-top:4px;}");
+                ".row{display:flex;gap:12px;" +
+                "align-items:flex-start;}");
+
+        /*
+         * min-width:0 is important here. Without it, a very long
+         * URL can force the flex item wider than the page and push
+         * the Delete button off-screen on older WebViews.
+         */
         html.append(
-                ".row{display:flex;gap:8px;align-items:flex-start;}");
+                ".grow{flex:1;min-width:0;width:0;}");
+
         html.append(
-                ".grow{flex:1;}");
+                ".title{font-size:15px;font-weight:600;" +
+                "line-height:20px;word-break:break-word;}");
+
         html.append(
-                ".delete{background:#B3261E;}");
+                ".title a{color:" + text + ";" +
+                "text-decoration:none;}");
+
+        html.append(
+                ".url{margin-top:5px;font-size:12px;" +
+                "line-height:17px;color:" + secondary + ";" +
+                "white-space:normal;word-break:break-all;" +
+                "overflow-wrap:break-word;max-width:100%;}");
+
+        html.append(
+                ".time{margin-top:7px;font-size:12px;" +
+                "color:" + secondary + ";}");
+
+        html.append(
+                ".delete{background:#B3261E;" +
+                "padding:0 11px;}");
+
+        html.append(
+                ".empty{margin-top:22px;color:" +
+                secondary + ";font-size:14px;}");
+
         html.append("</style></head><body>");
-
         html.append("<div class='page'>");
         html.append("<h1>History</h1>");
 
-        html.append("<div class='top'>");
-        html.append(
-                "<input id='search' placeholder='Search history' " +
-                "value='" +
-                escape(query) +
-                "' onkeydown=\"search(event)\">");
-        html.append(
-                "<button onclick='searchNow()'>Search</button>");
-        html.append(
-                "<button onclick='clearAll()'>Clear</button>");
-        html.append("</div>");
+        if (incognito) {
+
+            html.append(
+                    "<div class='sub'>" +
+                    "Browsing history is not saved in Incognito Mode." +
+                    "</div>");
+
+        } else {
+
+            html.append(
+                    "<div class='sub'>" +
+                    "Pages you've visited in Simple Browser." +
+                    "</div>");
+
+            html.append("<div class='top'>");
+
+            html.append(
+                    "<input id='search' " +
+                    "placeholder='Search history' " +
+                    "value='" +
+                    escape(query) +
+                    "' onkeydown='searchKey(event)'>");
+
+            html.append(
+                    "<button onclick='searchNow()'>Search</button>");
+
+            html.append(
+                    "<button onclick='clearAll()'>Clear</button>");
+
+            html.append("</div>");
+        }
 
         if (entries.isEmpty()) {
 
             html.append(
-                    "<p>No history entries found.</p>");
+                    "<div class='empty'>" +
+                    (incognito
+                            ? "Nothing is shown here while browsing privately."
+                            : "No history entries found.") +
+                    "</div>");
 
         } else {
 
@@ -182,14 +248,15 @@ public class HistoryPage {
             for (BrowserHistory.Entry entry :
                     entries) {
 
-                html.append("<div class='entry'><div class='row'>");
-                html.append("<div class='grow'>");
-
                 String title =
                         entry.title == null ||
                         entry.title.trim().isEmpty()
                                 ? entry.url
                                 : entry.title;
+
+                html.append(
+                        "<div class='entry'><div class='row'>" +
+                        "<div class='grow'>");
 
                 html.append(
                         "<div class='title'>" +
@@ -219,27 +286,39 @@ public class HistoryPage {
                         entry.id +
                         ")'>Delete</button>");
 
-                html.append("</div></div>");
+                html.append(
+                        "</div></div>");
             }
         }
 
         html.append("</div>");
 
         html.append("<script>");
-        html.append(
-                "function searchNow(){" +
-                "HistoryPage.search(document.getElementById('search').value);}");
-        html.append(
-                "function search(e){" +
-                "if(e.keyCode===13)searchNow();}");
-        html.append(
-                "function clearAll(){HistoryPage.clear();}");
-        html.append(
-                "function removeEntry(id){HistoryPage.remove(id);}");
-        html.append(
-                "function openEntry(id){HistoryPage.open(id);}");
-        html.append("</script>");
 
+        if (!incognito) {
+
+            html.append(
+                    "function searchNow(){" +
+                    "HistoryPage.search(" +
+                    "document.getElementById('search').value);}");
+
+            html.append(
+                    "function searchKey(e){" +
+                    "if(e.keyCode===13)searchNow();}");
+
+            html.append(
+                    "function clearAll(){HistoryPage.clear();}");
+
+            html.append(
+                    "function removeEntry(id){" +
+                    "HistoryPage.remove(id);}");
+
+            html.append(
+                    "function openEntry(id){" +
+                    "HistoryPage.open(id);}");
+        }
+
+        html.append("</script>");
         html.append("</body></html>");
 
         return html.toString();
