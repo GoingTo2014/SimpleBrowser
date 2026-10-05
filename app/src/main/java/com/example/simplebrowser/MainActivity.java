@@ -1220,7 +1220,7 @@ public class MainActivity extends Activity {
         tab.webView.loadUrl(url);
     }
 
-    private void removeInternalPageState(
+    public void removeInternalPageState(
             BrowserTab tab) {
 
         if (tab == null) {
