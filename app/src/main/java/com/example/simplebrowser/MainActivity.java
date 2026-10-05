@@ -751,10 +751,19 @@ public class MainActivity extends Activity {
                         WebView.HitTestResult
                                 .SRC_IMAGE_ANCHOR_TYPE;
 
+        // Android's WebView HitTestResult uses type 9 for video.
+        // Use the numeric value here because VIDEO_TYPE is not exposed
+        // by every Android SDK stub used to compile the app.
         boolean video =
-                type ==
-                        WebView.HitTestResult
-                                .VIDEO_TYPE;
+                type == 9;
+
+        // Audio uses type 10 in Android WebView. Treat it like other media.
+        boolean audio =
+                type == 10;
+
+        boolean media =
+                video ||
+                audio;
 
         boolean link =
                 type ==
@@ -762,7 +771,7 @@ public class MainActivity extends Activity {
                                 .SRC_ANCHOR_TYPE;
 
         if (!image &&
-                !video &&
+                !media &&
                 !link) {
             return false;
         }
@@ -774,8 +783,8 @@ public class MainActivity extends Activity {
 
         if (image) {
             title = "Image";
-        } else if (video) {
-            title = "Video";
+        } else if (media) {
+            title = audio ? "Audio" : "Video";
         } else {
             title = "Link";
         }
@@ -789,7 +798,7 @@ public class MainActivity extends Activity {
                                 "Share",
                                 "Copy URL"
                         }
-                        : video
+                        : media
                         ? new String[] {
                                 "Open",
                                 "Open in new tab",
@@ -839,8 +848,10 @@ public class MainActivity extends Activity {
                                         null,
                                         image
                                                 ? "image/*"
-                                                : video
-                                                ? "video/*"
+                                                : media
+                                                ? (audio
+                                                ? "audio/*"
+                                                : "video/*")
                                                 : null,
                                         -1);
 
@@ -855,8 +866,10 @@ public class MainActivity extends Activity {
                                 copyToClipboard(
                                         image
                                                 ? "Image URL"
-                                                : video
-                                                ? "Video URL"
+                                                : media
+                                                ? (audio
+                                                ? "Audio URL"
+                                                : "Video URL")
                                                 : "Link",
                                         target);
                             }
