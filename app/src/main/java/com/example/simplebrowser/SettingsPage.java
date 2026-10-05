@@ -283,16 +283,18 @@ public class SettingsPage {
 
                 ".layout{" +
                 "display:flex;" +
+                "width:100%;" +
                 "min-height:100vh;" +
+                "overflow:hidden;" +
                 "}" +
 
                 ".sidebar{" +
                 "width:205px;" +
+                "flex:0 0 205px;" +
                 "background:" +
                 ColorUtils.toHex(sidebarColor) +
                 ";" +
                 "padding:18px 0;" +
-                "flex-shrink:0;" +
                 "color:" +
                 accentTextHex +
                 ";" +
@@ -340,12 +342,15 @@ public class SettingsPage {
                 "}" +
 
                 ".content{" +
-                "width:100%;" +
+                "flex:1 1 auto;" +
+                "min-width:0;" +
+                "width:auto;" +
                 "max-width:820px;" +
                 "padding:28px;" +
                 "background:" +
                 accentContentHex +
                 ";" +
+                "overflow:hidden;" +
                 "}" +
 
                 "h1{" +
@@ -391,6 +396,7 @@ public class SettingsPage {
                 "border-bottom:1px solid " +
                 accentBorderHex +
                 ";" +
+                "min-width:0;" +
                 "}" +
 
                 ".row:last-child{border-bottom:0;}" +
@@ -400,6 +406,16 @@ public class SettingsPage {
                 "align-items:center;" +
                 "justify-content:space-between;" +
                 "gap:12px;" +
+                "}" +
+
+                ".switchrow>div{" +
+                "flex:1 1 auto;" +
+                "min-width:0;" +
+                "}" +
+
+                ".switchrow input{" +
+                "flex:0 0 auto;" +
+                "margin-left:8px;" +
                 "}" +
 
                 ".title{" +
@@ -461,10 +477,18 @@ public class SettingsPage {
                 ";" +
                 "border:0;" +
                 "border-radius:5px;" +
+                "max-width:100%;" +
+                "}" +
+
+                ".button-row{" +
+                "display:flex;" +
+                "flex-wrap:wrap;" +
+                "gap:8px;" +
                 "}" +
 
                 "input[type=text]{" +
                 "width:100%;" +
+                "max-width:100%;" +
                 "margin-top:8px;" +
                 "padding:9px;" +
                 "font-size:14px;" +
@@ -488,11 +512,76 @@ public class SettingsPage {
                 ".section.active{display:block;}" +
 
                 "@media(max-width:600px){" +
-                ".sidebar{width:145px;}" +
-                ".content{padding:20px 15px;}" +
-                ".brand{padding-left:13px;}" +
-                ".nav{padding-left:13px;}" +
-                ".nav.active{padding-left:10px;}" +
+                ".sidebar{" +
+                "width:125px;" +
+                "flex-basis:125px;" +
+                "}" +
+                ".content{" +
+                "padding:20px 14px;" +
+                "}" +
+                ".brand{" +
+                "padding-left:12px;" +
+                "padding-right:10px;" +
+                "}" +
+                ".nav{" +
+                "padding-left:12px;" +
+                "padding-right:8px;" +
+                "}" +
+                ".nav.active{" +
+                "padding-left:9px;" +
+                "}" +
+                "}" +
+
+                "@media(max-width:380px){" +
+                ".sidebar{" +
+                "width:108px;" +
+                "flex-basis:108px;" +
+                "padding-top:12px;" +
+                "}" +
+                ".brand{" +
+                "font-size:16px;" +
+                "padding:0 8px 14px;" +
+                "}" +
+                ".nav{" +
+                "padding:9px 7px;" +
+                "font-size:12px;" +
+                "}" +
+                ".nav.active{" +
+                "padding-left:5px;" +
+                "}" +
+                ".content{" +
+                "padding:14px 10px;" +
+                "}" +
+                "h1{" +
+                "font-size:24px;" +
+                "}" +
+                ".subtitle{" +
+                "margin-bottom:16px;" +
+                "}" +
+                ".card{" +
+                "margin-bottom:16px;" +
+                "}" +
+                ".row{" +
+                "padding:12px 10px;" +
+                "}" +
+                "}" +
+
+                "@media(max-width:300px){" +
+                ".sidebar{" +
+                "width:96px;" +
+                "flex-basis:96px;" +
+                "}" +
+                ".nav{" +
+                "font-size:11px;" +
+                "padding-left:5px;" +
+                "padding-right:4px;" +
+                "}" +
+                ".nav.active{" +
+                "padding-left:3px;" +
+                "}" +
+                ".content{" +
+                "padding:12px 8px;" +
+                "}" +
                 "}" +
 
                 "</style>" +
