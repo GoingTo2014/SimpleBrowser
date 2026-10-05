@@ -77,10 +77,10 @@ jobs:
               --prerelease \
               --notes "## What's new
 
-- Rounded tab cards in the tabs overview.
-- Small-screen Settings now uses a vertical full-width section selector with connected rounded corners.
-- Cookies page optimized for smaller screens, including stacked cookie actions and full-width site deletion controls.
-- Reload button moved next to Forward in the toolbar."
+          - Rounded tab cards in the tabs overview.
+          - Small-screen Settings now uses a vertical full-width section selector with connected rounded corners.
+          - Cookies page optimized for smaller screens, including stacked cookie actions and full-width site deletion controls.
+          - Reload button moved next to Forward in the toolbar."
           fi
 
           latest_tag="simplebrowser-latest"
