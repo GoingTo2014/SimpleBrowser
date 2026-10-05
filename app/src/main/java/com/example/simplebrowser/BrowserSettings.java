@@ -38,6 +38,28 @@ public class BrowserSettings {
         }
     }
 
+    public String getLanguage() {
+        return preferences.getString(
+                "language",
+                Localization.SYSTEM);
+    }
+
+    public void setLanguage(
+            String language) {
+
+        String value =
+                Localization.SYSTEM.equals(language) ||
+                Localization.ENGLISH.equals(language) ||
+                Localization.SPANISH.equals(language) ||
+                Localization.PORTUGUESE.equals(language)
+                        ? language
+                        : Localization.SYSTEM;
+
+        preferences.edit()
+                .putString("language", value)
+                .apply();
+    }
+
     public String getHomePage() {
 
         String value =
