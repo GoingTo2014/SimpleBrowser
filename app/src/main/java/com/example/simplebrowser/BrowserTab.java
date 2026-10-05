@@ -23,6 +23,7 @@ public class BrowserTab {
     public boolean defaultPage = false;
     public boolean historyPage = false;
     public boolean downloadsPage = false;
+    public boolean cookiesPage = false;
     public boolean isIncognito = false;
 
     /*
@@ -32,6 +33,10 @@ public class BrowserTab {
      */
     public String pendingUrl = "";
     public boolean hasLoaded = false;
+
+    /** Stable key used to persist this tab's preview image. */
+    public String previewKey = java.util.UUID.randomUUID()
+            .toString();
 
     public String settingsSection = "general";
 
