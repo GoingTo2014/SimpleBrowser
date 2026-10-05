@@ -19,6 +19,7 @@ public class ErrorPage {
             String description) {
 
         tab.errorPage = true;
+        tab.favicon = null;
         tab.loading = false;
         tab.url = url == null ? "" : url;
         tab.title = Localization.translate(activity, "Page unavailable");
