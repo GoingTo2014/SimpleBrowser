@@ -239,5 +239,8 @@ public final class French extends LanguagePack {
         put("history.cleared", "Historique effacé");
         put("settings.webview_cache_cleared", "Cache WebView effacé");
         put("settings.browsing_data_cleared", "Données de navigation effacées");
+        put("downloads.search", "Rechercher dans les téléchargements");
+        put("downloads.download", "Téléchargement");
+        put("ua.custom", "Personnalisé");
     }
 }
