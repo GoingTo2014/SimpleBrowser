@@ -1307,9 +1307,12 @@ public class SettingsPage {
             settings.setLanguage(language);
 
             activity.runOnUiThread(
-                    () -> show(
-                            tab,
-                            tab.settingsSection));
+                    () -> {
+                        activity.refreshLocalizedChrome();
+                        show(
+                                tab,
+                                tab.settingsSection);
+                    });
         }
 
         @JavascriptInterface
