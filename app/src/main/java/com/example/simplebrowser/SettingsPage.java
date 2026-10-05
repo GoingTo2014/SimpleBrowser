@@ -86,7 +86,7 @@ public class SettingsPage {
         tab.url =
                 activity.getSettingsUrl(
                         section);
-        tab.title = "Settings";
+        tab.title = Localization.translate(activity, "Settings");
 
         WebView webView =
                 tab.webView;
@@ -258,7 +258,7 @@ public class SettingsPage {
         String contentSecondaryTextHex =
                 ColorUtils.toHex(contentSecondaryText);
 
-        return "<!DOCTYPE html>" +
+        return Localization.translateHtml(activity, "<!DOCTYPE html>" +
                 "<html>" +
                 "<head>" +
 
@@ -654,29 +654,67 @@ public class SettingsPage {
                 "</div>" +
 
                 "<div class='row'>" +
-                "<div class='title'>Language</div>" +
-                "<div class='description'>Choose the browser language. System default follows the closest supported language.</div>" +
+                "<div class='title'>" +
+                Localization.translate(
+                        activity,
+                        "Language") +
+                "</div>" +
+                "<div class='description'>" +
+                Localization.translate(
+                        activity,
+                        "Choose the browser language. System default follows the closest supported language.") +
+                "</div>" +
                 "<select onchange=\"Android.setLanguage(this.value)\">" +
                 "<option value='system'" +
-                (Localization.SYSTEM.equals(settings.getLanguage())
+                (Localization.SYSTEM.equals(
+                        settings.getLanguage())
                         ? " selected"
                         : "") +
-                ">System default</option>" +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "System default") +
+                "</option>" +
                 "<option value='en'" +
-                (Localization.ENGLISH.equals(settings.getLanguage())
+                (Localization.ENGLISH.equals(
+                        settings.getLanguage())
                         ? " selected"
                         : "") +
-                ">English</option>" +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "English") +
+                "</option>" +
                 "<option value='es'" +
-                (Localization.SPANISH.equals(settings.getLanguage())
+                (Localization.SPANISH.equals(
+                        settings.getLanguage())
                         ? " selected"
                         : "") +
-                ">Español</option>" +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Spanish") +
+                "</option>" +
                 "<option value='pt'" +
-                (Localization.PORTUGUESE.equals(settings.getLanguage())
+                (Localization.PORTUGUESE.equals(
+                        settings.getLanguage())
                         ? " selected"
                         : "") +
-                ">Português</option>" +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Portuguese") +
+                "</option>" +
+                "<option value='fr'" +
+                (Localization.FRENCH.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "French") +
+                "</option>" +
                 "</select>" +
                 "</div>" +
 
@@ -913,7 +951,7 @@ public class SettingsPage {
                 "</div>" +
 
                 "</body>" +
-                "</html>";
+                "</html>");
     }
 
     private String userAgentOptions() {
