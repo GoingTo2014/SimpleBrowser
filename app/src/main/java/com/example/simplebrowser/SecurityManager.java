@@ -91,14 +91,6 @@ public class SecurityManager {
             return;
         }
 
-        if (tab.settingsPage) {
-
-            setFileIcon(
-                    "Browser settings");
-
-            return;
-        }
-
         String url =
                 tab.webView.getUrl();
 
@@ -110,6 +102,14 @@ public class SecurityManager {
                 url == null
                         ? ""
                         : url.toLowerCase();
+
+        if (lower.startsWith("browser://")) {
+
+            setFileIcon(
+                    "Browser page");
+
+            return;
+        }
 
         if (lower.startsWith(
                 "file://") ||
@@ -161,14 +161,43 @@ public class SecurityManager {
                 description);
     }
 
+    private int getThemeIconColor() {
+
+        BrowserTab active =
+                activity.getActiveTab();
+
+        int chromeColor;
+
+        if (active != null &&
+                active.isIncognito) {
+
+            chromeColor =
+                    Color.rgb(
+                            32,
+                            33,
+                            36);
+
+        } else {
+
+            chromeColor =
+                    ColorUtils.parseColor(
+                            activity
+                                    .getBrowserSettings()
+                                    .getAccentColor(),
+                            Color.WHITE);
+        }
+
+        return ColorUtils.getReadableTextColor(
+                chromeColor);
+    }
+
     private void setFileIcon(
             String description) {
 
         securityButton.setImageDrawable(
                 new BrowserIconDrawable(
                         BrowserIconDrawable.FILE,
-                        Color.rgb(
-                                105, 105, 105)));
+                        getThemeIconColor()));
 
         securityButton.setColorFilter(null);
         securityButton.setContentDescription(
@@ -181,8 +210,7 @@ public class SecurityManager {
         securityButton.setImageDrawable(
                 new BrowserIconDrawable(
                         BrowserIconDrawable.UNLOCK,
-                        Color.rgb(
-                                120, 120, 120)));
+                        getThemeIconColor()));
 
         securityButton.setColorFilter(null);
         securityButton.setContentDescription(
