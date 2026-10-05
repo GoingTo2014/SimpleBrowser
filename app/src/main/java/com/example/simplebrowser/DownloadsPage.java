@@ -203,6 +203,12 @@ public class DownloadsPage {
                 ".loading{text-align:center;padding:12px;" +
                 "color:" + secondary + ";display:none;}");
 
+        html.append(
+                "@media(max-width:600px){.page{padding:16px 12px 24px;}.top{flex-wrap:wrap;}.top input{flex:1 1 100%;}.top button{flex:1 1 0;min-width:0;}.entry{padding:11px;border-radius:10px;}.row{gap:8px;}.delete{padding:0 9px;}}");
+
+        html.append(
+                "@media(max-width:380px){.page{padding:13px 9px 20px;}h1{font-size:23px;}.top{gap:6px;margin-bottom:14px;}input,button{height:40px;font-size:14px;}.entry{padding:9px;margin-bottom:8px;}.name{font-size:14px;line-height:18px;}.url,.meta{font-size:11px;line-height:15px;}}");
+
         html.append("</style></head><body>");
         html.append("<div class='page'>");
         html.append("<h1>Downloads</h1>");
