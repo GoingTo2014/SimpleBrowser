@@ -239,5 +239,8 @@ public final class Portuguese extends LanguagePack {
         put("history.cleared", "Histórico limpo");
         put("settings.webview_cache_cleared", "Cache do WebView limpo");
         put("settings.browsing_data_cleared", "Dados de navegação limpos");
+        put("downloads.search", "Pesquisar downloads");
+        put("downloads.download", "Download");
+        put("ua.custom", "Personalizado");
     }
 }
