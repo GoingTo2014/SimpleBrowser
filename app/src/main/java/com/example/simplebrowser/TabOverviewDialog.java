@@ -21,11 +21,14 @@ import android.widget.TextView;
 public class TabOverviewDialog {
 
     private final MainActivity activity;
+    private final PreviewStore previewStore;
 
     public TabOverviewDialog(
             MainActivity activity) {
 
         this.activity = activity;
+        this.previewStore =
+                new PreviewStore(activity);
     }
 
     public void show() {
@@ -221,11 +224,22 @@ public class TabOverviewDialog {
 
         if (bitmap != null) {
             preview.setImageBitmap(bitmap);
+            previewStore.save(
+                    tab.previewKey,
+                    bitmap);
         } else {
-            preview.setBackgroundColor(
-                    ColorUtils.darken(
-                            getSurfaceColor(),
-                            0.05f));
+            Bitmap saved =
+                    previewStore.load(
+                            tab.previewKey);
+
+            if (saved != null) {
+                preview.setImageBitmap(saved);
+            } else {
+                preview.setBackgroundColor(
+                        ColorUtils.darken(
+                                getSurfaceColor(),
+                                0.05f));
+            }
         }
 
         card.addView(
