@@ -2,6 +2,8 @@ package com.example.simplebrowser;
 
 import android.app.Activity;
 import android.Manifest;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +20,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.WebView;
 import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -700,6 +703,210 @@ public class MainActivity extends Activity {
                 new LinearLayout.LayoutParams(
                         -1,
                         dp(40)));
+    }
+
+    public boolean handleWebViewLongPress(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.webView == null) {
+            return false;
+        }
+
+        WebView.HitTestResult result =
+                tab.webView.getHitTestResult();
+
+        if (result == null) {
+            return false;
+        }
+
+        int type =
+                result.getType();
+
+        String extra =
+                result.getExtra();
+
+        if (extra == null ||
+                extra.trim().isEmpty()) {
+            return false;
+        }
+
+        boolean image =
+                type ==
+                        WebView.HitTestResult
+                                .IMAGE_TYPE ||
+                type ==
+                        WebView.HitTestResult
+                                .SRC_IMAGE_ANCHOR_TYPE;
+
+        boolean video =
+                type ==
+                        WebView.HitTestResult
+                                .VIDEO_TYPE;
+
+        boolean link =
+                type ==
+                        WebView.HitTestResult
+                                .SRC_ANCHOR_TYPE;
+
+        if (!image &&
+                !video &&
+                !link) {
+            return false;
+        }
+
+        final String target =
+                extra.trim();
+
+        String title;
+
+        if (image) {
+            title = "Image";
+        } else if (video) {
+            title = "Video";
+        } else {
+            title = "Link";
+        }
+
+        final String[] actions =
+                image
+                        ? new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy URL"
+                        }
+                        : video
+                        ? new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy URL"
+                        }
+                        : new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy link"
+                        };
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setItems(
+                        actions,
+                        (dialog, which) -> {
+
+                            String action =
+                                    actions[which];
+
+                            if ("Open".equals(action)) {
+
+                                openUrlOrSearchForTab(
+                                        tab,
+                                        target);
+
+                            } else if (
+                                    "Open in new tab"
+                                            .equals(action)) {
+
+                                tabManager.addCurrentModeTab(
+                                        target);
+
+                            } else if (
+                                    "Download".equals(action)) {
+
+                                startDownload(
+                                        tab,
+                                        target,
+                                        tab.webView
+                                                .getSettings()
+                                                .getUserAgentString(),
+                                        null,
+                                        image
+                                                ? "image/*"
+                                                : video
+                                                ? "video/*"
+                                                : null,
+                                        -1);
+
+                            } else if (
+                                    "Share".equals(action)) {
+
+                                shareUrl(
+                                        target);
+
+                            } else {
+
+                                copyToClipboard(
+                                        image
+                                                ? "Image URL"
+                                                : video
+                                                ? "Video URL"
+                                                : "Link",
+                                        target);
+                            }
+                        })
+                .show();
+
+        return true;
+    }
+
+    private void copyToClipboard(
+            String label,
+            String value) {
+
+        ClipboardManager clipboard =
+                (ClipboardManager)
+                        getSystemService(
+                                CLIPBOARD_SERVICE);
+
+        if (clipboard != null) {
+
+            clipboard.setPrimaryClip(
+                    ClipData.newPlainText(
+                            label,
+                            value));
+
+            android.widget.Toast.makeText(
+                    this,
+                    "Copied",
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    private void shareUrl(
+            String url) {
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND);
+
+            intent.setType(
+                    "text/plain");
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    url);
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            "Share"));
+
+        } catch (Exception e) {
+
+            android.widget.Toast.makeText(
+                    this,
+                    "No app can share this",
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
     }
 
     public void openUrlOrSearch(
