@@ -26,6 +26,9 @@ public final class BrowserPage {
     public static final String SETTINGS =
             "browser://settings";
 
+    public static final String COOKIES =
+            "browser://cookies";
+
     private static final String WEBVIEW_BASE =
             "https://browser.local";
 
@@ -157,6 +160,12 @@ public final class BrowserPage {
             return ERROR;
         }
 
+        if (matchesLocalPage(
+                lower,
+                "/cookies")) {
+            return COOKIES;
+        }
+
         return null;
     }
 
@@ -188,6 +197,10 @@ public final class BrowserPage {
 
         if (tab.downloadsPage) {
             return DOWNLOADS;
+        }
+
+        if (tab.cookiesPage) {
+            return COOKIES;
         }
 
         if (tab.errorPage) {
@@ -284,6 +297,11 @@ public final class BrowserPage {
         if (lower.equals(
                 ERROR)) {
             return ERROR;
+        }
+
+        if (lower.equals(
+                COOKIES)) {
+            return COOKIES;
         }
 
         if (lower.equals(
