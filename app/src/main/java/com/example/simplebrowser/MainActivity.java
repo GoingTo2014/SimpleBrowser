@@ -2099,6 +2099,36 @@ public class MainActivity extends Activity {
         applyActiveTabAppearance();
     }
 
+    public void updateTabOverviewIcon() {
+
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        if (tabOverview == null) {
+            return;
+        }
+
+        BrowserTab active =
+                getActiveTab();
+
+        int color =
+                ColorUtils.getReadableTextColor(
+                        active != null &&
+                        active.isIncognito
+                                ? INCOGNITO_CHROME
+                                : getAccentColor());
+
+        int count =
+                tabManager == null
+                        ? 0
+                        : tabManager.getTabs().size();
+
+        tabOverview.setImageDrawable(
+                new TabCountDrawable(
+                        color,
+                        count));
+    }
+
         public void updateNavigationButtonsForTabs() {
         updateNavigationButtons();
     }
