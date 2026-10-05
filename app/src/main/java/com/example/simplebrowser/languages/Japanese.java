@@ -239,5 +239,8 @@ public final class Japanese extends LanguagePack {
         put("history.cleared", "履歴を消去しました");
         put("settings.webview_cache_cleared", "WebViewのキャッシュを消去しました");
         put("settings.browsing_data_cleared", "閲覧データを消去しました");
+        put("downloads.search", "ダウンロードを検索");
+        put("downloads.download", "ダウンロード");
+        put("ua.custom", "カスタム");
     }
 }
