@@ -1,6 +1,7 @@
 package com.example.simplebrowser;
 
 import android.os.Message;
+import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -55,6 +56,26 @@ public class BrowserChromeClient
         }
 
         activity.updateTabTitle(tab);
+    }
+
+    @Override
+    public boolean onConsoleMessage(
+            ConsoleMessage message) {
+
+        if (message != null) {
+            BrowserLogger.log(
+                    "CONSOLE",
+                    message.message() +
+                    " (" +
+                    message.sourceId() +
+                    ":" +
+                    message.lineNumber() +
+                    ", " +
+                    message.messageLevel() +
+                    ")");
+        }
+
+        return true;
     }
 
     @Override
