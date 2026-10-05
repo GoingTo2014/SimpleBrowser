@@ -545,7 +545,7 @@ public class HistoryPage {
 
                         Toast.makeText(
                                 activity,
-                                "History cleared",
+                                Localization.translate(activity, "History cleared"),
                                 Toast.LENGTH_SHORT)
                                 .show();
 
