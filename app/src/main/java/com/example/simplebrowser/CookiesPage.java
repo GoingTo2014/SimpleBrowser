@@ -1,9 +1,7 @@
 package com.example.simplebrowser;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.text.InputType;
-import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.EditText;
@@ -25,6 +23,18 @@ public class CookiesPage {
 
     public void show(
             BrowserTab tab) {
+
+        store.discoverFromHistory(
+                activity.getBrowserHistory());
+
+        for (BrowserTab current :
+                activity.getTabManager().getTabs()) {
+
+            if (!current.isIncognito) {
+                store.recordUrl(
+                        current.url);
+            }
+        }
 
         tab.settingsPage = false;
         tab.errorPage = false;
