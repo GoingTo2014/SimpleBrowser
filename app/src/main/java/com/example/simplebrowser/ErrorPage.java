@@ -21,7 +21,7 @@ public class ErrorPage {
         tab.errorPage = true;
         tab.loading = false;
         tab.url = url == null ? "" : url;
-        tab.title = "Page unavailable";
+        tab.title = Localization.translate(activity, "Page unavailable");
 
         String safeUrl =
                 escape(url);
@@ -102,6 +102,11 @@ public class ErrorPage {
                 "<script>" +
                 "function goBack(){Android.goBack();}" +
                 "</script></body></html>";
+
+        html =
+                Localization.translateHtml(
+                        activity,
+                        html);
 
         BrowserPage.load(
                 tab.webView,
