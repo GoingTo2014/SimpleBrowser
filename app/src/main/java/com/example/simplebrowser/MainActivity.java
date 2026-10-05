@@ -151,6 +151,7 @@ public class MainActivity extends Activity {
 
         setupToolbarIcons();
         setupButtons();
+        applyResponsiveToolbar();
         applyBrowserAppearance();
 
         String launchUrl =
@@ -2114,6 +2115,127 @@ public class MainActivity extends Activity {
                 tab.webView.reload();
             }
         }
+    }
+
+    private void applyResponsiveToolbar() {
+
+        int width =
+                getResources()
+                        .getDisplayMetrics()
+                        .widthPixels;
+
+        float density =
+                getResources()
+                        .getDisplayMetrics()
+                        .density;
+
+        float widthDp =
+                width / density;
+
+        int buttonSize =
+                widthDp < 320
+                        ? 34
+                        : widthDp < 360
+                        ? 36
+                        : widthDp < 420
+                        ? 40
+                        : 44;
+
+        int buttonHeight =
+                widthDp < 360
+                        ? 40
+                        : 44;
+
+        int padding =
+                widthDp < 320
+                        ? 6
+                        : widthDp < 360
+                        ? 7
+                        : 8;
+
+        int[] toolbarButtons = {
+                R.id.back,
+                R.id.forward,
+                R.id.home,
+                R.id.reload,
+                R.id.security,
+                R.id.settings
+        };
+
+        for (int id : toolbarButtons) {
+
+            ImageButton button =
+                    findViewById(id);
+
+            if (button == null) {
+                continue;
+            }
+
+            button.setMinimumWidth(0);
+            button.setMinimumHeight(0);
+            button.setPadding(
+                    dp(padding),
+                    dp(padding),
+                    dp(padding),
+                    dp(padding));
+
+            LinearLayout.LayoutParams params =
+                    (LinearLayout.LayoutParams)
+                            button.getLayoutParams();
+
+            params.width = dp(buttonSize);
+            params.height = dp(buttonHeight);
+            params.weight = 0;
+            button.setLayoutParams(params);
+        }
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        int tabButtonSize =
+                widthDp < 360
+                        ? 34
+                        : 36;
+
+        for (ImageButton button :
+                new ImageButton[] {
+                        newTab,
+                        tabOverview
+                }) {
+
+            if (button == null) {
+                continue;
+            }
+
+            button.setMinimumWidth(0);
+            button.setMinimumHeight(0);
+
+            LinearLayout.LayoutParams params =
+                    (LinearLayout.LayoutParams)
+                            button.getLayoutParams();
+
+            params.width = dp(tabButtonSize);
+            params.height = dp(tabButtonSize);
+            params.weight = 0;
+            button.setLayoutParams(params);
+        }
+
+        urlBox.setMinimumWidth(
+                dp(widthDp < 320 ? 72 : 80));
+
+        int urlPadding =
+                widthDp < 360
+                        ? 6
+                        : 9;
+
+        urlBox.setPadding(
+                dp(urlPadding),
+                0,
+                dp(urlPadding),
+                0);
     }
 
     public void applyBrowserAppearance() {
