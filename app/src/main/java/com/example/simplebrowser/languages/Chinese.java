@@ -284,5 +284,11 @@ public final class Chinese extends LanguagePack {
         put("demo.prompt_message", "提示");
         put("demo.submit_message", "提交");
         put("demo.password_value", "密码");
+        put("demo.phone", "电话");
+        put("demo.media", "媒体");
+        put("demo.iframe", "内联框架");
+        put("demo.form_output", "表单输出");
+        put("demo.dialog", "对话框");
+        put("demo.dialog_text", "默认对话框元素");
     }
 }
