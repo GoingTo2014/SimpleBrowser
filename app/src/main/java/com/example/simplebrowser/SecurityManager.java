@@ -436,7 +436,7 @@ public class SecurityManager {
                 .setMessage(
                         message.toString())
                 .setPositiveButton(
-                        "OK",
+                        Localization.translate(activity, "common.ok"),
                         null)
                 .show();
     }
@@ -446,7 +446,7 @@ public class SecurityManager {
 
         if (value == null ||
                 value.trim().isEmpty()) {
-            return "Unknown";
+            return Localization.translate(activity, "common.unknown");
         }
 
         return value;
