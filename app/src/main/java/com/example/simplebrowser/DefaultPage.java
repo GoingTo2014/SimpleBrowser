@@ -113,7 +113,7 @@ public class DefaultPage {
                 "if(e.keyCode===13){" +
                 "DefaultPage.search(document.getElementById('search').value);" +
                 "}}" +
-                "</script></body></html>";
+                "</script></body></html>");
     }
 
     private class Bridge {
