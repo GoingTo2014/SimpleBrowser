@@ -433,24 +433,29 @@ public final class BrowserIconDrawable extends Drawable {
     private void drawUnlock(
             Canvas canvas) {
 
-        RectF shackle =
-                new RectF(
-                        10f, 5f,
-                        22f, 19f);
-
         /*
-         * One standalone open-padlock glyph.
+         * Clearly open padlock: the shackle rises from the
+         * left side and ends outside the body on the right.
          */
-        canvas.drawArc(
-                shackle,
-                205f,
-                145f,
-                false,
-                paint);
+        Path shackle =
+                new Path();
 
-        canvas.drawLine(
-                20f, 10f,
-                20f, 15f,
+        shackle.moveTo(
+                10f, 15f);
+
+        shackle.lineTo(
+                10f, 11f);
+
+        shackle.cubicTo(
+                10f, 5f,
+                18f, 4f,
+                21f, 9f);
+
+        shackle.lineTo(
+                24f, 7f);
+
+        canvas.drawPath(
+                shackle,
                 paint);
 
         RectF body =
@@ -463,6 +468,25 @@ public final class BrowserIconDrawable extends Drawable {
                 2.5f,
                 2.5f,
                 paint);
+
+        paint.setStyle(
+                Paint.Style.FILL);
+
+        canvas.drawCircle(
+                16f, 19f,
+                2f,
+                paint);
+
+        canvas.drawRoundRect(
+                new RectF(
+                        14.7f, 19f,
+                        17.3f, 24f),
+                1.2f,
+                1.2f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.STROKE);
     }
 
     private void drawLock(
