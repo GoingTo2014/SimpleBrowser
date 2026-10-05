@@ -29,6 +29,9 @@ public final class BrowserPage {
     public static final String COOKIES =
             "browser://cookies";
 
+    public static final String DEMO =
+            "browser://demo";
+
     private static final String WEBVIEW_BASE =
             "https://browser.local";
 
@@ -166,6 +169,12 @@ public final class BrowserPage {
             return COOKIES;
         }
 
+        if (matchesLocalPage(
+                lower,
+                "/demo")) {
+            return DEMO;
+        }
+
         return null;
     }
 
@@ -201,6 +210,10 @@ public final class BrowserPage {
 
         if (tab.cookiesPage) {
             return COOKIES;
+        }
+
+        if (DEMO.equalsIgnoreCase(tab.url)) {
+            return DEMO;
         }
 
         if (tab.errorPage) {
