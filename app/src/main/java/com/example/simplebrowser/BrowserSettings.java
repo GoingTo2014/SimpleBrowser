@@ -179,6 +179,46 @@ public class BrowserSettings {
                 false);
     }
 
+    public String getUserAgentProfile() {
+        return preferences.getString(
+                "user_agent_profile",
+                UserAgentProfiles.DEFAULT);
+    }
+
+    public void setUserAgentProfile(
+            String profile) {
+        preferences.edit()
+                .putString(
+                        "user_agent_profile",
+                        profile == null
+                                ? UserAgentProfiles.DEFAULT
+                                : profile)
+                .apply();
+    }
+
+    public String getCustomUserAgent() {
+        return preferences.getString(
+                "custom_user_agent",
+                "");
+    }
+
+    public void setCustomUserAgent(
+            String value) {
+        preferences.edit()
+                .putString(
+                        "custom_user_agent",
+                        value == null
+                                ? ""
+                                : value.trim())
+                .apply();
+    }
+
+    public boolean isWebViewDebuggingEnabled() {
+        return preferences.getBoolean(
+                "webview_debugging",
+                false);
+    }
+
     public boolean isRestoreTabsEnabled() {
         return preferences.getBoolean(
                 "restore_tabs",
