@@ -44,6 +44,9 @@ public class BrowserTab {
 
     public String settingsSection = "general";
 
+    /** True when the narrow-screen settings page has a section open. */
+    public boolean settingsMobileOpen = false;
+
     /** Original WebView UA used when Desktop mode is off. */
     public String defaultUserAgent = "";
 
