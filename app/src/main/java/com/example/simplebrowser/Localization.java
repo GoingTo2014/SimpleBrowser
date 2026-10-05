@@ -5,7 +5,6 @@ import android.content.Context;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,6 +106,12 @@ public final class Localization {
         add("Spanish", "Español", "Español");
         add("Portuguese", "Português", "Português");
         add("French", "Francés", "Français");
+        add("Blank page", "Página en blanco", "Página em branco");
+        add("Default page", "Página predeterminada", "Página padrão");
+        add("Custom", "Personalizado", "Personalizado");
+        add("Cookie could not be changed", "No se pudo cambiar la cookie", "Não foi possível alterar o cookie");
+        add("Cookie could not be deleted", "No se pudo eliminar la cookie", "Não foi possível excluir o cookie");
+        add("Some site cookies could not be deleted", "No se pudieron eliminar algunas cookies del sitio", "Alguns cookies do site não puderam ser excluídos");
 
         add("New Tab", "Nueva pestaña", "Nova aba");
         add("Search or enter an address", "Busca o introduce una dirección", "Pesquise ou digite um endereço");
@@ -240,6 +245,12 @@ french("Cookies", "Cookies");
         french("Portuguese", "Portugais");
         french("Save", "Enregistrer");
         french("Cancel", "Annuler");
+        french("Blank page", "Page vierge");
+        french("Default page", "Page par défaut");
+        french("Custom", "Personnalisé");
+        french("Cookie could not be changed", "Impossible de modifier le cookie");
+        french("Cookie could not be deleted", "Impossible de supprimer le cookie");
+        french("Some site cookies could not be deleted", "Certains cookies du site n’ont pas pu être supprimés");
         french("OK", "OK");
 
     }
