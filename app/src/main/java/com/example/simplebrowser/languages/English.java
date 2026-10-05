@@ -221,5 +221,21 @@ public final class English extends LanguagePack {
         put("demo.table_label", "Table ".trim());
         put("demo.image", "Image ".trim());
         put("demo.details", "Details ".trim());
+        put("ua.default", "Default Android WebView" );
+        put("ua.chrome_windows", "Chrome - Windows" );
+        put("ua.firefox_windows", "Firefox - Windows" );
+        put("ua.edge_windows", "Edge - Windows" );
+        put("ua.chrome_android", "Chrome - Android" );
+        put("ua.safari_iphone", "Safari - iPhone" );
+        put("ua.safari_ipad", "Safari - iPad" );
+        put("ua.samsung_browser", "Samsung Internet" );
+        put("ua.android_tablet", "Android Tablet" );
+        put("ua.playstation_5", "PlayStation 5" );
+        put("ua.xbox_series", "Xbox Series X" );
+        put("ua.nintendo_switch", "Nintendo Switch" );
+        put("ua.apple_tv", "Apple TV" );
+        put("ua.android_tv", "Android TV" );
+        put("ua.google_tv", "Google TV" );
+        put("ua.smart_tv", "Smart TV" );
     }
 }
