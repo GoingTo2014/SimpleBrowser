@@ -28,12 +28,26 @@ public class SettingsPage {
     public void show(
             BrowserTab tab) {
 
-        show(tab, "general");
+        show(
+                tab,
+                "general",
+                false);
     }
 
     public void show(
             BrowserTab tab,
             String section) {
+
+        show(
+                tab,
+                section,
+                true);
+    }
+
+    private void show(
+            BrowserTab tab,
+            String section,
+            boolean mobileOpen) {
 
         section =
                 normalizeSection(section);
@@ -42,6 +56,7 @@ public class SettingsPage {
         tab.loading = false;
         tab.sslError = false;
         tab.settingsSection = section;
+        tab.settingsMobileOpen = mobileOpen;
         tab.url =
                 activity.getSettingsUrl(
                         section);
@@ -65,7 +80,8 @@ public class SettingsPage {
                 BrowserPage.settingsUrl(section),
                 createHtml(
                         section,
-                        tab.isIncognito),
+                        tab.isIncognito,
+                        tab.settingsMobileOpen),
                 null);
 
         activity.updateTabTitle(tab);
@@ -83,6 +99,7 @@ public class SettingsPage {
         tab.loading = false;
         tab.sslError = false;
         tab.settingsSection = section;
+        tab.settingsMobileOpen = false;
         tab.url =
                 activity.getSettingsUrl(
                         section);
@@ -136,7 +153,8 @@ public class SettingsPage {
 
     private String createHtml(
             String currentSection,
-            boolean incognito) {
+            boolean incognito,
+            boolean mobileOpen) {
 
         int accentColor =
                 ColorUtils.parseColor(
@@ -512,52 +530,47 @@ public class SettingsPage {
                 ".section.active{display:block;}" +
 
                 "@media(max-width:600px){" +
+                ".layout{" +
+                "display:block;min-height:0;overflow:visible;" +
+                "}" +
                 ".sidebar{" +
-                "width:116px;" +
-                "flex-basis:116px;" +
-                "}" +
-                ".content{" +
-                "padding:16px 11px;" +
-                "}" +
-                ".row{" +
-                "padding:13px 12px;" +
-                "}" +
-                ".switchrow{" +
-                "gap:8px;" +
+                "width:100%;flex:none;" +
+                "padding:10px;" +
+                "display:flex;" +
+                "flex-wrap:wrap;" +
+                "align-content:flex-start;" +
                 "}" +
                 ".brand{" +
-                "font-size:18px;padding-left:10px;padding-right:8px;" +
+                "display:none;" +
                 "}" +
                 ".nav{" +
-                "padding:10px 9px;font-size:13px;" +
+                "width:calc(50% - 8px);" +
+                "padding:12px 8px;" +
+                "margin:4px;" +
+                "font-size:13px;" +
+                "text-align:center;" +
+                "border-radius:6px;" +
                 "}" +
                 ".nav.active{" +
-                "padding-left:6px;" +
-                "}" +
-                ".layout{min-height:0;}" +
-                ".content{overflow:visible;}" +
-                "@media(max-width:380px){" +
-                ".sidebar{" +
-                "width:98px;" +
-                "flex-basis:98px;" +
-                "padding-top:12px;" +
-                "}" +
-                ".brand{" +
-                "font-size:16px;" +
-                "padding:0 8px 14px;" +
-                "}" +
-                ".nav{" +
-                "padding:9px 7px;" +
-                "font-size:12px;" +
-                "}" +
-                ".nav.active{" +
-                "padding-left:5px;" +
+                "border-left:0;" +
+                "padding-left:8px;" +
                 "}" +
                 ".content{" +
+                "display:none;" +
+                "width:100%;" +
+                "max-width:none;" +
                 "padding:14px 10px;" +
+                "overflow:visible;" +
                 "}" +
-                "h1{" +
-                "font-size:24px;" +
+                ".layout.mobile-open .sidebar{" +
+                "display:none;" +
+                "}" +
+                ".layout.mobile-open .content{" +
+                "display:block;" +
+                "}" +
+                ".mobile-back{" +
+                "display:block;" +
+                "margin:0 0 12px;" +
                 "}" +
                 ".subtitle{" +
                 "margin-bottom:16px;" +
@@ -568,28 +581,56 @@ public class SettingsPage {
                 ".row{" +
                 "padding:12px 10px;" +
                 "}" +
+                ".switchrow{" +
+                "gap:8px;" +
+                "}" +
                 "}" +
 
-                "@media(max-width:300px){" +
+                "@media(max-width:380px){" +
                 ".sidebar{" +
-                "width:88px;" +
-                "flex-basis:88px;" +
+                "padding:8px;" +
                 "}" +
                 ".nav{" +
-                "font-size:11px;" +
-                "padding-left:5px;" +
-                "padding-right:4px;" +
+                "width:calc(50% - 6px);" +
+                "padding:10px 5px;" +
+                "margin:3px;" +
+                "font-size:12px;" +
                 "}" +
                 ".nav.active{" +
-                "padding-left:3px;" +
+                "padding-left:5px;" +
                 "}" +
                 ".content{" +
                 "padding:12px 8px;" +
+                "}" +
+                "h1{" +
+                "font-size:24px;" +
+                "}" +
+                ".row{" +
+                "padding:11px 9px;" +
+                "}" +
+                "}" +
+
+                "@media(max-width:300px){" +
+                ".nav{" +
+                "width:100%;" +
+                "font-size:11px;" +
+                "padding:10px 4px;" +
+                "margin:3px 0;" +
+                "}" +
+                ".nav.active{" +
+                "padding-left:4px;" +
+                "}" +
+                ".content{" +
+                "padding:10px 7px;" +
                 "}" +
                 "}" +
 
                 "</style>" +
                 "<script>" +
+                "function showMobileMenu(){" +
+                "var layout=document.getElementsByClassName('layout')[0];" +
+                "if(layout)layout.className='layout';" +
+                "}" +
                 "function updateHomeVisibility(value){" +
                 "var element=document.getElementById('custom-home');" +
                 "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
@@ -611,7 +652,9 @@ public class SettingsPage {
                 "</head>" +
                 "<body>" +
 
-                "<div class='layout'>" +
+                "<div class='layout " +
+                (mobileOpen ? "mobile-open" : "") +
+                "'>" +
 
                 "<div class='sidebar'>" +
 
@@ -651,6 +694,11 @@ public class SettingsPage {
                 "</div>" +
 
                 "<div class='content'>" +
+
+                "<button class='mobile-back' " +
+                "onclick='showMobileMenu()'>" +
+                "Settings" +
+                "</button>" +
 
                 "<h1>Settings</h1>" +
                 "<div class='subtitle'>Simple Browser " +
