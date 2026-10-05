@@ -402,6 +402,9 @@ public final class CookieStore {
 
             CookieSyncManager.getInstance()
                     .sync();
+
+            CookieManager.getInstance()
+                    .removeExpiredCookie();
         } catch (Throwable ignored) {
         }
     }
