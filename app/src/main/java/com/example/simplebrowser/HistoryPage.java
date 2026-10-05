@@ -513,20 +513,14 @@ public class HistoryPage {
             activity.runOnUiThread(
                     () -> {
 
-                        List<BrowserHistory.Entry> entries =
-                                history.getEntries("");
+                        BrowserHistory.Entry entry =
+                                history.get(id);
 
-                        for (BrowserHistory.Entry entry :
-                                entries) {
+                        if (entry != null) {
 
-                            if (entry.id == id) {
-
-                                activity.openUrlOrSearchForTab(
-                                        tab,
-                                        entry.url);
-
-                                return;
-                            }
+                            activity.openUrlOrSearchForTab(
+                                    tab,
+                                    entry.url);
                         }
                     });
         }
