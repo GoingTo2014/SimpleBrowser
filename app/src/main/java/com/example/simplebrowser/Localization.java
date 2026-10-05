@@ -106,6 +106,7 @@ public final class Localization {
         add("English", "English", "English");
         add("Spanish", "Español", "Español");
         add("Portuguese", "Português", "Português");
+        add("French", "Francés", "Français");
 
         add("New Tab", "Nueva pestaña", "Nova aba");
         add("Search or enter an address", "Busca o introduce una dirección", "Pesquise ou digite um endereço");
@@ -168,6 +169,18 @@ public final class Localization {
         add("Forward", "Adelante", "Avançar");
         add("Settings", "Configuración", "Configurações");
         french("Settings", "Paramètres");
+french("Cookies", "Cookies");
+        french("Cookie data is temporary in Incognito Mode.", "Les données des cookies sont temporaires en mode navigation privée.");
+        french("Cookies are not managed from Incognito Mode.", "Les cookies ne sont pas gérés en mode navigation privée.");
+        french("Websites discovered with cookies in Simple Browser, based on visited sites and open tabs.", "Sites ayant des cookies détectés dans Simple Browser, selon les sites visités et les onglets ouverts.");
+        french("No cookies are currently known.", "Aucun cookie connu pour le moment.");
+        french("Edit", "Modifier");
+        french("Delete", "Supprimer");
+        french("Delete site cookies", "Supprimer les cookies du site");
+        french("Site cookies deleted", "Cookies du site supprimés");
+        french("Edit cookie: ", "Modifier le cookie : ");
+        french("Save", "Enregistrer");
+        french("Cancel", "Annuler");
         french("General", "Général");
         french("Privacy &amp; Security", "Confidentialité et sécurité");
         french("Websites", "Sites web");
