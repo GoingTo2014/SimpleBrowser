@@ -198,26 +198,26 @@ public class CookiesPage {
                             .append("</div>");
                     html.append("</div>");
                     html.append(
-                            "<button onclick="CookiesPage.edit('" +
+                            "<button onclick=\"CookiesPage.edit('" +
                             js(cookie.name) +
                             "','" +
                             js(domain) +
-                            "')">Edit</button>");
+                            "')\">Edit</button>");
                     html.append(
                             "<button class='danger' " +
-                            "onclick="CookiesPage.deleteCookie('" +
+                            "onclick=\"CookiesPage.deleteCookie('" +
                             js(cookie.name) +
                             "','" +
                             js(domain) +
-                            "')">Delete</button>");
+                            "')\">Delete</button>");
                     html.append("</div>");
                 }
 
                 html.append(
                         "<button class='danger' " +
-                        "onclick="CookiesPage.deleteDomain('" +
+                        "onclick=\"CookiesPage.deleteDomain('" +
                         js(domain) +
-                        "')">Delete site cookies</button>");
+                        "')\">Delete site cookies</button>");
                 html.append("</div>");
             }
 
@@ -244,7 +244,7 @@ public class CookiesPage {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace(""", "&quot;")
+                .replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
 
