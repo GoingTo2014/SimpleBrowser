@@ -284,5 +284,11 @@ public final class Japanese extends LanguagePack {
         put("demo.prompt_message", "入力");
         put("demo.submit_message", "送信");
         put("demo.password_value", "パスワード");
+        put("demo.phone", "電話");
+        put("demo.media", "メディア");
+        put("demo.iframe", "インラインフレーム");
+        put("demo.form_output", "フォーム出力");
+        put("demo.dialog", "ダイアログ");
+        put("demo.dialog_text", "標準のダイアログ要素");
     }
 }
