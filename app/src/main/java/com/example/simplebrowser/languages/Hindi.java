@@ -284,5 +284,11 @@ public final class Hindi extends LanguagePack {
         put("demo.prompt_message", "प्रॉम्प्ट");
         put("demo.submit_message", "सबमिट");
         put("demo.password_value", "पासवर्ड");
+        put("demo.phone", "टेलीफ़ोन");
+        put("demo.media", "मीडिया");
+        put("demo.iframe", "इनलाइन फ़्रेम");
+        put("demo.form_output", "फ़ॉर्म आउटपुट");
+        put("demo.dialog", "डायलॉग");
+        put("demo.dialog_text", "डिफ़ॉल्ट डायलॉग तत्व");
     }
 }
