@@ -245,6 +245,38 @@ public class BrowserSettings {
                 false);
     }
 
+    public boolean isAutomaticUpdatesEnabled() {
+        return preferences.getBoolean(
+                "automatic_updates",
+                true);
+    }
+
+    public void setAutomaticUpdatesEnabled(
+            boolean enabled) {
+
+        preferences.edit()
+                .putBoolean(
+                        "automatic_updates",
+                        enabled)
+                .apply();
+    }
+
+    public long getLastUpdateCheck() {
+        return preferences.getLong(
+                "update_last_check",
+                0L);
+    }
+
+    public void setLastUpdateCheck(
+            long time) {
+
+        preferences.edit()
+                .putLong(
+                        "update_last_check",
+                        time)
+                .apply();
+    }
+
     public boolean isRestoreTabsEnabled() {
         return preferences.getBoolean(
                 "restore_tabs",
