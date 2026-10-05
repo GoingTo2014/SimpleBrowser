@@ -1438,6 +1438,28 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void refreshLocalizedChrome() {
+
+        urlBox.setHint(
+                Localization.translate(
+                        this,
+                        "Search or enter an address"));
+
+        setupToolbarIcons();
+        applyResponsiveToolbar();
+
+        BrowserTab active =
+                getActiveTab();
+
+        if (active != null) {
+            updateTabTitle(active);
+            updateSecurity(active);
+            updateReloadButton(active);
+        }
+
+        updateNavigationButtons();
+    }
+
     public void refreshTab(
             BrowserTab tab) {
 
@@ -1937,6 +1959,12 @@ public class MainActivity extends Activity {
                 setUrlText(
                         BrowserPage.DOWNLOADS);
 
+            } else if (BrowserPage.DEMO.equals(
+                    tab.url)) {
+
+                setUrlText(
+                        BrowserPage.DEMO);
+
             } else if (tab.errorPage) {
 
                 setUrlText(tab.url);
@@ -1981,6 +2009,12 @@ public class MainActivity extends Activity {
 
                 setUrlText(
                         BrowserPage.DOWNLOADS);
+
+            } else if (BrowserPage.DEMO.equals(
+                    tab.url)) {
+
+                setUrlText(
+                        BrowserPage.DEMO);
 
             } else if (tab.errorPage) {
 
