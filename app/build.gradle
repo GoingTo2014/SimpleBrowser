@@ -6,6 +6,10 @@ android {
     namespace 'com.example.simplebrowser'
     compileSdk 35
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId 'com.example.simplebrowser'
         minSdk 19
