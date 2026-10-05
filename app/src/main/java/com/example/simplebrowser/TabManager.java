@@ -3,6 +3,7 @@ package com.example.simplebrowser;
 import android.animation.LayoutTransition;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -13,6 +14,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -383,7 +385,19 @@ public class TabManager {
                 0);
 
         tab.titleView.setMaxWidth(
-                dp(160));
+                dp(116));
+
+        tab.faviconView =
+                new ImageView(activity);
+
+        tab.faviconView.setScaleType(
+                ImageView.ScaleType.CENTER_INSIDE);
+
+        tab.faviconView.setVisibility(
+                View.GONE);
+
+        tab.faviconView.setContentDescription(
+                "Website icon");
 
         tab.closeButton =
                 new ImageButton(activity);
@@ -517,9 +531,15 @@ public class TabManager {
                 });
 
         tab.tabView.addView(
+                tab.faviconView,
+                new LinearLayout.LayoutParams(
+                        dp(28),
+                        dp(36)));
+
+        tab.tabView.addView(
                 tab.titleView,
                 new LinearLayout.LayoutParams(
-                        dp(145),
+                        dp(116),
                         dp(36)));
 
         tab.tabView.addView(
@@ -622,7 +642,7 @@ public class TabManager {
                 tab.tabView.getWidth();
 
         if (tabWidth <= 0) {
-            tabWidth = dp(181);
+            tabWidth = dp(178);
         }
 
         int originalIndex =
@@ -1573,6 +1593,37 @@ public class TabManager {
         }
 
         tab.titleView.setText(title);
+    }
+
+    public void updateTabIcon(
+            BrowserTab tab,
+            Bitmap favicon) {
+
+        if (tab == null) {
+            return;
+        }
+
+        tab.favicon = favicon;
+
+        if (tab.faviconView == null) {
+            return;
+        }
+
+        if (favicon != null &&
+                !favicon.isRecycled()) {
+
+            tab.faviconView.setImageBitmap(
+                    favicon);
+            tab.faviconView.setVisibility(
+                    View.VISIBLE);
+
+        } else {
+
+            tab.faviconView.setImageDrawable(
+                    null);
+            tab.faviconView.setVisibility(
+                    View.GONE);
+        }
     }
 
     public void updateTitles() {
