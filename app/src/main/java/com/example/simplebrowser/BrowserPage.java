@@ -166,6 +166,53 @@ public final class BrowserPage {
         return toPublicRoute(url) != null;
     }
 
+    public static String displayUrl(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return "";
+        }
+
+        if (tab.defaultPage) {
+            return "";
+        }
+
+        if (tab.settingsPage) {
+            return settingsUrl(
+                    tab.settingsSection);
+        }
+
+        if (tab.historyPage) {
+            return HISTORY;
+        }
+
+        if (tab.downloadsPage) {
+            return DOWNLOADS;
+        }
+
+        if (tab.errorPage) {
+            return tab.url == null
+                    ? ""
+                    : tab.url;
+        }
+
+        String webUrl =
+                tab.webView == null
+                        ? null
+                        : tab.webView.getUrl();
+
+        String route =
+                toPublicRoute(webUrl);
+
+        if (route != null) {
+            return route;
+        }
+
+        return tab.url == null
+                ? ""
+                : tab.url;
+    }
+
     public static void load(
             WebView webView,
             String route,
