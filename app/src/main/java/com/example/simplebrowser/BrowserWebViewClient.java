@@ -181,8 +181,7 @@ public class BrowserWebViewClient
             tab.url = BrowserPage.DOWNLOADS;
             tab.title = "Downloads";
 
-        } else if (BrowserPage.ERROR.equals(route) ||
-                tab.errorPage) {
+        } else if (BrowserPage.ERROR.equals(route)) {
 
             /*
              * The custom error document reloads from its own
