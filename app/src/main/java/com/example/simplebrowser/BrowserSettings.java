@@ -71,6 +71,9 @@ public class BrowserSettings {
     public void setHomePage(String value) {
         preferences.edit()
                 .putString("home", value)
+                .putBoolean(
+                        "home_default_migrated",
+                        true)
                 .apply();
     }
 
