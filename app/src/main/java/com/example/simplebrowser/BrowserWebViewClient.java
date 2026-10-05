@@ -294,6 +294,16 @@ public class BrowserWebViewClient
                     tab,
                     url);
 
+            if (tab.favicon != null &&
+                    !tab.favicon.isRecycled() &&
+                    activity.getBrowserHistory() != null) {
+                activity.getBrowserHistory()
+                        .updateLatestFavicon(
+                                url,
+                                tab.title,
+                                tab.favicon);
+            }
+
             if (!tab.isIncognito &&
                     activity.getCookieStore() != null) {
                 activity.getCookieStore()
