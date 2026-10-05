@@ -802,7 +802,7 @@ public class SettingsPage {
                 "<div class='row'>" +
                 "<div class='title'>User agent</div>" +
                 "<div class='description'>Choose how websites identify this browser. Desktop mode still takes priority while it is enabled.</div>" +
-                "<select onchange="updateUserAgentVisibility(this.value);Android.setUserAgent(this.value)">" +
+                "<select onchange=\"updateUserAgentVisibility(this.value);Android.setUserAgent(this.value)\">" +
                 userAgentOptions() +
                 "</select>" +
                 "</div>" +
@@ -818,7 +818,7 @@ public class SettingsPage {
                 "<input type='text' value='" +
                 htmlAttribute(
                         settings.getCustomUserAgent()) +
-                "' onchange="Android.setCustomUserAgent(this.value)">" +
+                "' onchange=\"Android.setCustomUserAgent(this.value)\">" +
                 "</div>" +
 
                 "<div class='row switchrow'>" +
@@ -830,7 +830,7 @@ public class SettingsPage {
                 (settings.isWebViewDebuggingEnabled()
                         ? " checked"
                         : "") +
-                " onchange="Android.setSetting('webview_debugging',this.checked)">" +
+                " onchange=\"Android.setSetting('webview_debugging',this.checked)\">" +
                 "</div>" +
 
                 "<div class='row'>" +
