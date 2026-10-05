@@ -5,7 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Bitmap;
+import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +22,7 @@ public class BrowserHistory
     private static final String DATABASE_NAME =
             "browser_history.db";
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_VISITS =
             "visits";
@@ -29,6 +32,7 @@ public class BrowserHistory
         public String url;
         public String title;
         public long time;
+        public byte[] favicon;
     }
 
     public BrowserHistory(Context context) {
@@ -50,7 +54,8 @@ public class BrowserHistory
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "url TEXT NOT NULL," +
                 "title TEXT," +
-                "time INTEGER NOT NULL" +
+                "time INTEGER NOT NULL," +
+                "favicon BLOB" +
                 ")");
 
         db.execSQL(
@@ -65,11 +70,29 @@ public class BrowserHistory
             SQLiteDatabase db,
             int oldVersion,
             int newVersion) {
+
+        if (oldVersion < 2) {
+            db.execSQL(
+                    "ALTER TABLE " +
+                    TABLE_VISITS +
+                    " ADD COLUMN favicon BLOB");
+        }
     }
 
     public synchronized void addVisit(
             String url,
             String title) {
+
+        addVisit(
+                url,
+                title,
+                null);
+    }
+
+    public synchronized void addVisit(
+            String url,
+            String title,
+            Bitmap faviconBitmap) {
 
         if (url == null ||
                 url.trim().isEmpty()) {
@@ -80,10 +103,14 @@ public class BrowserHistory
                 url.trim()
                         .toLowerCase();
 
-        if (!lower.startsWith("http://") &&
-                !lower.startsWith("https://") &&
-                !lower.startsWith("file://") &&
-                !lower.startsWith("content://")) {
+        boolean supported =
+                lower.startsWith("http://") ||
+                lower.startsWith("https://") ||
+                lower.startsWith("file://") ||
+                lower.startsWith("content://") ||
+                lower.startsWith("browser://");
+
+        if (!supported) {
             return;
         }
 
@@ -104,6 +131,15 @@ public class BrowserHistory
                 "time",
                 System.currentTimeMillis());
 
+        byte[] favicon =
+                encodeFavicon(faviconBitmap);
+
+        if (favicon != null) {
+            values.put(
+                    "favicon",
+                    favicon);
+        }
+
         SQLiteDatabase db =
                 getWritableDatabase();
 
@@ -111,6 +147,50 @@ public class BrowserHistory
                 TABLE_VISITS,
                 null,
                 values);
+    }
+
+    private byte[] encodeFavicon(
+            Bitmap bitmap) {
+
+        if (bitmap == null ||
+                bitmap.isRecycled()) {
+            return null;
+        }
+
+        try {
+
+            ByteArrayOutputStream output =
+                    new ByteArrayOutputStream();
+
+            bitmap.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    output);
+
+            return output.toByteArray();
+
+        } catch (Exception ignored) {
+
+            return null;
+        }
+    }
+
+    public static String faviconDataUri(
+            byte[] favicon) {
+
+        if (favicon == null ||
+                favicon.length == 0) {
+            return "";
+        }
+
+        try {
+            return "data:image/png;base64," +
+                    Base64.encodeToString(
+                            favicon,
+                            Base64.NO_WRAP);
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     public synchronized List<Entry> getEntries(
@@ -170,7 +250,8 @@ public class BrowserHistory
                                 "id",
                                 "url",
                                 "title",
-                                "time"
+                                "time",
+                                "favicon"
                         },
                         selection,
                         args,
@@ -198,6 +279,9 @@ public class BrowserHistory
                 entry.time =
                         cursor.getLong(3);
 
+                entry.favicon =
+                        cursor.getBlob(4);
+
                 entries.add(entry);
             }
 
@@ -222,7 +306,8 @@ public class BrowserHistory
                                 "id",
                                 "url",
                                 "title",
-                                "time"
+                                "time",
+                                "favicon"
                         },
                         "id = ?",
                         new String[] {
@@ -252,6 +337,9 @@ public class BrowserHistory
 
             entry.time =
                     cursor.getLong(3);
+
+            entry.favicon =
+                    cursor.getBlob(4);
 
             return entry;
 
