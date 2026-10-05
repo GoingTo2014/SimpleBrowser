@@ -236,5 +236,8 @@ public final class Portuguese extends LanguagePack {
         put("demo.table_label", "Tabela" );
         put("demo.image", "Imagem" );
         put("demo.details", "Detalhes" );
+        put("history.cleared", "Histórico limpo");
+        put("settings.webview_cache_cleared", "Cache do WebView limpo");
+        put("settings.browsing_data_cleared", "Dados de navegação limpos");
     }
 }
