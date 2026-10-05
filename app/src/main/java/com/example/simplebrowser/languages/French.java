@@ -179,5 +179,19 @@ public final class French extends LanguagePack {
         put("common.tab_overview", "Aperçu des onglets ".trim());
         put("settings.browser_settings", "Paramètres du navigateur ".trim());
         put("error.certificate_unverified", "Le certificat de sécurité du site n'a pas pu être vérifié. ".trim());
+        put("ua.default", "WebView Android par défaut" );
+        put("ua.chrome_windows", "Chrome - Windows" );
+        put("ua.firefox_windows", "Firefox - Windows" );
+        put("ua.edge_windows", "Edge - Windows" );
+        put("ua.chrome_android", "Chrome - Android" );
+        put("ua.safari_iphone", "Safari - iPhone" );
+        put("ua.safari_ipad", "Safari - iPad" );
+        put("ua.samsung_browser", "PlayStation 5" );
+        put("ua.android_tablet", "Xbox Series X" );
+        put("ua.playstation_5", "Nintendo Switch" );
+        put("ua.xbox_series", "Apple TV" );
+        put("ua.nintendo_switch", "Android TV" );
+        put("ua.apple_tv", "Google TV" );
+        put("ua.android_tv", "Smart TV" );
     }
 }
