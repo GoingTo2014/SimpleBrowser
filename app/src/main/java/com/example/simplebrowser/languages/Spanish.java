@@ -284,5 +284,11 @@ public final class Spanish extends LanguagePack {
         put("demo.prompt_message", "Solicitud");
         put("demo.submit_message", "Enviar");
         put("demo.password_value", "contraseña");
+        put("demo.phone", "Teléfono");
+        put("demo.media", "Multimedia");
+        put("demo.iframe", "Marco incorporado");
+        put("demo.form_output", "Salida del formulario");
+        put("demo.dialog", "Diálogo");
+        put("demo.dialog_text", "Elemento de diálogo predeterminado");
     }
 }
