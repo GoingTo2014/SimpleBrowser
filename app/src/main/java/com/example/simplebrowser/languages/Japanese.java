@@ -8,6 +8,7 @@ public final class Japanese extends LanguagePack {
         put("settings.title", "設定");
         put("settings.general", "一般");
         put("settings.privacy", "プライバシーとセキュリティ");
+        put("strings.settings.privacy_html", "プライバシーとセキュリティ");
         put("settings.websites", "ウェブサイト");
         put("settings.appearance", "外観");
         put("settings.advanced", "詳細設定");
