@@ -239,5 +239,8 @@ public final class Spanish extends LanguagePack {
         put("history.cleared", "Historial borrado");
         put("settings.webview_cache_cleared", "Caché de WebView borrada");
         put("settings.browsing_data_cleared", "Datos de navegación borrados");
+        put("downloads.search", "Buscar descargas");
+        put("downloads.download", "Descarga");
+        put("ua.custom", "Personalizado");
     }
 }
