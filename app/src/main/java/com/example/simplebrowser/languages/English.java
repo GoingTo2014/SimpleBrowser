@@ -285,5 +285,11 @@ public final class English extends LanguagePack {
         put("demo.prompt_message", "Prompt");
         put("demo.submit_message", "Submit");
         put("demo.password_value", "password");
+        put("demo.phone", "Telephone");
+        put("demo.media", "Media");
+        put("demo.iframe", "Inline frame");
+        put("demo.form_output", "Form output");
+        put("demo.dialog", "Dialog");
+        put("demo.dialog_text", "Default dialog element");
     }
 }
