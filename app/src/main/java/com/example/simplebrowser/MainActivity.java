@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
     private ErrorPage errorPage;
     private CookieStore cookieStore;
     private CookiesPage cookiesPage;
+    private DemoPage demoPage;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -86,6 +87,11 @@ public class MainActivity extends Activity {
 
         urlBox =
                 findViewById(R.id.url);
+
+        urlBox.setHint(
+                Localization.translate(
+                        this,
+                        "Search or enter an address"));
 
         progressBar =
                 findViewById(R.id.progress);
@@ -148,6 +154,9 @@ public class MainActivity extends Activity {
                 new CookiesPage(
                         this,
                         cookieStore);
+
+        demoPage =
+                new DemoPage(this);
 
         setupToolbarIcons();
         setupButtons();
@@ -243,6 +252,43 @@ public class MainActivity extends Activity {
                 R.id.settings,
                 BrowserIconDrawable.MORE,
                 iconColor);
+
+        setContentDescription(
+                R.id.back,
+                "Back");
+        setContentDescription(
+                R.id.forward,
+                "Forward");
+        setContentDescription(
+                R.id.home,
+                "Home");
+        setContentDescription(
+                R.id.reload,
+                "Reload");
+        setContentDescription(
+                R.id.settings,
+                "Browser settings");
+        setContentDescription(
+                R.id.tab_overview,
+                "Tab overview");
+        setContentDescription(
+                R.id.new_tab,
+                "New tab");
+    }
+
+    private void setContentDescription(
+            int id,
+            String key) {
+
+        View view =
+                findViewById(id);
+
+        if (view != null) {
+            view.setContentDescription(
+                    Localization.translate(
+                            this,
+                            key));
+        }
     }
 
     private void setToolbarIcon(
@@ -696,7 +742,10 @@ public class MainActivity extends Activity {
         Button button =
                 new Button(this);
 
-        button.setText(text);
+        button.setText(
+                Localization.translate(
+                        this,
+                        text));
         button.setAllCaps(false);
         button.setTextColor(readable);
         button.setBackgroundColor(accent);
@@ -830,10 +879,25 @@ public class MainActivity extends Activity {
                                 "Copy link"
                         };
 
+        final String[] translatedActions =
+                new String[actions.length];
+
+        for (int i = 0;
+                i < actions.length;
+                i++) {
+            translatedActions[i] =
+                    Localization.translate(
+                            this,
+                            actions[i]);
+        }
+
         new android.app.AlertDialog.Builder(this)
-                .setTitle(title)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                title))
                 .setItems(
-                        actions,
+                        translatedActions,
                         (dialog, which) -> {
 
                             String action =
@@ -1015,6 +1079,12 @@ public class MainActivity extends Activity {
         if (BrowserPage.COOKIES.equalsIgnoreCase(value)) {
 
             showCookies(tab);
+            return;
+        }
+
+        if (BrowserPage.DEMO.equalsIgnoreCase(value)) {
+
+            showDemoPage(tab);
             return;
         }
 
@@ -2457,6 +2527,8 @@ public class MainActivity extends Activity {
                  tab.historyPage ||
                  tab.downloadsPage ||
                  tab.cookiesPage ||
+                 BrowserPage.DEMO.equals(
+                         tab.url) ||
                  tab.errorPage)) {
 
             goBackFromInternalPage(tab);
