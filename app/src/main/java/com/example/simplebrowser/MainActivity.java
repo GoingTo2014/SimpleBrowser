@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     private CookieStore cookieStore;
     private CookiesPage cookiesPage;
     private DemoPage demoPage;
+    private UpdateManager updateManager;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -78,6 +79,11 @@ public class MainActivity extends Activity {
 
         browserSettings =
                 new BrowserSettings(this);
+
+        updateManager =
+                new UpdateManager(
+                        this,
+                        browserSettings);
 
         WebView.setWebContentsDebuggingEnabled(
                 browserSettings.isWebViewDebuggingEnabled());
@@ -183,6 +189,12 @@ public class MainActivity extends Activity {
 
             tabManager.addTab(
                     browserSettings.getHomePage());
+        }
+
+        if (updateManager != null) {
+            updateManager.checkForUpdates(
+                    false,
+                    null);
         }
     }
 
@@ -2004,6 +2016,90 @@ public class MainActivity extends Activity {
         pendingGeolocationOrigin = null;
     }
 
+    public UpdateManager getUpdateManager() {
+        return updateManager;
+    }
+
+    public void checkForUpdatesFromSettings(
+            BrowserTab tab) {
+
+        if (updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
+    }
+
+    public void installAvailableUpdate(
+            BrowserTab tab) {
+
+        if (updateManager == null) {
+            return;
+        }
+
+        UpdateManager.UpdateInfo update =
+                updateManager.getAvailableUpdate();
+
+        if (update != null) {
+            updateManager.downloadAndInstall(
+                    update,
+                    tab,
+                    false);
+        } else {
+            checkForUpdatesFromSettings(tab);
+        }
+    }
+
+    public void onUpdateCheckFinished(
+            BrowserTab tab,
+            UpdateManager.UpdateInfo update,
+            String error,
+            boolean manual) {
+
+        if (tab != null &&
+                tab.settingsPage) {
+
+            settingsPage.updateUpdateStatus(
+                    tab,
+                    update,
+                    error);
+        }
+
+        if (!manual &&
+                update != null &&
+                error == null) {
+            // UpdateManager handles the automatic download/install.
+        }
+    }
+
+    public void onUpdateStatus(
+            BrowserTab tab,
+            String message,
+            boolean showInstall) {
+
+        if (tab != null &&
+                tab.settingsPage) {
+
+            settingsPage.updateUpdateStatusText(
+                    tab,
+                    message,
+                    showInstall);
+        }
+    }
+
+    public void onAutomaticUpdatesChanged(
+            BrowserTab tab,
+            boolean enabled) {
+
+        if (tab != null &&
+                tab.settingsPage) {
+
+            settingsPage.updateAutomaticUpdatesUi(
+                    tab,
+                    enabled);
+        }
+    }
+
     public void removeSettingsBridge(
             BrowserTab tab) {
 
@@ -2898,6 +2994,10 @@ public class MainActivity extends Activity {
 
         if (cookieStore != null) {
             cookieStore.startSync();
+        }
+
+        if (updateManager != null) {
+            updateManager.resumePendingInstall();
         }
     }
 
