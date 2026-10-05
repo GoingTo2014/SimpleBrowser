@@ -239,5 +239,8 @@ public final class Chinese extends LanguagePack {
         put("history.cleared", "历史记录已清除");
         put("settings.webview_cache_cleared", "WebView 缓存已清除");
         put("settings.browsing_data_cleared", "浏览数据已清除");
+        put("downloads.search", "搜索下载内容");
+        put("downloads.download", "下载");
+        put("ua.custom", "自定义");
     }
 }
