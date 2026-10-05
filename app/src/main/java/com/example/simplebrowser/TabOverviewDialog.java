@@ -51,6 +51,12 @@ public class TabOverviewDialog {
         root.setBackgroundColor(
                 background);
 
+        final LinearLayout list =
+                new LinearLayout(activity);
+
+        list.setOrientation(
+                LinearLayout.VERTICAL);
+
         LinearLayout header =
                 new LinearLayout(activity);
 
@@ -129,12 +135,6 @@ public class TabOverviewDialog {
                         dp(44)));
 
         root.addView(header);
-
-        final LinearLayout list =
-                new LinearLayout(activity);
-
-        list.setOrientation(
-                LinearLayout.VERTICAL);
 
         refreshTabList(
                 list,
