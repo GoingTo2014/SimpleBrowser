@@ -343,7 +343,7 @@ public class HistoryPage {
                     "var e=data[i];" +
                     "var title=e.title&&e.title.length?e.title:e.url;" +
                      "var icon=e.favicon&&e.favicon.length?'<img class=\\'icon\\' src=\\''+e.favicon+'\\'>'" +
-                     ":'<div class=\\'icon icon-fallback\\'>S</div>';"
+                     ":'<div class=\\'icon icon-fallback\\'>S</div>';" +
                     "var s='<div class=\\'entry\\'><div class=\\'row\\'>" +
                      "'+icon+'" +
                     "<div class=\\'grow\\'>" +
