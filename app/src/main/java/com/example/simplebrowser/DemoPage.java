@@ -139,7 +139,8 @@ public final class DemoPage {
                 t("demo.search_text") + "'></label></p>" +
                 "<p><label>" + t("demo.number") +
                 ": <input type='number' value='10' min='0' max='100'></label></p>" +
-                "<p><label>Tel: <input type='tel' value='555-1234'></label></p>" +
+                "<p><label>" + t("demo.phone") +
+                ": <input type='tel' value='555-1234'></label></p>" +
                 "</fieldset>" +
 
                 "<fieldset>" +
