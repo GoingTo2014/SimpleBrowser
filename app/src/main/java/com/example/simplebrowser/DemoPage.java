@@ -43,20 +43,26 @@ public final class DemoPage {
         activity.setLoading(false);
     }
 
+    private String t(String key) {
+        return Localization.translate(
+                activity,
+                key);
+    }
+
     private String createHtml() {
 
         String html =
                 "<!DOCTYPE html>" +
                 "<html><head>" +
                 "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
-                "<title>HTML Demo</title>" +
+                "<title>" + t("demo.title") + "</title>" +
                 "</head><body>" +
 
-                "<h1>HTML Demo</h1>" +
-                "<p>HTML elements demo</p>" +
-                "<p>This page contains common default HTML controls without CSS.</p>" +
+                "<h1>" + t("demo.title") + "</h1>" +
+                "<p>" + t("demo.intro") + "</p>" +
+                "<p>" + t("demo.description") + "</p>" +
 
-                "<h2>Headings and text</h2>" +
+                "<h2>" + t("demo.headings") + "</h2>" +
                 "<h1>Heading 1</h1>" +
                 "<h2>Heading 2</h2>" +
                 "<h3>Heading 3</h3>" +
@@ -70,17 +76,17 @@ public final class DemoPage {
                 "<p><a href='https://example.com/'>Link</a></p>" +
                 "<hr>" +
 
-                "<h2>Lists</h2>" +
+                "<h2>" + t("demo.lists") + "</h2>" +
                 "<p>Unordered list</p>" +
                 "<ul><li>First item</li><li>Second item</li><li>Third item</li></ul>" +
                 "<p>Ordered list</p>" +
                 "<ol><li>First item</li><li>Second item</li><li>Third item</li></ol>" +
 
-                "<h2>Form controls</h2>" +
+                "<h2>" + t("demo.controls") + "</h2>" +
                 "<form onsubmit='return submitForm();' onreset='resetForm();'>" +
 
                 "<fieldset>" +
-                "<legend>Text inputs</legend>" +
+                "<legend>" + t("demo.text_inputs") + "</legend>" +
                 "<p><label>Text box: <input type='text' value='Example text'></label></p>" +
                 "<p><label>Password: <input type='password' value='password'></label></p>" +
                 "<p><label>Email: <input type='email' value='user@example.com'></label></p>" +
@@ -90,7 +96,7 @@ public final class DemoPage {
                 "</fieldset>" +
 
                 "<fieldset>" +
-                "<legend>Choices</legend>" +
+                "<legend>" + t("demo.choices") + "</legend>" +
                 "<p><label><input type='checkbox' checked> Checkbox</label></p>" +
                 "<p><label><input type='radio' name='demo-radio' checked> Radio button 1</label></p>" +
                 "<p><label><input type='radio' name='demo-radio'> Radio button 2</label></p>" +
@@ -107,7 +113,7 @@ public final class DemoPage {
                 "</fieldset>" +
 
                 "<fieldset>" +
-                "<legend>Other inputs</legend>" +
+                "<legend>" + t("demo.other_inputs") + "</legend>" +
                 "<p><label>Text area:<br><textarea rows='4' cols='35'>Example text area</textarea></label></p>" +
                 "<p><label>File: <input type='file'></label></p>" +
                 "<p><label>Date: <input type='date'></label></p>" +
@@ -126,22 +132,22 @@ public final class DemoPage {
                 "</p>" +
                 "</form>" +
 
-                "<h2>Popup dialogs</h2>" +
+                "<h2>" + t("demo.popups") + "</h2>" +
                 "<p>" +
                 "<button type='button' onclick='alertBox()'>Alert</button> " +
                 "<button type='button' onclick='confirmBox()'>Confirm</button> " +
                 "<button type='button' onclick='promptBox()'>Prompt</button>" +
                 "</p>" +
 
-                "<h2>Tables</h2>" +
+                "<h2>" + t("demo.tables") + "</h2>" +
                 "<table border='1'>" +
-                "<caption>Table</caption>" +
+                "<caption>" + t("demo.table_label") + "</caption>" +
                 "<tr><th>Header 1</th><th>Header 2</th><th>Header 3</th></tr>" +
                 "<tr><td>Cell 1</td><td>Cell 2</td><td>Cell 3</td></tr>" +
                 "<tr><td>Cell 4</td><td>Cell 5</td><td>Cell 6</td></tr>" +
                 "</table>" +
 
-                "<h2>Other elements</h2>" +
+                "<h2>" + t("demo.other") + "</h2>" +
                 "<p><pre>Preformatted text\n    With spacing preserved</pre></p>" +
                 "<p><code>console.log('Code');</code></p>" +
                 "<blockquote>Blockquote example.</blockquote>" +
