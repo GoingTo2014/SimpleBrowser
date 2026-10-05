@@ -534,6 +534,8 @@ public class SettingsPage {
                 ".nav.active{" +
                 "padding-left:6px;" +
                 "}" +
+                ".layout{min-height:0;}" +
+                ".content{overflow:visible;}" +
                 "@media(max-width:380px){" +
                 ".sidebar{" +
                 "width:98px;" +
@@ -571,7 +573,7 @@ public class SettingsPage {
                 "@media(max-width:300px){" +
                 ".sidebar{" +
                 "width:88px;" +
-                "flex-basis:96px;" +
+                "flex-basis:88px;" +
                 "}" +
                 ".nav{" +
                 "font-size:11px;" +
