@@ -1,7 +1,9 @@
 package com.example.simplebrowser;
 
+import android.graphics.Bitmap;
 import android.webkit.WebView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -11,6 +13,8 @@ public class BrowserTab {
 
     public LinearLayout tabView;
     public TextView titleView;
+    public ImageView faviconView;
+    public Bitmap favicon;
     public ImageButton closeButton;
 
     public String title = "New Tab";
