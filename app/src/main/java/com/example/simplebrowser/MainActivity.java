@@ -78,6 +78,9 @@ public class MainActivity extends Activity {
         browserSettings =
                 new BrowserSettings(this);
 
+        WebView.setWebContentsDebuggingEnabled(
+                browserSettings.isWebViewDebuggingEnabled());
+
         setContentView(
                 R.layout.main);
 
