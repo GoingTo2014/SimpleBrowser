@@ -111,7 +111,7 @@ public class SecurityManager {
                 tabUrl.startsWith("browser://")) {
 
             setFileIcon(
-                    "Browser page");
+                    Localization.translate(activity, "security.browser_page"));
 
             return;
         }
@@ -124,7 +124,7 @@ public class SecurityManager {
         if (lower.startsWith("browser://")) {
 
             setFileIcon(
-                    "Browser page");
+                    Localization.translate(activity, "security.browser_page"));
 
             return;
         }
@@ -135,7 +135,7 @@ public class SecurityManager {
                         "content://")) {
 
             setFileIcon(
-                    "Local file");
+                    Localization.translate(activity, "security.local_file"));
 
             return;
         }
@@ -147,19 +147,19 @@ public class SecurityManager {
         if (tab.sslError) {
 
             setWarning(
-                    "Connection security warning");
+                    Localization.translate(activity, "security.warning"));
 
         } else if (https) {
 
             setIcon(
                     android.R.drawable.ic_lock_lock,
                     SECURE_GREEN,
-                    "Secure connection");
+                    Localization.translate(activity, "security.secure"));
 
         } else {
 
             setUnlockIcon(
-                    "Connection is not confirmed secure");
+                    Localization.translate(activity, "security.unconfirmed"));
         }
     }
 
@@ -250,11 +250,10 @@ public class SecurityManager {
         if (tab.settingsPage) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Browser Settings")
-                    .setMessage(
-                            "This is a built-in browser page.")
+                    .setTitle(Localization.translate(activity, "security.settings_title"))
+                    .setMessage(Localization.translate(activity, "security.builtin"))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -274,11 +273,10 @@ public class SecurityManager {
                 tabUrl.startsWith("browser://")) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Browser page")
-                    .setMessage(
-                            "This is a built-in browser page.")
+                    .setTitle(Localization.translate(activity, "security.browser_page"))
+                    .setMessage(Localization.translate(activity, "security.builtin"))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -301,13 +299,13 @@ public class SecurityManager {
                 lower.startsWith("content://")) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Local file")
+                    .setTitle(Localization.translate(activity, "security.local_file"))
                     .setMessage(
-                            "This page was opened from the device.\n\n" +
+                            Localization.translate(activity, "security.device_page") + "\n\n" +
                             "URL:\n" +
                             safe(url))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -321,13 +319,13 @@ public class SecurityManager {
         if (!https) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Not secure")
+                    .setTitle(Localization.translate(activity, "security.not_secure"))
                     .setMessage(
-                            "This page is not using HTTPS.\n\n" +
+                            Localization.translate(activity, "security.not_secure_desc") + "\n\n" +
                             "URL:\n" +
                             safe(url))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -337,14 +335,12 @@ public class SecurityManager {
         if (tab.sslError) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle(
-                            "Connection is not secure")
+                    .setTitle(Localization.translate(activity, "security.connection_not_secure"))
                     .setMessage(
-                            "The SSL certificate could not " +
-                            "be trusted.\n\n" +
-                            "The page was blocked.")
+                            Localization.translate(activity, "security.cert_untrusted") + "\n\n" +
+                            Localization.translate(activity, "security.page_blocked"))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -357,12 +353,11 @@ public class SecurityManager {
         if (certificate == null) {
 
             new AlertDialog.Builder(activity)
-                    .setTitle("Certificate")
+                    .setTitle(Localization.translate(activity, "security.certificate"))
                     .setMessage(
-                            "No certificate information " +
-                            "is available.")
+                            Localization.translate(activity, "security.no_certificate"))
                     .setPositiveButton(
-                            "OK",
+                            Localization.translate(activity, "common.ok"),
                             null)
                     .show();
 
@@ -390,19 +385,19 @@ public class SecurityManager {
                 new StringBuilder();
 
         message.append(
-                "Connection is secure\n\n");
+                Localization.translate(activity, "security.connection_secure") + "\n\n");
 
-        message.append("URL:\n");
+        message.append(Localization.translate(activity, "security.url") + "\n");
         message.append(safe(url));
 
-        message.append("\n\nIssued to:\n");
+        message.append("\n\n" + Localization.translate(activity, "security.issued_to"));
 
         message.append(
                 issuedTo == null
-                        ? "Unknown"
+                        ? Localization.translate(activity, "common.unknown")
                         : safe(issuedTo.getCName()));
 
-        message.append("\n\nIssued by:\n");
+        message.append("\n\n" + Localization.translate(activity, "security.issued_by"));
 
         if (issuedBy != null) {
 
@@ -419,25 +414,25 @@ public class SecurityManager {
 
         } else {
 
-            message.append("Unknown");
+            message.append(Localization.translate(activity, "common.unknown"));
         }
 
-        message.append("\n\nValid from:\n");
+        message.append("\n\n" + Localization.translate(activity, "security.valid_from"));
 
         message.append(
                 validFrom == null
-                        ? "Unknown"
+                        ? Localization.translate(activity, "common.unknown")
                         : format.format(validFrom));
 
-        message.append("\n\nValid until:\n");
+        message.append("\n\n" + Localization.translate(activity, "security.valid_until"));
 
         message.append(
                 validTo == null
-                        ? "Unknown"
+                        ? Localization.translate(activity, "common.unknown")
                         : format.format(validTo));
 
         new AlertDialog.Builder(activity)
-                .setTitle("Certificate")
+                .setTitle(Localization.translate(activity, "security.certificate"))
                 .setMessage(
                         message.toString())
                 .setPositiveButton(
