@@ -209,17 +209,28 @@ public final class CookieStore {
         CookieManager manager =
                 CookieManager.getInstance();
 
+        List<String> scopes =
+                getExistingCookieScopes(
+                        safeDomain,
+                        safeName);
+
+        if (scopes.isEmpty()) {
+            scopes.add(safeDomain);
+        }
+
         boolean secure =
                 isSecureCookie(
                         manager,
                         safeDomain,
                         safeName);
 
-        expireCookieVariants(
-                manager,
-                safeDomain,
-                safeName,
-                "/");
+        for (String scope : scopes) {
+            expireCookieVariants(
+                    manager,
+                    scope,
+                    safeName,
+                    "/");
+        }
 
         String cookie =
                 safeName +
@@ -235,18 +246,41 @@ public final class CookieStore {
             cookie += "; Secure";
         }
 
-        manager.setCookie(
-                httpsUrl(
-                        safeDomain,
-                        "/"),
-                cookie);
+        /*
+         * Keep a host-only cookie on the exact host. Parent-domain matches
+         * are recreated as Domain cookies so editing does not accidentally
+         * widen or narrow their scope.
+         */
+        for (String scope : scopes) {
+
+            String scopedCookie =
+                    cookie;
+
+            if (!scope.equals(
+                    safeDomain)) {
+                scopedCookie +=
+                        "; Domain=." +
+                        scope;
+            }
+
+            manager.setCookie(
+                    httpsUrl(
+                            safeDomain,
+                            "/"),
+                    scopedCookie);
+        }
 
         syncCookies();
 
-        return hasCookie(
-                safeDomain,
-                safeName,
-                value == null ? "" : value);
+        boolean success =
+                hasCookie(
+                        safeDomain,
+                        safeName,
+                        value == null
+                                ? ""
+                                : value);
+
+        return success;
     }
 
     public boolean deleteCookie(
@@ -274,11 +308,22 @@ public final class CookieStore {
         CookieManager manager =
                 CookieManager.getInstance();
 
-        expireCookieVariants(
-                manager,
-                safeDomain,
-                safeName,
-                "/");
+        List<String> scopes =
+                getExistingCookieScopes(
+                        safeDomain,
+                        safeName);
+
+        if (scopes.isEmpty()) {
+            scopes.add(safeDomain);
+        }
+
+        for (String scope : scopes) {
+            expireCookieVariants(
+                    manager,
+                    scope,
+                    safeName,
+                    "/");
+        }
 
         syncCookies();
 
@@ -308,13 +353,78 @@ public final class CookieStore {
             return false;
         }
 
+        LinkedHashSet<String> siteDomains =
+                new LinkedHashSet<>();
+
+        addDomainScopeParents(
+                siteDomains,
+                safeDomain);
+
+        if (openUrls != null) {
+
+            for (String url : openUrls) {
+
+                String host =
+                        getDomain(url);
+
+                if (host == null) {
+                    continue;
+                }
+
+                if (safeDomain.equals(host) ||
+                        host.endsWith(
+                                "." + safeDomain)) {
+
+                    addDomainScopeParents(
+                            siteDomains,
+                            host);
+                }
+            }
+        }
+
+        if (history != null) {
+
+            List<BrowserHistory.Entry> entries =
+                    history.getEntries(
+                            "",
+                            1000,
+                            0);
+
+            if (entries != null) {
+
+                for (BrowserHistory.Entry entry :
+                        entries) {
+
+                    String host =
+                            getDomain(entry.url);
+
+                    if (host == null) {
+                        continue;
+                    }
+
+                    if (safeDomain.equals(host) ||
+                            host.endsWith(
+                                    "." + safeDomain)) {
+
+                        addDomainScopeParents(
+                                siteDomains,
+                                host);
+                    }
+                }
+            }
+        }
+
         LinkedHashSet<String> urls =
                 new LinkedHashSet<>();
 
-        urls.add(
-                httpsUrl(
-                        safeDomain,
-                        "/"));
+        for (String siteDomain :
+                siteDomains) {
+
+            urls.add(
+                    httpsUrl(
+                            siteDomain,
+                            "/"));
+        }
 
         if (openUrls != null) {
             for (String url : openUrls) {
@@ -334,6 +444,7 @@ public final class CookieStore {
                             0);
 
             if (entries != null) {
+
                 for (BrowserHistory.Entry entry :
                         entries) {
                     addSiteUrl(
@@ -358,10 +469,6 @@ public final class CookieStore {
         Set<String> names =
                 new LinkedHashSet<>();
 
-        /*
-         * First collect names from every observable path. This avoids
-         * changing the collection while iterating through it.
-         */
         for (String url : urls) {
 
             String cookies =
@@ -374,15 +481,33 @@ public final class CookieStore {
             }
         }
 
+        for (String siteDomain :
+                siteDomains) {
+
+            for (CookieValue cookie :
+                    parseCookies(
+                            manager.getCookie(
+                                    httpsUrl(
+                                            siteDomain,
+                                            "/")))) {
+                names.add(cookie.name);
+            }
+        }
+
         for (String name : names) {
 
-            for (String path : paths) {
+            for (String scope :
+                    siteDomains) {
 
-                expireCookieVariants(
-                        manager,
-                        safeDomain,
-                        name,
-                        path);
+                for (String path :
+                        paths) {
+
+                    expireCookieVariants(
+                            manager,
+                            scope,
+                            name,
+                            path);
+                }
             }
         }
 
@@ -390,14 +515,12 @@ public final class CookieStore {
 
         boolean remaining = false;
 
-        for (String url : urls) {
+        for (String siteDomain :
+                siteDomains) {
 
-            String cookies =
-                    manager.getCookie(
-                            toHttps(url));
-
-            if (cookies != null &&
-                    !cookies.trim().isEmpty()) {
+            if (hasAnyCookies(
+                    manager,
+                    siteDomain)) {
                 remaining = true;
                 break;
             }
@@ -412,8 +535,8 @@ public final class CookieStore {
                                     Collections
                                             .<String>emptySet()));
 
-            domains.remove(
-                    safeDomain);
+            domains.removeAll(
+                    siteDomains);
 
             preferences.edit()
                     .putStringSet(
@@ -658,6 +781,79 @@ public final class CookieStore {
                 "; Domain=." +
                 domain +
                 "; Secure");
+    }
+
+    private List<String> getExistingCookieScopes(
+            String domain,
+            String name) {
+
+        List<String> scopes =
+                new ArrayList<>();
+
+        for (String scope :
+                getCookieScopeDomains(domain)) {
+
+            if (containsCookieName(
+                    getCookies(scope),
+                    name)) {
+                scopes.add(scope);
+            }
+        }
+
+        return scopes;
+    }
+
+    private List<String> getCookieScopeDomains(
+            String domain) {
+
+        List<String> result =
+                new ArrayList<>();
+
+        String value =
+                normalizeDomain(domain);
+
+        while (value != null &&
+                !value.isEmpty()) {
+
+            result.add(value);
+
+            int dot =
+                    value.indexOf('.');
+
+            if (dot < 0) {
+                break;
+            }
+
+            value =
+                    value.substring(
+                            dot + 1);
+        }
+
+        return result;
+    }
+
+    private void addDomainScopeParents(
+            Set<String> domains,
+            String domain) {
+
+        for (String scope :
+                getCookieScopeDomains(domain)) {
+            domains.add(scope);
+        }
+    }
+
+    private boolean hasAnyCookies(
+            CookieManager manager,
+            String domain) {
+
+        String raw =
+                manager.getCookie(
+                        httpsUrl(
+                                domain,
+                                "/"));
+
+        return raw != null &&
+                !raw.trim().isEmpty();
     }
 
     private boolean isSecureCookie(
