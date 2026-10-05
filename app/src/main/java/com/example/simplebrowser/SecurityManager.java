@@ -98,6 +98,24 @@ public class SecurityManager {
             url = tab.url;
         }
 
+        String tabUrl =
+                tab.url == null
+                        ? ""
+                        : tab.url.trim()
+                                .toLowerCase();
+
+        if (tab.settingsPage ||
+                tab.defaultPage ||
+                tab.historyPage ||
+                tab.downloadsPage ||
+                tabUrl.startsWith("browser://")) {
+
+            setFileIcon(
+                    "Browser page");
+
+            return;
+        }
+
         String lower =
                 url == null
                         ? ""
@@ -233,6 +251,30 @@ public class SecurityManager {
 
             new AlertDialog.Builder(activity)
                     .setTitle("Browser Settings")
+                    .setMessage(
+                            "This is a built-in browser page.")
+                    .setPositiveButton(
+                            "OK",
+                            null)
+                    .show();
+
+            return;
+        }
+
+        String tabUrl =
+                tab.url == null
+                        ? ""
+                        : tab.url.trim()
+                                .toLowerCase();
+
+        if (tab.settingsPage ||
+                tab.defaultPage ||
+                tab.historyPage ||
+                tab.downloadsPage ||
+                tabUrl.startsWith("browser://")) {
+
+            new AlertDialog.Builder(activity)
+                    .setTitle("Browser page")
                     .setMessage(
                             "This is a built-in browser page.")
                     .setPositiveButton(
