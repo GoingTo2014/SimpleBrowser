@@ -1058,6 +1058,10 @@ public class MainActivity extends Activity {
             return "privacy-security";
         }
 
+        if ("advanced".equals(suffix)) {
+            return "advanced";
+        }
+
         return null;
     }
 
