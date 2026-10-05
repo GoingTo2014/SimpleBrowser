@@ -236,5 +236,8 @@ public final class French extends LanguagePack {
         put("demo.table_label", "Tableau" );
         put("demo.image", "Image" );
         put("demo.details", "Détails" );
+        put("history.cleared", "Historique effacé");
+        put("settings.webview_cache_cleared", "Cache WebView effacé");
+        put("settings.browsing_data_cleared", "Données de navigation effacées");
     }
 }
