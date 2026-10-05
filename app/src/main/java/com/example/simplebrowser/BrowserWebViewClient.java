@@ -261,6 +261,10 @@ public class BrowserWebViewClient
                 activity.getCookieStore()
                         .recordUrl(url);
             }
+
+            if (!tab.isIncognito) {
+                activity.saveTabPreview(tab);
+            }
         }
 
         activity.pageFinished(
