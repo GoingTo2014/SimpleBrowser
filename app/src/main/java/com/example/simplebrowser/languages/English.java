@@ -240,5 +240,8 @@ public final class English extends LanguagePack {
         put("history.cleared", "History cleared");
         put("settings.webview_cache_cleared", "WebView cache cleared");
         put("settings.browsing_data_cleared", "Browsing data cleared");
+        put("downloads.search", "Search downloads");
+        put("downloads.download", "Download");
+        put("ua.custom", "Custom");
     }
 }
