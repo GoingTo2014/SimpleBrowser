@@ -74,6 +74,7 @@ public final class Localization {
         add("Changes the toolbar, tabs, menu, and every part of the built-in settings UI.", "Cambia la barra de herramientas, las pestañas, el menú y todas las partes de la interfaz de configuración integrada.", "Altera a barra de ferramentas, abas, menu e todas as partes da interface de configurações integrada.");
 
         add("Language", "Idioma", "Idioma");
+        add("Choose the browser language. System default follows the closest supported language.", "Elige el idioma del navegador. El valor predeterminado del sistema usa el idioma compatible más cercano.", "Escolha o idioma do navegador. O padrão do sistema usa o idioma compatível mais próximo.");
         add("System default", "Predeterminado del sistema", "Padrão do sistema");
         add("English", "English", "English");
         add("Spanish", "Español", "Español");
