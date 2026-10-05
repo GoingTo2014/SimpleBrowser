@@ -85,6 +85,8 @@ public class MainActivity extends Activity {
         setContentView(
                 R.layout.main);
 
+        applySystemBarInsets();
+
         urlBox =
                 findViewById(R.id.url);
 
@@ -357,6 +359,11 @@ public class MainActivity extends Activity {
                     getActiveTab();
 
             if (tab != null &&
+                    tab.errorPage) {
+
+                goBackFromInternalPage(tab);
+
+            } else if (tab != null &&
                     tab.webView.canGoBack()) {
 
                 tab.webView.goBack();
@@ -373,6 +380,11 @@ public class MainActivity extends Activity {
                     getActiveTab();
 
             if (tab != null &&
+                    tab.errorPage) {
+
+                goForwardFromInternalPage(tab);
+
+            } else if (tab != null &&
                     tab.webView.canGoForward()) {
 
                 tab.webView.goForward();
@@ -2113,12 +2125,53 @@ public class MainActivity extends Activity {
 
         hideKeyboard();
 
+        if (tab.errorPage) {
+
+            int delta =
+                    findErrorNavigationDelta(
+                            tab,
+                            -1);
+
+            if (delta != 0) {
+                tab.errorPage = false;
+                tab.webView.goBackOrForward(delta);
+                updateNavigationButtons();
+                return;
+            }
+
+            showDefaultPage(tab);
+            return;
+        }
+
         if (tab.webView.canGoBack()) {
             tab.webView.goBack();
             return;
         }
 
         showDefaultPage(tab);
+    }
+
+    public void goForwardFromInternalPage(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                !tab.errorPage) {
+            return;
+        }
+
+        hideKeyboard();
+
+        int delta =
+                findErrorNavigationDelta(
+                        tab,
+                        1);
+
+        if (delta != 0) {
+            tab.errorPage = false;
+            tab.webView.goBackOrForward(delta);
+        }
+
+        updateNavigationButtons();
     }
 
     public void updateTabTitle(
@@ -2149,11 +2202,19 @@ public class MainActivity extends Activity {
 
         boolean backEnabled =
                 tab != null &&
-                tab.webView.canGoBack();
+                (tab.errorPage
+                        ? canNavigateFromErrorPage(
+                                tab,
+                                -1)
+                        : tab.webView.canGoBack());
 
         boolean forwardEnabled =
                 tab != null &&
-                tab.webView.canGoForward();
+                (tab.errorPage
+                        ? canNavigateFromErrorPage(
+                                tab,
+                                1)
+                        : tab.webView.canGoForward());
 
         ImageButton back =
                 findViewById(R.id.back);
@@ -2168,6 +2229,74 @@ public class MainActivity extends Activity {
         setToolbarButtonState(
                 forward,
                 forwardEnabled);
+    }
+
+    private boolean canNavigateFromErrorPage(
+            BrowserTab tab,
+            int direction) {
+
+        return findErrorNavigationDelta(
+                tab,
+                direction) != 0;
+    }
+
+    private int findErrorNavigationDelta(
+            BrowserTab tab,
+            int direction) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                (direction != -1 &&
+                 direction != 1)) {
+
+            return 0;
+        }
+
+        android.webkit.WebBackForwardList history =
+                tab.webView.copyBackForwardList();
+
+        int current =
+                history.getCurrentIndex();
+
+        if (current < 0) {
+            return 0;
+        }
+
+        String failingUrl =
+                tab.url == null
+                        ? ""
+                        : tab.url;
+
+        for (int index =
+                current + direction;
+                index >= 0 &&
+                index < history.getSize();
+                index += direction) {
+
+            android.webkit.WebHistoryItem item =
+                    history.getItemAtIndex(index);
+
+            if (item == null ||
+                    item.getUrl() == null) {
+                continue;
+            }
+
+            String candidate =
+                    item.getUrl();
+
+            if (BrowserPage.isInternalUrl(candidate)) {
+                continue;
+            }
+
+            if (!failingUrl.isEmpty() &&
+                    failingUrl.equals(candidate)) {
+                continue;
+            }
+
+            return index - current;
+        }
+
+        return 0;
     }
 
     private void setToolbarButtonState(
@@ -2262,17 +2391,31 @@ public class MainActivity extends Activity {
         float widthDp =
                 width / density;
 
-        int buttonSize =
-                widthDp < 320
-                        ? 34
-                        : widthDp < 360
-                        ? 36
-                        : widthDp < 420
-                        ? 40
-                        : 44;
+        boolean compactPhoneLayout =
+                widthDp < 500f;
+
+        int buttonSize;
+
+        if (compactPhoneLayout) {
+            buttonSize =
+                    widthDp < 360
+                            ? 34
+                            : 40;
+        } else {
+            buttonSize =
+                    widthDp < 320
+                            ? 34
+                            : widthDp < 360
+                            ? 36
+                            : widthDp < 420
+                            ? 40
+                            : 44;
+        }
 
         int buttonHeight =
-                widthDp < 360
+                compactPhoneLayout
+                        ? 42
+                        : widthDp < 360
                         ? 40
                         : 44;
 
@@ -2347,14 +2490,120 @@ public class MainActivity extends Activity {
                     (LinearLayout.LayoutParams)
                             button.getLayoutParams();
 
-            params.width = dp(tabButtonSize);
-            params.height = dp(tabButtonSize);
+            params.width = dp(
+                    compactPhoneLayout
+                            ? buttonSize
+                            : tabButtonSize);
+            params.height = dp(
+                    compactPhoneLayout
+                            ? buttonHeight
+                            : tabButtonSize);
             params.weight = 0;
             button.setLayoutParams(params);
         }
 
+        LinearLayout urlRow =
+                findViewById(R.id.url_row);
+
+        LinearLayout tabBar =
+                findViewById(R.id.tab_bar);
+
+        if (compactPhoneLayout) {
+
+            if (tabOverview != null &&
+                    tabOverview.getParent() != toolbar) {
+
+                if (tabOverview.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            tabOverview.getParent())
+                            .removeView(tabOverview);
+                }
+
+                int settingsIndex =
+                        toolbar.indexOfChild(
+                                findViewById(R.id.settings));
+
+                toolbar.addView(
+                        tabOverview,
+                        Math.max(0, settingsIndex));
+            }
+
+            if (urlBox.getParent() != urlRow) {
+
+                if (urlBox.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            urlBox.getParent())
+                            .removeView(urlBox);
+                }
+
+                urlBox.setMinimumWidth(0);
+                urlBox.setLayoutParams(
+                        new LinearLayout.LayoutParams(
+                                -1,
+                                dp(42),
+                                0f));
+
+                urlRow.addView(urlBox);
+            }
+
+            urlRow.setVisibility(View.VISIBLE);
+            tabBar.setVisibility(View.GONE);
+
+        } else {
+
+            if (tabOverview != null &&
+                    tabOverview.getParent() != tabBar) {
+
+                if (tabOverview.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            tabOverview.getParent())
+                            .removeView(tabOverview);
+                }
+
+                tabBar.addView(tabOverview);
+            }
+
+            if (urlBox.getParent() != toolbar) {
+
+                if (urlBox.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            urlBox.getParent())
+                            .removeView(urlBox);
+                }
+
+                urlBox.setLayoutParams(
+                        new LinearLayout.LayoutParams(
+                                0,
+                                dp(42),
+                                1f));
+
+                int settingsIndex =
+                        toolbar.indexOfChild(
+                                findViewById(R.id.settings));
+
+                toolbar.addView(
+                        urlBox,
+                        Math.max(0, settingsIndex));
+            }
+
+            urlRow.setVisibility(View.GONE);
+            tabBar.setVisibility(View.VISIBLE);
+        }
+
         urlBox.setMinimumWidth(
-                dp(widthDp < 320 ? 72 : 80));
+                dp(compactPhoneLayout
+                        ? 0
+                        : widthDp < 320
+                        ? 72
+                        : 80));
 
         int urlPadding =
                 widthDp < 360
@@ -2366,6 +2615,42 @@ public class MainActivity extends Activity {
                 0,
                 dp(urlPadding),
                 0);
+    }
+
+    private void applySystemBarInsets() {
+
+        if (Build.VERSION.SDK_INT < 30) {
+            return;
+        }
+
+        getWindow()
+                .setDecorFitsSystemWindows(false);
+
+        View root =
+                findViewById(R.id.root);
+
+        if (root == null) {
+            return;
+        }
+
+        root.setOnApplyWindowInsetsListener(
+                (view, insets) -> {
+
+                    android.graphics.Insets bars =
+                            insets.getInsets(
+                                    android.view.WindowInsets
+                                            .Type.systemBars());
+
+                    view.setPadding(
+                            view.getPaddingLeft(),
+                            bars.top,
+                            view.getPaddingRight(),
+                            bars.bottom);
+
+                    return insets;
+                });
+
+        root.requestApplyInsets();
     }
 
     public void applyBrowserAppearance() {
