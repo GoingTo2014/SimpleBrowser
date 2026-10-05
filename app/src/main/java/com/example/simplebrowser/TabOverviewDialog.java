@@ -307,6 +307,11 @@ public class TabOverviewDialog {
 
             favicon.setImageBitmap(
                     tab.favicon);
+
+        } else {
+
+            favicon.setImageResource(
+                    android.R.drawable.ic_menu_view);
         }
 
         card.addView(
