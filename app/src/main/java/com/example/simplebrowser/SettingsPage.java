@@ -529,6 +529,13 @@ public class SettingsPage {
 
                 ".section.active{display:block;}" +
 
+                ".update-status{margin-top:8px;font-size:12px;color:" +
+                secondaryTextHex +
+                ";line-height:1.4;}" +
+                ".update-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}" +
+                ".update-buttons button{margin:0;}" +
+                ".update-auto-button{width:100%;margin-top:8px;}" +
+
                 "@media(max-width:600px){" +
                 ".layout{" +
                 "display:block;min-height:0;overflow:visible;" +
@@ -643,6 +650,20 @@ public class SettingsPage {
                 "var layout=document.getElementsByClassName('layout')[0];" +
                 "if(layout)layout.className='layout';" +
                 "}" +
+                "function setUpdateStatus(message,showInstall){" +
+                "var status=document.getElementById('update-status');" +
+                "var install=document.getElementById('update-install');" +
+                "if(status)status.textContent=message;" +
+                "if(install)install.style.display=showInstall?'inline-block':'none';" +
+                "}" +
+                "function setAutomaticUpdatesUi(enabled){" +
+                "var button=document.getElementById('automatic-updates-button');" +
+                "if(button){" +
+                "button.textContent=enabled?'Disable automatic updates':'Enable automatic updates';" +
+                "button.setAttribute('data-enabled',enabled?'1':'0');" +
+                "}" +
+                "}" +
+
                 "function updateHomeVisibility(value){" +
                 "var element=document.getElementById('custom-home');" +
                 "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
@@ -929,6 +950,38 @@ public class SettingsPage {
                         ? " checked"
                         : "") +
                 " onchange=\"Android.setSetting('restore_tabs',this.checked)\">" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<div class='title'>" +
+                Localization.translate(activity, "settings.updates") +
+                "</div>" +
+                "<div class='description'>" +
+                Localization.translate(activity, "settings.current_version") +
+                ": " + BuildConfig.VERSION_NAME +
+                "</div>" +
+                "<div id='update-status' class='update-status'>" +
+                Localization.translate(activity, "settings.update_up_to_date") +
+                "</div>" +
+                "<div class='update-buttons'>" +
+                "<button onclick=\"Android.checkForUpdates()\">" +
+                Localization.translate(activity, "settings.check_updates") +
+                "</button>" +
+                "<button id='update-install' style='display:none' onclick=\"Android.installUpdate()\">" +
+                Localization.translate(activity, "settings.install_update") +
+                "</button>" +
+                "</div>" +
+                "<button id='automatic-updates-button' class='update-auto-button' " +
+                "data-enabled='" +
+                (settings.isAutomaticUpdatesEnabled() ? "1" : "0") +
+                "' onclick='Android.setAutomaticUpdates(this.getAttribute(\\'data-enabled\\') !== \\'1\\')'>" +
+                (settings.isAutomaticUpdatesEnabled()
+                        ? Localization.translate(activity, "settings.disable_auto_updates")
+                        : Localization.translate(activity, "settings.enable_auto_updates")) +
+                "</button>" +
+                "<div class='description' style='margin-top:6px;'>" +
+                Localization.translate(activity, "settings.update_auto_desc") +
+                "</div>" +
                 "</div>" +
 
                 "</div>" +
@@ -1281,6 +1334,103 @@ public class SettingsPage {
                 "</div>";
     }
 
+    public void updateUpdateStatus(
+            BrowserTab tab,
+            UpdateManager.UpdateInfo update,
+            String error) {
+
+        if (error != null &&
+                !error.trim().isEmpty()) {
+
+            updateUpdateStatusText(
+                    tab,
+                    Localization.translate(
+                            activity,
+                            "settings.update_error") +
+                    " " +
+                    error,
+                    false);
+            return;
+        }
+
+        if (update == null) {
+
+            updateUpdateStatusText(
+                    tab,
+                    Localization.translate(
+                            activity,
+                            "settings.update_up_to_date"),
+                    false);
+
+            return;
+        }
+
+        updateUpdateStatusText(
+                tab,
+                Localization.translate(
+                        activity,
+                        "settings.update_available") +
+                ": " +
+                update.version,
+                true);
+    }
+
+    public void updateUpdateStatusText(
+            BrowserTab tab,
+            String message,
+            boolean showInstall) {
+
+        if (tab == null ||
+                tab.webView == null) {
+            return;
+        }
+
+        tab.webView.evaluateJavascript(
+                "setUpdateStatus(" +
+                javaScriptString(message) +
+                "," +
+                (showInstall
+                        ? "true"
+                        : "false") +
+                ");",
+                null);
+    }
+
+    public void updateAutomaticUpdatesUi(
+            BrowserTab tab,
+            boolean enabled) {
+
+        if (tab == null ||
+                tab.webView == null) {
+            return;
+        }
+
+        tab.webView.evaluateJavascript(
+                "setAutomaticUpdatesUi(" +
+                (enabled
+                        ? "true"
+                        : "false") +
+                ");",
+                null);
+    }
+
+    private String javaScriptString(
+            String value) {
+
+        if (value == null) {
+            return "''";
+        }
+
+        return "'" +
+                value
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n")
+                        .replace("</script>", "<\\/script>") +
+                "'";
+    }
+
     private class SettingsBridge {
 
         private final BrowserTab tab;
@@ -1289,6 +1439,32 @@ public class SettingsPage {
                 BrowserTab tab) {
 
             this.tab = tab;
+        }
+
+        @JavascriptInterface
+        public void checkForUpdates() {
+
+            activity.checkForUpdatesFromSettings(
+                    tab);
+        }
+
+        @JavascriptInterface
+        public void installUpdate() {
+
+            activity.installAvailableUpdate(
+                    tab);
+        }
+
+        @JavascriptInterface
+        public void setAutomaticUpdates(
+                boolean enabled) {
+
+            settings.setAutomaticUpdatesEnabled(
+                    enabled);
+
+            activity.onAutomaticUpdatesChanged(
+                    tab,
+                    enabled);
         }
 
         @JavascriptInterface
