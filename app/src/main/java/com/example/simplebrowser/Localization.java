@@ -143,6 +143,19 @@ public final class Localization {
             }
         }
 
+        LanguagePack english =
+                PACKS.get(ENGLISH);
+
+        if (english != null) {
+
+            String value =
+                    english.get(key);
+
+            if (value != null) {
+                return value;
+            }
+        }
+
         return key;
     }
 
@@ -203,6 +216,11 @@ public final class Localization {
 
             String translated =
                     pack.get(key);
+
+            if (translated == null) {
+                translated =
+                        english.get(key);
+            }
 
             if (translated == null) {
                 translated = key;
