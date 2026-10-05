@@ -31,12 +31,6 @@ public final class DemoPage {
 
         WebView webView = tab.webView;
 
-        webView.removeJavascriptInterface("DemoPage");
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.addJavascriptInterface(
-                new Bridge(),
-                "DemoPage");
-
         BrowserPage.load(
                 webView,
                 BrowserPage.DEMO,
@@ -171,9 +165,4 @@ public final class DemoPage {
                 html);
     }
 
-    private class Bridge {
-    }
-
-    private static final class Dummy {
-    }
 }
