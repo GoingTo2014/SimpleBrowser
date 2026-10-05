@@ -510,6 +510,10 @@ public class SettingsPage {
                 "if(e)e.value=Android.getLogs();" +
                 "}" +
                 "function showWebViewInfo(){Android.showWebViewInfo();}" +
+                "function updateUserAgentVisibility(value){" +
+                "var e=document.getElementById('custom-user-agent');" +
+                "if(e)e.className=value==='custom'?'row':'row custom-hidden';" +
+                "}" +
                 "</script>" +
                 "</head>" +
                 "<body>" +
@@ -796,6 +800,46 @@ public class SettingsPage {
                 "</div>" +
 
                 "<div class='row'>" +
+                "<div class='title'>User agent</div>" +
+                "<div class='description'>Choose how websites identify this browser. Desktop mode still takes priority while it is enabled.</div>" +
+                "<select onchange="updateUserAgentVisibility(this.value);Android.setUserAgent(this.value)">" +
+                userAgentOptions() +
+                "</select>" +
+                "</div>" +
+
+                "<div id='custom-user-agent' class='row " +
+                ("custom".equals(
+                        settings.getUserAgentProfile())
+                        ? ""
+                        : "custom-hidden") +
+                "'>" +
+                "<div class='title'>Custom user agent</div>" +
+                "<div class='description'>Enter a complete User-Agent string.</div>" +
+                "<input type='text' value='" +
+                htmlAttribute(
+                        settings.getCustomUserAgent()) +
+                "' onchange="Android.setCustomUserAgent(this.value)">" +
+                "</div>" +
+
+                "<div class='row switchrow'>" +
+                "<div>" +
+                "<div class='title'>WebView debugging</div>" +
+                "<div class='description'>Allow Chrome-based developer tools to inspect Simple Browser WebViews.</div>" +
+                "</div>" +
+                "<input type='checkbox'" +
+                (settings.isWebViewDebuggingEnabled()
+                        ? " checked"
+                        : "") +
+                " onchange="Android.setSetting('webview_debugging',this.checked)">" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<div class='title'>WebView cache</div>" +
+                "<div class='description'>Clear cached website resources from every open tab.</div>" +
+                "<button style='margin-top:8px' onclick='Android.clearWebViewCache()'>Clear WebView cache</button>" +
+                "</div>" +
+
+                "<div class='row'>" +
                 "<div class='title'>Current WebView</div>" +
                 "<div class='description'>Inspect the active tab URL and user agent.</div>" +
                 "<button style='margin-top:8px' onclick='showWebViewInfo()'>Show information</button>" +
@@ -839,6 +883,44 @@ public class SettingsPage {
 
                 "</body>" +
                 "</html>";
+    }
+
+    private String userAgentOptions() {
+
+        StringBuilder result =
+                new StringBuilder();
+
+        String selected =
+                settings.getUserAgentProfile();
+
+        for (int i = 0;
+                i < UserAgentProfiles.size();
+                i++) {
+
+            String id =
+                    UserAgentProfiles.id(i);
+
+            result.append(
+                    "<option value='" +
+                    id +
+                    "'" +
+                    (id.equals(selected)
+                            ? " selected"
+                            : "") +
+                    ">" +
+                    UserAgentProfiles.label(i) +
+                    "</option>");
+        }
+
+        result.append(
+                "<option value='custom'" +
+                (UserAgentProfiles.CUSTOM.equals(
+                        selected)
+                        ? " selected"
+                        : "") +
+                ">Custom</option>");
+
+        return result.toString();
     }
 
     private String active(
@@ -954,6 +1036,12 @@ public class SettingsPage {
         public void navigate(
                 String section) {
 
+            if ("cookies".equals(section)) {
+                activity.runOnUiThread(
+                        () -> activity.showCookies(tab));
+                return;
+            }
+
             activity.runOnUiThread(
                     () -> activity
                             .showSettingsSection(
@@ -1020,6 +1108,50 @@ public class SettingsPage {
         }
 
         @JavascriptInterface
+        public void setUserAgent(
+                String profile) {
+
+            settings.setUserAgentProfile(profile);
+
+            activity.runOnUiThread(
+                    activity::applyWebsiteSettings);
+        }
+
+        @JavascriptInterface
+        public void setCustomUserAgent(
+                String value) {
+
+            settings.setCustomUserAgent(value);
+            settings.setUserAgentProfile(
+                    UserAgentProfiles.CUSTOM);
+
+            activity.runOnUiThread(
+                    activity::applyWebsiteSettings);
+        }
+
+        @JavascriptInterface
+        public void clearWebViewCache() {
+
+            activity.runOnUiThread(
+                    () -> {
+
+                        for (BrowserTab current :
+                                activity.getTabManager()
+                                        .getTabs()) {
+
+                            current.webView
+                                    .clearCache(true);
+                        }
+
+                        Toast.makeText(
+                                activity,
+                                "WebView cache cleared",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    });
+        }
+
+        @JavascriptInterface
         public void setCustomHome(
                 String value) {
 
@@ -1057,6 +1189,12 @@ public class SettingsPage {
                                 .equals(name)) {
 
                             activity.applyDesktopMode();
+
+                        } else if ("webview_debugging"
+                                .equals(name)) {
+
+                            WebView.setWebContentsDebuggingEnabled(
+                                    value);
 
                         } else if ("restore_tabs"
                                 .equals(name)) {
