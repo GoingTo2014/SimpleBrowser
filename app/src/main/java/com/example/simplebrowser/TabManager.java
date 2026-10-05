@@ -1205,7 +1205,10 @@ public class TabManager {
                                 "about:blank"),
                         object.optString(
                                 "title",
-                                "New Tab"));
+                                "New Tab"),
+                        object.optString(
+                                "previewKey",
+                                ""));
             }
 
             int activeIndex =
