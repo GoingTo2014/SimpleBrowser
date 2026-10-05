@@ -8,6 +8,7 @@ public final class Portuguese extends LanguagePack {
         put("settings.title", "Configurações");
         put("settings.general", "Geral");
         put("settings.privacy", "Privacidade e segurança");
+        put("strings.settings.privacy_html", "Privacidade e segurança");
         put("settings.websites", "Sites");
         put("settings.appearance", "Aparência");
         put("settings.advanced", "Avançado");
