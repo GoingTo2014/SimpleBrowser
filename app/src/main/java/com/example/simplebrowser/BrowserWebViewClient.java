@@ -146,6 +146,9 @@ public class BrowserWebViewClient
 
         if (settingsSection != null) {
 
+            tab.favicon = null;
+            activity.updateTabIcon(tab, null);
+
             if (!tab.settingsPage) {
                 activity.restoreSettingsPage(
                         tab,
@@ -252,6 +255,9 @@ public class BrowserWebViewClient
                             "Page unavailable");
 
         } else {
+
+            tab.favicon = null;
+            activity.updateTabIcon(tab, null);
 
             if (tab.settingsPage ||
                     tab.defaultPage ||
