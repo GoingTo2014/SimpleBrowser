@@ -1526,6 +1526,33 @@ public class TabManager {
         }
     }
 
+    public void savePreview(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                !tab.hasLoaded ||
+                tab.webView == null) {
+            return;
+        }
+
+        android.graphics.Bitmap bitmap =
+                TabPreview.capture(
+                        tab.webView,
+                        480,
+                        270);
+
+        if (bitmap == null) {
+            return;
+        }
+
+        previewStore.save(
+                tab.previewKey,
+                bitmap);
+
+        bitmap.recycle();
+    }
+
     public void updateTabTitle(
             BrowserTab tab) {
 
