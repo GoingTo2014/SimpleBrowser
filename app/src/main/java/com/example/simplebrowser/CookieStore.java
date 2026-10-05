@@ -188,6 +188,21 @@ public final class CookieStore {
             String name,
             String value) {
 
+        return setCookie(
+                domain,
+                name,
+                value,
+                null,
+                null);
+    }
+
+    public boolean setCookie(
+            String domain,
+            String name,
+            String value,
+            BrowserHistory history,
+            List<String> openUrls) {
+
         if (domain == null ||
                 name == null ||
                 domain.trim().isEmpty() ||
@@ -224,12 +239,20 @@ public final class CookieStore {
                         safeDomain,
                         safeName);
 
+        Set<String> paths =
+                getCookiePathCandidates(
+                        safeDomain,
+                        history,
+                        openUrls);
+
         for (String scope : scopes) {
-            expireCookieVariants(
-                    manager,
-                    scope,
-                    safeName,
-                    "/");
+            for (String path : paths) {
+                expireCookieVariants(
+                        manager,
+                        scope,
+                        safeName,
+                        path);
+            }
         }
 
         String cookie =
@@ -287,6 +310,19 @@ public final class CookieStore {
             String domain,
             String name) {
 
+        return deleteCookie(
+                domain,
+                name,
+                null,
+                null);
+    }
+
+    public boolean deleteCookie(
+            String domain,
+            String name,
+            BrowserHistory history,
+            List<String> openUrls) {
+
         if (domain == null ||
                 name == null ||
                 domain.trim().isEmpty() ||
@@ -317,19 +353,31 @@ public final class CookieStore {
             scopes.add(safeDomain);
         }
 
+        Set<String> paths =
+                getCookiePathCandidates(
+                        safeDomain,
+                        history,
+                        openUrls);
+
         for (String scope : scopes) {
-            expireCookieVariants(
-                    manager,
-                    scope,
-                    safeName,
-                    "/");
+
+            for (String path : paths) {
+
+                expireCookieVariants(
+                        manager,
+                        scope,
+                        safeName,
+                        path);
+            }
         }
 
         syncCookies();
 
-        return !hasCookieName(
-                safeDomain,
-                safeName);
+        return !hasCookieNameAtPaths(
+                manager,
+                scopes,
+                safeName,
+                paths);
     }
 
     /*
@@ -715,6 +763,94 @@ public final class CookieStore {
         }
 
         return paths;
+    }
+
+    private Set<String> getCookiePathCandidates(
+            String domain,
+            BrowserHistory history,
+            List<String> openUrls) {
+
+        LinkedHashSet<String> paths =
+                new LinkedHashSet<>();
+
+        paths.add("/");
+
+        if (openUrls != null) {
+
+            for (String url : openUrls) {
+                addCookiePaths(
+                        paths,
+                        domain,
+                        url);
+            }
+        }
+
+        if (history != null) {
+
+            List<BrowserHistory.Entry> entries =
+                    history.getEntries(
+                            "",
+                            2000,
+                            0);
+
+            if (entries != null) {
+
+                for (BrowserHistory.Entry entry :
+                        entries) {
+                    addCookiePaths(
+                            paths,
+                            domain,
+                            entry.url);
+                }
+            }
+        }
+
+        return paths;
+    }
+
+    private void addCookiePaths(
+            Set<String> paths,
+            String domain,
+            String url) {
+
+        String host =
+                getDomain(url);
+
+        if (host == null ||
+                !(domain.equals(host) ||
+                host.endsWith("." + domain))) {
+            return;
+        }
+
+        paths.addAll(
+                getPathCandidates(url));
+    }
+
+    private boolean hasCookieNameAtPaths(
+            CookieManager manager,
+            List<String> scopes,
+            String name,
+            Set<String> paths) {
+
+        for (String scope : scopes) {
+
+            for (String path : paths) {
+
+                String raw =
+                        manager.getCookie(
+                                httpsUrl(
+                                        scope,
+                                        path));
+
+                if (containsCookieName(
+                        raw,
+                        name)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void expireCookieVariants(
