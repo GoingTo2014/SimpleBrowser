@@ -1257,6 +1257,7 @@ public class MainActivity extends Activity {
         defaultPage.remove(tab);
         historyPage.remove(tab);
         downloadsPage.remove(tab);
+        cookiesPage.remove(tab);
 
         tab.settingsPage = false;
         tab.defaultPage = false;
