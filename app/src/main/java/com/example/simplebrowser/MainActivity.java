@@ -273,7 +273,7 @@ public class MainActivity extends Activity {
                 "Tab overview");
         setContentDescription(
                 R.id.new_tab,
-                "New tab");
+                "New Tab");
     }
 
     private void setContentDescription(
