@@ -52,7 +52,10 @@ public class BrowserSettings {
                 Localization.ENGLISH.equals(language) ||
                 Localization.SPANISH.equals(language) ||
                 Localization.PORTUGUESE.equals(language) ||
-                Localization.FRENCH.equals(language)
+                Localization.FRENCH.equals(language) ||
+                Localization.JAPANESE.equals(language) ||
+                Localization.CHINESE.equals(language) ||
+                Localization.HINDI.equals(language)
                         ? language
                         : Localization.SYSTEM;
 
