@@ -69,6 +69,34 @@ public class BrowserWebViewClient
     }
 
     @Override
+    public void onReceivedIcon(
+            WebView view,
+            Bitmap favicon) {
+
+        tab.favicon = favicon;
+
+        activity.runOnUiThread(
+                () -> activity.updateTabIcon(
+                        tab,
+                        favicon));
+
+        BrowserLogger.log(
+                "FAVICON",
+                "Icon received for " +
+                (urlForLog(view) == null
+                        ? ""
+                        : urlForLog(view)));
+    }
+
+    private String urlForLog(
+            WebView view) {
+
+        return view == null
+                ? null
+                : view.getUrl();
+    }
+
+    @Override
     public void doUpdateVisitedHistory(
             WebView view,
             String url,
@@ -264,6 +292,8 @@ public class BrowserWebViewClient
             }
 
             tab.url = url == null ? "" : url;
+            tab.favicon = null;
+            activity.updateTabIcon(tab, null);
             tab.loading = true;
             tab.sslError = false;
         }
