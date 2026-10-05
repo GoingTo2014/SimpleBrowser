@@ -83,6 +83,35 @@ public class TabOverviewDialog {
                         dp(48),
                         1f));
 
+        Button newTab =
+                new Button(activity);
+
+        newTab.setText(
+                Localization.translate(
+                        activity,
+                        "New Tab"));
+        newTab.setAllCaps(false);
+        newTab.setTextColor(
+                getTextColor());
+        newTab.setOnClickListener(
+                v -> {
+                    activity.getTabManager()
+                            .addCurrentModeTab(
+                                    activity
+                                            .getBrowserSettings()
+                                            .getHomePage());
+
+                    refreshTabList(
+                            list,
+                            dialog);
+                });
+
+        header.addView(
+                newTab,
+                new LinearLayout.LayoutParams(
+                        dp(82),
+                        dp(44)));
+
         Button done =
                 new Button(activity);
 
@@ -101,24 +130,18 @@ public class TabOverviewDialog {
 
         root.addView(header);
 
-        ScrollView scroll =
-                new ScrollView(activity);
-
-        LinearLayout list =
+        final LinearLayout list =
                 new LinearLayout(activity);
 
         list.setOrientation(
                 LinearLayout.VERTICAL);
 
-        for (BrowserTab tab :
-                activity.getTabManager()
-                        .getTabs()) {
+        refreshTabList(
+                list,
+                dialog);
 
-            list.addView(
-                    createTabCard(
-                            tab,
-                            dialog));
-        }
+        ScrollView scroll =
+                new ScrollView(activity);
 
         scroll.addView(list);
 
@@ -165,9 +188,28 @@ public class TabOverviewDialog {
         }
     }
 
+    private void refreshTabList(
+            LinearLayout list,
+            Dialog dialog) {
+
+        list.removeAllViews();
+
+        for (BrowserTab tab :
+                activity.getTabManager()
+                        .getTabs()) {
+
+            list.addView(
+                    createTabCard(
+                            tab,
+                            dialog,
+                            list));
+        }
+    }
+
     private View createTabCard(
             final BrowserTab tab,
-            final Dialog dialog) {
+            final Dialog dialog,
+            final LinearLayout list) {
 
         LinearLayout wrapper =
                 new LinearLayout(activity);
@@ -335,6 +377,52 @@ public class TabOverviewDialog {
                 open,
                 new LinearLayout.LayoutParams(
                         dp(78),
+                        dp(44)));
+
+        ImageButton close =
+                new ImageButton(activity);
+
+        close.setImageResource(
+                android.R.drawable
+                        .ic_menu_close_clear_cancel);
+
+        close.setContentDescription(
+                Localization.translate(
+                        activity,
+                        "Close tab"));
+
+        close.setBackgroundColor(
+                Color.TRANSPARENT);
+
+        close.setPadding(
+                dp(7),
+                dp(7),
+                dp(7),
+                dp(7));
+
+        close.setOnClickListener(
+                v -> {
+
+                    activity.getTabManager()
+                            .closeTab(tab);
+
+                    if (activity.getTabManager()
+                            .getTabs()
+                            .isEmpty()) {
+
+                        dialog.dismiss();
+                        return;
+                    }
+
+                    refreshTabList(
+                            list,
+                            dialog);
+                });
+
+        card.addView(
+                close,
+                new LinearLayout.LayoutParams(
+                        dp(44),
                         dp(44)));
 
         card.setOnClickListener(
