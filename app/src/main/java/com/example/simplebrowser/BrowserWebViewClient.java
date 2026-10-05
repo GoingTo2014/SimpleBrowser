@@ -163,7 +163,10 @@ public class BrowserWebViewClient
             tab.defaultPage = true;
             tab.loading = false;
             tab.url = "";
-            tab.title = "New Tab";
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "New Tab");
 
         } else if (BrowserPage.HISTORY.equals(route)) {
 
@@ -174,7 +177,10 @@ public class BrowserWebViewClient
             tab.historyPage = true;
             tab.loading = false;
             tab.url = BrowserPage.HISTORY;
-            tab.title = "History";
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "History");
 
         } else if (BrowserPage.DOWNLOADS.equals(route)) {
 
@@ -186,7 +192,10 @@ public class BrowserWebViewClient
             tab.downloadsPage = true;
             tab.loading = false;
             tab.url = BrowserPage.DOWNLOADS;
-            tab.title = "Downloads";
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Downloads");
 
         } else if (BrowserPage.COOKIES.equals(route)) {
 
@@ -198,7 +207,25 @@ public class BrowserWebViewClient
             tab.cookiesPage = true;
             tab.loading = false;
             tab.url = BrowserPage.COOKIES;
-            tab.title = "Cookies";
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Cookies");
+
+        } else if (BrowserPage.DEMO.equals(route)) {
+
+            tab.settingsPage = false;
+            tab.errorPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.downloadsPage = false;
+            tab.cookiesPage = false;
+            tab.loading = false;
+            tab.url = BrowserPage.DEMO;
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "HTML Demo");
 
         } else if (BrowserPage.ERROR.equals(route)) {
 
@@ -213,7 +240,10 @@ public class BrowserWebViewClient
             tab.downloadsPage = false;
             tab.errorPage = true;
             tab.loading = false;
-            tab.title = "Page unavailable";
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Page unavailable");
 
         } else {
 
@@ -417,7 +447,9 @@ public class BrowserWebViewClient
             activity.showErrorPage(
                     tab,
                     url,
-                    "The site's security certificate could not be verified.");
+                    Localization.translate(
+                            activity,
+                            "The site's security certificate could not be verified."));
         }
     }
 }
