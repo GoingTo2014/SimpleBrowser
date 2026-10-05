@@ -52,6 +52,8 @@ public class MainActivity extends Activity {
     private HistoryPage historyPage;
     private DownloadsPage downloadsPage;
     private ErrorPage errorPage;
+    private CookieStore cookieStore;
+    private CookiesPage cookiesPage;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -135,6 +137,14 @@ public class MainActivity extends Activity {
 
         errorPage =
                 new ErrorPage(this);
+
+        cookieStore =
+                new CookieStore(this);
+
+        cookiesPage =
+                new CookiesPage(
+                        this,
+                        cookieStore);
 
         setupToolbarIcons();
         setupButtons();
@@ -361,7 +371,7 @@ public class MainActivity extends Activity {
 
             } else {
 
-                tab.webView.reload();
+                refreshTab(tab);
             }
         });
 
@@ -987,6 +997,12 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.COOKIES.equalsIgnoreCase(value)) {
+
+            showCookies(tab);
+            return;
+        }
+
         if (isLocalPath(value)) {
 
             loadTabUrl(
@@ -1215,6 +1231,12 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.COOKIES.equalsIgnoreCase(url)) {
+
+            showCookies(tab);
+            return;
+        }
+
         removeInternalPageState(tab);
 
         tab.webView.loadUrl(url);
@@ -1237,6 +1259,7 @@ public class MainActivity extends Activity {
         tab.defaultPage = false;
         tab.historyPage = false;
         tab.downloadsPage = false;
+        tab.cookiesPage = false;
         tab.errorPage = false;
         tab.settingsSection = "general";
     }
@@ -1305,6 +1328,70 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void showCookies(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        cookiesPage.show(tab);
+        tabManager.selectTab(tab);
+    }
+
+    public void refreshTab(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        if (tab.settingsPage) {
+            settingsPage.show(
+                    tab,
+                    tab.settingsSection);
+            return;
+        }
+
+        if (tab.historyPage) {
+            historyPage.show(
+                    tab,
+                    "");
+            return;
+        }
+
+        if (tab.downloadsPage) {
+            downloadsPage.show(
+                    tab,
+                    "");
+            return;
+        }
+
+        if (tab.cookiesPage) {
+            cookiesPage.show(tab);
+            return;
+        }
+
+        if (tab.errorPage) {
+            String retry =
+                    tab.url;
+
+            if (retry != null &&
+                    !retry.trim().isEmpty()) {
+                loadTabUrl(tab, retry);
+            }
+            return;
+        }
+
+        if (tab.defaultPage) {
+            defaultPage.show(tab);
+            return;
+        }
+
+        tab.webView.reload();
+    }
+
     public void clearBrowserHistory() {
 
         if (browserHistory != null) {
@@ -1317,6 +1404,17 @@ public class MainActivity extends Activity {
         if (downloadHistory != null) {
             downloadHistory.clear();
         }
+    }
+
+    public void clearCookieIndex() {
+
+        if (cookieStore != null) {
+            cookieStore.clearIndex();
+        }
+    }
+
+    public CookieStore getCookieStore() {
+        return cookieStore;
     }
 
     public void startDownload(
@@ -2166,6 +2264,7 @@ public class MainActivity extends Activity {
                  tab.defaultPage ||
                  tab.historyPage ||
                  tab.downloadsPage ||
+                 tab.cookiesPage ||
                  tab.errorPage)) {
 
             goBackFromInternalPage(tab);
