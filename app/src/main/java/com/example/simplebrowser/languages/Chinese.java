@@ -8,6 +8,7 @@ public final class Chinese extends LanguagePack {
         put("settings.title", "设置");
         put("settings.general", "常规");
         put("settings.privacy", "隐私与安全");
+        put("strings.settings.privacy_html", "隐私与安全");
         put("settings.websites", "网站");
         put("settings.appearance", "外观");
         put("settings.advanced", "高级");
