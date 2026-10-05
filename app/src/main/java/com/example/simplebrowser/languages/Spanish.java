@@ -8,6 +8,7 @@ public final class Spanish extends LanguagePack {
         put("settings.title", "Configuración");
         put("settings.general", "General");
         put("settings.privacy", "Privacidad y seguridad");
+        put("strings.settings.privacy_html", "Privacidad y seguridad");
         put("settings.websites", "Sitios web");
         put("settings.appearance", "Apariencia");
         put("settings.advanced", "Avanzado");
