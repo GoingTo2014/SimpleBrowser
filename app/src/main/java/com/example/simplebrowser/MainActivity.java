@@ -1539,7 +1539,9 @@ public class MainActivity extends Activity {
 
             request.setTitle(filename);
             request.setDescription(
-                    "Simple Browser");
+                    Localization.translate(
+                            this,
+                            "Simple Browser"));
 
             if (mimeType != null &&
                     !mimeType.trim().isEmpty()) {
