@@ -51,7 +51,8 @@ public class BrowserSettings {
                 Localization.SYSTEM.equals(language) ||
                 Localization.ENGLISH.equals(language) ||
                 Localization.SPANISH.equals(language) ||
-                Localization.PORTUGUESE.equals(language)
+                Localization.PORTUGUESE.equals(language) ||
+                Localization.FRENCH.equals(language)
                         ? language
                         : Localization.SYSTEM;
 
