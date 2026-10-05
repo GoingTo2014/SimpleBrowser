@@ -38,9 +38,15 @@ public class BrowserChromeClient
 
             tab.title = "Settings";
 
-        } else if (title == null ||
+        } else if (tab.defaultPage ||
+                "about:blank".equalsIgnoreCase(title) ||
+                title == null ||
                 title.trim().isEmpty()) {
 
+            /*
+             * The built-in new-tab document must never expose
+             * the WebView's temporary about:blank title.
+             */
             tab.title = "New Tab";
 
         } else {
