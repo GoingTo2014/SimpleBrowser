@@ -80,6 +80,21 @@ public class BrowserChromeClient
     }
 
     @Override
+    public void onReceivedIcon(
+            WebView view,
+            android.graphics.Bitmap icon) {
+
+        if (icon != null &&
+                !icon.isRecycled()) {
+
+            tab.favicon = icon;
+            activity.updateTabIcon(
+                    tab,
+                    icon);
+        }
+    }
+
+    @Override
     public boolean onConsoleMessage(
             ConsoleMessage message) {
 
