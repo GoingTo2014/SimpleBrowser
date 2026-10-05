@@ -236,5 +236,8 @@ public final class Spanish extends LanguagePack {
         put("ua.android_tv", "Android TV" );
         put("ua.google_tv", "Google TV" );
         put("ua.smart_tv", "Smart TV" );
+        put("history.cleared", "Historial borrado");
+        put("settings.webview_cache_cleared", "Caché de WebView borrada");
+        put("settings.browsing_data_cleared", "Datos de navegación borrados");
     }
 }
