@@ -209,6 +209,58 @@ public class BrowserHistory
         return entries;
     }
 
+    public synchronized Entry get(
+            long id) {
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.query(
+                        TABLE_VISITS,
+                        new String[] {
+                                "id",
+                                "url",
+                                "title",
+                                "time"
+                        },
+                        "id = ?",
+                        new String[] {
+                                String.valueOf(id)
+                        },
+                        null,
+                        null,
+                        null);
+
+        try {
+
+            if (!cursor.moveToFirst()) {
+                return null;
+            }
+
+            Entry entry =
+                    new Entry();
+
+            entry.id =
+                    cursor.getLong(0);
+
+            entry.url =
+                    cursor.getString(1);
+
+            entry.title =
+                    cursor.getString(2);
+
+            entry.time =
+                    cursor.getLong(3);
+
+            return entry;
+
+        } finally {
+
+            cursor.close();
+        }
+    }
+
     public synchronized void delete(
             long id) {
 
