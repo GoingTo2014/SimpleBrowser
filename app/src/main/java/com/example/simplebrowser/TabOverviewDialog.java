@@ -1,22 +1,23 @@
 package com.example.simplebrowser;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Picture;
+import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+/**
+ * Shows every tab in the current session with a readable live-page preview.
+ */
 public class TabOverviewDialog {
 
     private final MainActivity activity;
@@ -37,7 +38,6 @@ public class TabOverviewDialog {
 
         root.setOrientation(
                 LinearLayout.VERTICAL);
-
         root.setPadding(
                 dp(10),
                 dp(10),
@@ -60,17 +60,14 @@ public class TabOverviewDialog {
                 new TextView(activity);
 
         title.setText(
-                activity
-                        .getTabManager()
+                activity.getTabManager()
                         .isIncognitoMode()
                         ? "Incognito tabs"
                         : "Tabs");
-
         title.setTextSize(20);
         title.setTypeface(
                 android.graphics.Typeface.DEFAULT,
                 android.graphics.Typeface.BOLD);
-
         title.setTextColor(
                 getTextColor());
 
@@ -81,19 +78,18 @@ public class TabOverviewDialog {
                         dp(48),
                         1f));
 
-        Button close =
+        Button done =
                 new Button(activity);
 
-        close.setText("Done");
-        close.setAllCaps(false);
-        close.setTextColor(
+        done.setText("Done");
+        done.setAllCaps(false);
+        done.setTextColor(
                 getTextColor());
-
-        close.setOnClickListener(
+        done.setOnClickListener(
                 v -> dialog.dismiss());
 
         header.addView(
-                close,
+                done,
                 new LinearLayout.LayoutParams(
                         dp(75),
                         dp(44)));
@@ -110,8 +106,7 @@ public class TabOverviewDialog {
                 LinearLayout.VERTICAL);
 
         for (BrowserTab tab :
-                activity
-                        .getTabManager()
+                activity.getTabManager()
                         .getTabs()) {
 
             list.addView(
@@ -120,11 +115,7 @@ public class TabOverviewDialog {
                             dialog));
         }
 
-        scroll.addView(
-                list,
-                new ScrollView.LayoutParams(
-                        -1,
-                        -2));
+        scroll.addView(list);
 
         root.addView(
                 scroll,
@@ -134,43 +125,38 @@ public class TabOverviewDialog {
                         1f));
 
         dialog.setContentView(root);
-
-        if (dialog.getWindow() != null) {
-
-            dialog.getWindow()
-                    .setLayout(
-                            dp(560),
-                            dp(650));
-
-            dialog.getWindow()
-                    .setBackgroundDrawable(
-                            new android.graphics.drawable
-                                    .ColorDrawable(
-                                            background));
-        }
-
         dialog.show();
 
         if (dialog.getWindow() != null) {
 
+            int width =
+                    Math.min(
+                            dp(560),
+                            (int) (
+                                    activity
+                                            .getResources()
+                                            .getDisplayMetrics()
+                                            .widthPixels *
+                                    0.94f));
+
+            int height =
+                    Math.min(
+                            dp(650),
+                            (int) (
+                                    activity
+                                            .getResources()
+                                            .getDisplayMetrics()
+                                            .heightPixels *
+                                    0.88f));
+
+            dialog.getWindow().setLayout(
+                    width,
+                    height);
+
             dialog.getWindow()
-                    .setLayout(
-                            Math.min(
-                                    dp(560),
-                                    (int) (
-                                            activity
-                                                    .getResources()
-                                                    .getDisplayMetrics()
-                                                    .widthPixels *
-                                            0.94f)),
-                            Math.min(
-                                    dp(650),
-                                    (int) (
-                                            activity
-                                                    .getResources()
-                                                    .getDisplayMetrics()
-                                                    .heightPixels *
-                                            0.88f)));
+                    .setBackgroundDrawable(
+                            new ColorDrawable(
+                                    background));
         }
     }
 
@@ -178,15 +164,17 @@ public class TabOverviewDialog {
             final BrowserTab tab,
             final Dialog dialog) {
 
+        LinearLayout wrapper =
+                new LinearLayout(activity);
+
+        wrapper.setOrientation(
+                LinearLayout.VERTICAL);
+
         LinearLayout card =
                 new LinearLayout(activity);
 
-        card.setOrientation(
-                LinearLayout.HORIZONTAL);
-
         card.setGravity(
                 Gravity.CENTER_VERTICAL);
-
         card.setPadding(
                 dp(8),
                 dp(8),
@@ -200,6 +188,25 @@ public class TabOverviewDialog {
                                 0.08f)
                         : getSurfaceColor());
 
+        int previewWidth =
+                Math.min(
+                        dp(220),
+                        Math.max(
+                                dp(140),
+                                (int) (
+                                        activity
+                                                .getResources()
+                                                .getDisplayMetrics()
+                                                .widthPixels *
+                                        0.38f)));
+
+        int previewHeight =
+                Math.max(
+                        dp(79),
+                        Math.round(
+                                previewWidth *
+                                9f / 16f));
+
         ImageView preview =
                 new ImageView(activity);
 
@@ -207,36 +214,31 @@ public class TabOverviewDialog {
                 ImageView.ScaleType.CENTER_CROP);
 
         Bitmap bitmap =
-                createPreview(tab);
+                createPreview(
+                        tab,
+                        previewWidth,
+                        previewHeight);
 
         if (bitmap != null) {
-
-            preview.setImageBitmap(
-                    bitmap);
-
+            preview.setImageBitmap(bitmap);
         } else {
-
             preview.setBackgroundColor(
                     ColorUtils.darken(
                             getSurfaceColor(),
                             0.05f));
-
-            preview.setImageDrawable(
-                    null);
         }
 
         card.addView(
                 preview,
                 new LinearLayout.LayoutParams(
-                        dp(150),
-                        dp(88)));
+                        previewWidth,
+                        previewHeight));
 
         LinearLayout info =
                 new LinearLayout(activity);
 
         info.setOrientation(
                 LinearLayout.VERTICAL);
-
         info.setPadding(
                 dp(10),
                 0,
@@ -251,7 +253,6 @@ public class TabOverviewDialog {
                 tab.title.trim().isEmpty()
                         ? "New Tab"
                         : tab.title);
-
         tabTitle.setTextSize(15);
         tabTitle.setMaxLines(2);
         tabTitle.setTextColor(
@@ -267,7 +268,7 @@ public class TabOverviewDialog {
                 new TextView(activity);
 
         String displayUrl =
-                getDisplayUrl(tab);
+                BrowserPage.displayUrl(tab);
 
         url.setText(
                 displayUrl.isEmpty()
@@ -275,7 +276,6 @@ public class TabOverviewDialog {
                                 ? "New Tab"
                                 : "Not loaded")
                         : displayUrl);
-
         url.setTextSize(12);
         url.setMaxLines(2);
         url.setTextColor(
@@ -294,64 +294,47 @@ public class TabOverviewDialog {
                         -2,
                         1f));
 
-        Button select =
+        Button open =
                 new Button(activity);
 
-        select.setText(
+        open.setText(
                 tab == activity.getActiveTab()
                         ? "Current"
                         : "Open");
-
-        select.setAllCaps(false);
-        select.setTextColor(
+        open.setAllCaps(false);
+        open.setTextColor(
                 getTextColor());
-
-        select.setOnClickListener(
+        open.setOnClickListener(
                 v -> {
-
-                    activity
-                            .getTabManager()
+                    activity.getTabManager()
                             .selectTab(tab);
-
                     dialog.dismiss();
                 });
 
         card.addView(
-                select,
+                open,
                 new LinearLayout.LayoutParams(
                         dp(78),
                         dp(44)));
 
         card.setOnClickListener(
                 v -> {
-
-                    activity
-                            .getTabManager()
+                    activity.getTabManager()
                             .selectTab(tab);
-
                     dialog.dismiss();
                 });
 
-        card.setOnLongClickListener(
-                v -> true);
+        wrapper.addView(
+                card,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        previewHeight + dp(16)));
 
         View divider =
                 new View(activity);
 
         divider.setBackgroundColor(
                 getBorderColor());
-
-        LinearLayout wrapper =
-                new LinearLayout(activity);
-
-        wrapper.setOrientation(
-                LinearLayout.VERTICAL);
-
-        wrapper.addView(
-                card,
-                new LinearLayout.LayoutParams(
-                        -1,
-                        dp(106)));
 
         wrapper.addView(
                 divider,
@@ -363,7 +346,9 @@ public class TabOverviewDialog {
     }
 
     private Bitmap createPreview(
-            BrowserTab tab) {
+            BrowserTab tab,
+            int targetWidth,
+            int targetHeight) {
 
         if (!tab.hasLoaded ||
                 tab.webView == null) {
@@ -372,22 +357,26 @@ public class TabOverviewDialog {
 
         try {
 
-            Picture picture =
-                    tab.webView.capturePicture();
+            int width =
+                    Math.max(
+                            1,
+                            tab.webView.getWidth());
 
-            if (picture == null ||
-                    picture.getWidth() <= 0 ||
-                    picture.getHeight() <= 0) {
-                return null;
-            }
+            int height =
+                    Math.max(
+                            1,
+                            tab.webView.getHeight());
 
-            int width = 320;
-            int height = 180;
+            int bitmapWidth =
+                    targetWidth * 2;
+
+            int bitmapHeight =
+                    targetHeight * 2;
 
             Bitmap bitmap =
                     Bitmap.createBitmap(
-                            width,
-                            height,
+                            bitmapWidth,
+                            bitmapHeight,
                             Bitmap.Config.ARGB_8888);
 
             Canvas canvas =
@@ -396,34 +385,60 @@ public class TabOverviewDialog {
             canvas.drawColor(
                     Color.WHITE);
 
-            float scale =
-                    Math.min(
-                            width /
-                                    (float) picture
-                                            .getWidth(),
-                            height /
-                                    (float) picture
-                                            .getHeight());
+            if (width > 1 &&
+                    height > 1) {
 
-            if (scale > 1f) {
-                scale = 1f;
+                float scale =
+                        Math.max(
+                                bitmapWidth /
+                                        (float) width,
+                                bitmapHeight /
+                                        (float) height);
+
+                float scaledWidth =
+                        width * scale;
+
+                float scaledHeight =
+                        height * scale;
+
+                canvas.save();
+                canvas.translate(
+                        (bitmapWidth -
+                                scaledWidth) / 2f,
+                        (bitmapHeight -
+                                scaledHeight) / 2f);
+                canvas.scale(
+                        scale,
+                        scale);
+                tab.webView.draw(canvas);
+                canvas.restore();
+
+                return bitmap;
             }
 
-            float drawnWidth =
-                    picture.getWidth() * scale;
+            Picture picture =
+                    tab.webView.capturePicture();
 
-            float drawnHeight =
-                    picture.getHeight() * scale;
+            if (picture == null ||
+                    picture.getWidth() <= 0 ||
+                    picture.getHeight() <= 0) {
+                bitmap.recycle();
+                return null;
+            }
 
-            canvas.translate(
-                    (width - drawnWidth) / 2f,
-                    (height - drawnHeight) / 2f);
+            float scale =
+                    Math.min(
+                            bitmapWidth /
+                                    (float) picture.getWidth(),
+                            bitmapHeight /
+                                    (float) picture.getHeight());
 
+            canvas.save();
             canvas.scale(
                     scale,
                     scale);
-
             picture.draw(canvas);
+            canvas.restore();
 
             return bitmap;
 
@@ -433,42 +448,10 @@ public class TabOverviewDialog {
         }
     }
 
-    private String getDisplayUrl(
-            BrowserTab tab) {
-
-        if (tab.defaultPage) {
-            return "";
-        }
-
-        if (tab.settingsPage) {
-            return activity.getSettingsUrl(
-                    tab.settingsSection);
-        }
-
-        if (tab.historyPage) {
-            return "browser://history";
-        }
-
-        if (tab.downloadsPage) {
-            return "browser://downloads";
-        }
-
-        if (tab.errorPage) {
-            return tab.url == null
-                    ? ""
-                    : tab.url;
-        }
-
-        return tab.url == null
-                ? ""
-                : tab.url;
-    }
-
     private int getAccentColor() {
 
         return ColorUtils.parseColor(
-                activity
-                        .getBrowserSettings()
+                activity.getBrowserSettings()
                         .getAccentColor(),
                 Color.WHITE);
     }
@@ -540,8 +523,7 @@ public class TabOverviewDialog {
 
         return (int) (
                 value *
-                activity
-                        .getResources()
+                activity.getResources()
                         .getDisplayMetrics()
                         .density +
                 0.5f);
