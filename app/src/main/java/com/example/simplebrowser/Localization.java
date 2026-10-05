@@ -245,16 +245,29 @@ public final class Localization {
             return result;
         }
 
-        for (Map.Entry<String, String[]> entry :
-                TRANSLATIONS.entrySet()) {
+        java.util.List<String> keys =
+                new java.util.ArrayList<>(
+                        TRANSLATIONS.keySet());
+
+        java.util.Collections.sort(
+                keys,
+                (a, b) ->
+                        Integer.compare(
+                                b.length(),
+                                a.length()));
+
+        for (String key : keys) {
+
+            String[] values =
+                    TRANSLATIONS.get(key);
 
             String replacement =
                     SPANISH.equals(language)
-                            ? entry.getValue()[1]
-                            : entry.getValue()[2];
+                            ? values[1]
+                            : values[2];
 
             result = result.replace(
-                    entry.getKey(),
+                    key,
                     replacement);
         }
 
