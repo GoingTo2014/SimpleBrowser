@@ -8,6 +8,7 @@ public final class French extends LanguagePack {
         put("settings.title", "Paramètres");
         put("settings.general", "Général");
         put("settings.privacy", "Confidentialité et sécurité");
+        put("strings.settings.privacy_html", "Confidentialité et sécurité");
         put("settings.websites", "Sites web");
         put("settings.appearance", "Apparence");
         put("settings.advanced", "Avancé");
