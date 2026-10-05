@@ -4,11 +4,17 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.text.DateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 public class HistoryPage {
+
+    private static final int PAGE_SIZE = 25;
 
     private final MainActivity activity;
     private final BrowserHistory history;
@@ -29,11 +35,13 @@ public class HistoryPage {
         tab.errorPage = false;
         tab.defaultPage = false;
         tab.historyPage = true;
+        tab.downloadsPage = false;
         tab.loading = false;
         tab.url = "browser://history";
         tab.title = "History";
 
-        WebView webView = tab.webView;
+        WebView webView =
+                tab.webView;
 
         webView.removeJavascriptInterface(
                 "HistoryPage");
@@ -55,11 +63,13 @@ public class HistoryPage {
                 null);
 
         activity.updateTabTitle(tab);
-        activity.setUrlText("browser://history");
+        activity.setUrlText(
+                "browser://history");
         activity.updateSecurity(tab);
     }
 
-    public void remove(BrowserTab tab) {
+    public void remove(
+            BrowserTab tab) {
 
         if (tab == null) {
             return;
@@ -67,6 +77,7 @@ public class HistoryPage {
 
         tab.webView.removeJavascriptInterface(
                 "HistoryPage");
+
         tab.historyPage = false;
     }
 
@@ -76,10 +87,13 @@ public class HistoryPage {
 
         List<BrowserHistory.Entry> entries =
                 incognito
-                        ? java.util.Collections
+                        ? Collections
                                 .<BrowserHistory.Entry>
                                 emptyList()
-                        : history.getEntries(query);
+                        : history.getEntries(
+                                query,
+                                PAGE_SIZE,
+                                0);
 
         String background =
                 incognito
@@ -159,11 +173,6 @@ public class HistoryPage {
                 ".row{display:flex;gap:12px;" +
                 "align-items:flex-start;}");
 
-        /*
-         * min-width:0 is important here. Without it, a very long
-         * URL can force the flex item wider than the page and push
-         * the Delete button off-screen on older WebViews.
-         */
         html.append(
                 ".grow{flex:1;min-width:0;width:0;}");
 
@@ -190,8 +199,11 @@ public class HistoryPage {
                 "padding:0 11px;}");
 
         html.append(
-                ".empty{margin-top:22px;color:" +
-                secondary + ";font-size:14px;}");
+                ".list{margin-top:2px;}");
+
+        html.append(
+                ".loading{text-align:center;padding:12px;" +
+                "color:" + secondary + ";display:none;}");
 
         html.append("</style></head><body>");
         html.append("<div class='page'>");
@@ -229,73 +241,57 @@ public class HistoryPage {
             html.append("</div>");
         }
 
+        html.append("<div id='list' class='list'>");
+
+        for (BrowserHistory.Entry entry :
+                entries) {
+
+            html.append(
+                    entryHtml(
+                            entry,
+                            text,
+                            secondary));
+        }
+
         if (entries.isEmpty()) {
 
             html.append(
-                    "<div class='empty'>" +
-                    (incognito
+                    "<div id='empty' class='loading' " +
+                    "style='display:block;'>");
+
+            html.append(
+                    incognito
                             ? "Nothing is shown here while browsing privately."
-                            : "No history entries found.") +
-                    "</div>");
+                            : "No history entries found.");
 
-        } else {
-
-            DateFormat format =
-                    DateFormat.getDateTimeInstance(
-                            DateFormat.MEDIUM,
-                            DateFormat.SHORT);
-
-            for (BrowserHistory.Entry entry :
-                    entries) {
-
-                String title =
-                        entry.title == null ||
-                        entry.title.trim().isEmpty()
-                                ? entry.url
-                                : entry.title;
-
-                html.append(
-                        "<div class='entry'><div class='row'>" +
-                        "<div class='grow'>");
-
-                html.append(
-                        "<div class='title'>" +
-                        "<a href='javascript:openEntry(" +
-                        entry.id +
-                        ")'>" +
-                        escape(title) +
-                        "</a></div>");
-
-                html.append(
-                        "<div class='url'>" +
-                        escape(entry.url) +
-                        "</div>");
-
-                html.append(
-                        "<div class='time'>" +
-                        escape(
-                                format.format(
-                                        new Date(entry.time))) +
-                        "</div>");
-
-                html.append("</div>");
-
-                html.append(
-                        "<button class='delete' " +
-                        "onclick='removeEntry(" +
-                        entry.id +
-                        ")'>Delete</button>");
-
-                html.append(
-                        "</div></div>");
-            }
+            html.append("</div>");
         }
 
         html.append("</div>");
 
-        html.append("<script>");
+        if (!incognito &&
+                !entries.isEmpty()) {
+
+            html.append(
+                    "<div id='loading' class='loading'>" +
+                    "Loading more..." +
+                    "</div>");
+        }
+
+        html.append("</div>");
 
         if (!incognito) {
+
+            html.append("<script>");
+
+            html.append(
+                    "var offset=" +
+                    entries.size() +
+                    ",loading=false,done=" +
+                    (entries.size() < PAGE_SIZE
+                            ? "false"
+                            : "false") +
+                    ";");
 
             html.append(
                     "function searchNow(){" +
@@ -316,15 +312,106 @@ public class HistoryPage {
             html.append(
                     "function openEntry(id){" +
                     "HistoryPage.open(id);}");
+
+            html.append(
+                    "function esc(v){" +
+                    "return String(v==null?'':v)" +
+                    ".replace(/&/g,'&amp;')" +
+                    ".replace(/</g,'&lt;')" +
+                    ".replace(/>/g,'&gt;')" +
+                    ".replace(/\"/g,'&quot;')" +
+                    ".replace(/'/g,'&#39;');}");
+
+            html.append(
+                    "function appendItems(json){" +
+                    "var data=JSON.parse(json);" +
+                    "var list=document.getElementById('list');" +
+                    "var empty=document.getElementById('empty');" +
+                    "if(empty)empty.style.display='none';" +
+                    "for(var i=0;i<data.length;i++){" +
+                    "var e=data[i];" +
+                    "var title=e.title&&e.title.length?e.title:e.url;" +
+                    "var s='<div class=\\'entry\\'><div class=\\'row\\'>" +
+                    "<div class=\\'grow\\'>" +
+                    "<div class=\\'title\\'><a href=\\'javascript:openEntry(" +
+                    "'+e.id+')\\'>'+esc(title)+'</a></div>'+" +
+                    "'<div class=\\'url\\'>'+esc(e.url)+'</div>'+" +
+                    "'<div class=\\'time\\'>'+esc(e.timeText)+'</div>'+" +
+                    "'</div><button class=\\'delete\\' onclick=\\'removeEntry(" +
+                    "'+e.id+')\\'>Delete</button></div></div>';" +
+                    "list.insertAdjacentHTML('beforeend',s);" +
+                    "}" +
+                    "offset+=data.length;" +
+                    "if(data.length===0)done=true;}");
+
+            html.append(
+                    "function loadMore(){" +
+                    "if(loading||done)return;" +
+                    "loading=true;" +
+                    "document.getElementById('loading').style.display='block';" +
+                    "var json=HistoryPage.loadMore(" +
+                    "document.getElementById('search').value,offset);" +
+                    "appendItems(json);" +
+                    "loading=false;" +
+                    "document.getElementById('loading').style.display='none';}");
+
+            html.append(
+                    "window.onscroll=function(){" +
+                    "if(window.innerHeight+window.pageYOffset >= " +
+                    "document.body.offsetHeight-500)loadMore();" +
+                    "};");
+
+            html.append("</script>");
         }
 
-        html.append("</script>");
         html.append("</body></html>");
 
         return html.toString();
     }
 
-    private String escape(String value) {
+    private String entryHtml(
+            BrowserHistory.Entry entry,
+            String text,
+            String secondary) {
+
+        DateFormat format =
+                DateFormat.getDateTimeInstance(
+                        DateFormat.MEDIUM,
+                        DateFormat.SHORT);
+
+        String title =
+                entry.title == null ||
+                entry.title.trim().isEmpty()
+                        ? entry.url
+                        : entry.title;
+
+        return
+                "<div class='entry'><div class='row'>" +
+                "<div class='grow'>" +
+                "<div class='title'>" +
+                "<a href='javascript:openEntry(" +
+                entry.id +
+                ")'>" +
+                escape(title) +
+                "</a></div>" +
+                "<div class='url'>" +
+                escape(entry.url) +
+                "</div>" +
+                "<div class='time'>" +
+                escape(
+                        format.format(
+                                new Date(entry.time))) +
+                "</div>" +
+                "</div>" +
+                "<button class='delete' " +
+                "onclick='removeEntry(" +
+                entry.id +
+                ")'>Delete</button>" +
+                "</div></div>";
+    }
+
+    private String escape(
+            String value) {
 
         if (value == null) {
             return "";
@@ -347,12 +434,77 @@ public class HistoryPage {
         }
 
         @JavascriptInterface
-        public void search(String value) {
+        public void search(
+                String value) {
 
             activity.runOnUiThread(
                     () -> show(
                             tab,
                             value));
+        }
+
+        @JavascriptInterface
+        public String loadMore(
+                String query,
+                int offset) {
+
+            try {
+
+                List<BrowserHistory.Entry> entries =
+                        history.getEntries(
+                                query,
+                                PAGE_SIZE,
+                                Math.max(
+                                        0,
+                                        offset));
+
+                JSONArray array =
+                        new JSONArray();
+
+                DateFormat format =
+                        DateFormat.getDateTimeInstance(
+                                DateFormat.MEDIUM,
+                                DateFormat.SHORT);
+
+                for (BrowserHistory.Entry entry :
+                        entries) {
+
+                    JSONObject object =
+                            new JSONObject();
+
+                    String title =
+                            entry.title == null ||
+                            entry.title.trim().isEmpty()
+                                    ? entry.url
+                                    : entry.title;
+
+                    object.put(
+                            "id",
+                            entry.id);
+
+                    object.put(
+                            "url",
+                            entry.url);
+
+                    object.put(
+                            "title",
+                            title);
+
+                    object.put(
+                            "timeText",
+                            format.format(
+                                    new Date(
+                                            entry.time)));
+
+                    array.put(object);
+                }
+
+                return array.toString();
+
+            } catch (Exception e) {
+
+                return "[]";
+            }
         }
 
         @JavascriptInterface
