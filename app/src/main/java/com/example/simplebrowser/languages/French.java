@@ -186,12 +186,14 @@ public final class French extends LanguagePack {
         put("ua.chrome_android", "Chrome - Android" );
         put("ua.safari_iphone", "Safari - iPhone" );
         put("ua.safari_ipad", "Safari - iPad" );
-        put("ua.samsung_browser", "PlayStation 5" );
-        put("ua.android_tablet", "Xbox Series X" );
-        put("ua.playstation_5", "Nintendo Switch" );
-        put("ua.xbox_series", "Apple TV" );
-        put("ua.nintendo_switch", "Android TV" );
-        put("ua.apple_tv", "Google TV" );
-        put("ua.android_tv", "Smart TV" );
+        put("ua.samsung_browser", "Samsung Internet");
+        put("ua.android_tablet", "Tablette Android");
+        put("ua.playstation_5", "PlayStation 5");
+        put("ua.xbox_series", "Xbox Series X");
+        put("ua.nintendo_switch", "Nintendo Switch");
+        put("ua.apple_tv", "Apple TV");
+        put("ua.android_tv", "Android TV");
+        put("ua.google_tv", "Google TV");
+        put("ua.smart_tv", "Smart TV");
     }
 }
