@@ -303,13 +303,19 @@ public class CookiesPage {
 
                         new AlertDialog.Builder(activity)
                                 .setTitle(
-                                        "Edit cookie: " + name)
+                                        Localization.translate(
+                                                activity,
+                                                "Edit cookie: ") + name)
                                 .setView(input)
                                 .setNegativeButton(
-                                        "Cancel",
+                                        Localization.translate(
+                                                activity,
+                                                "Cancel"),
                                         null)
                                 .setPositiveButton(
-                                        "Save",
+                                        Localization.translate(
+                                                activity,
+                                                "Save"),
                                         (dialog, which) -> {
 
                                             store.setCookie(
@@ -318,7 +324,9 @@ public class CookiesPage {
                                                     input.getText()
                                                             .toString());
 
-                                            show(tab);
+                                            tab.webView.postDelayed(
+                                                    () -> show(tab),
+                                                    150);
                                         })
                                 .show();
                     });
@@ -336,7 +344,9 @@ public class CookiesPage {
                                 domain,
                                 name);
 
-                        show(tab);
+                        tab.webView.postDelayed(
+                                () -> show(tab),
+                                150);
                     });
         }
 
@@ -352,11 +362,15 @@ public class CookiesPage {
 
                         Toast.makeText(
                                 activity,
-                                "Site cookies deleted",
+                                Localization.translate(
+                                        activity,
+                                        "Site cookies deleted"),
                                 Toast.LENGTH_SHORT)
                                 .show();
 
-                        show(tab);
+                        tab.webView.postDelayed(
+                                () -> show(tab),
+                                150);
                     });
         }
     }
