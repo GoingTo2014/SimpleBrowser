@@ -41,7 +41,7 @@ public class DownloadsPage {
         tab.downloadsPage = true;
         tab.loading = false;
         tab.url = "browser://downloads";
-        tab.title = "Downloads";
+        tab.title = Localization.translate(activity, "Downloads");
 
         WebView webView = tab.webView;
 
@@ -361,7 +361,7 @@ public class DownloadsPage {
 
         html.append("</body></html>");
 
-        return html.toString();
+        return Localization.translateHtml(activity, html.toString());
     }
 
     private String entryHtml(
