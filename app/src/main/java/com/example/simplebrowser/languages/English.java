@@ -237,5 +237,8 @@ public final class English extends LanguagePack {
         put("ua.android_tv", "Android TV" );
         put("ua.google_tv", "Google TV" );
         put("ua.smart_tv", "Smart TV" );
+        put("history.cleared", "History cleared");
+        put("settings.webview_cache_cleared", "WebView cache cleared");
+        put("settings.browsing_data_cleared", "Browsing data cleared");
     }
 }
