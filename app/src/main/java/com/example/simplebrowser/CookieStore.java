@@ -172,9 +172,14 @@ public final class CookieStore {
             String value) {
 
         if (domain == null ||
-                name == null) {
+                name == null ||
+                domain.trim().isEmpty() ||
+                name.trim().isEmpty()) {
             return;
         }
+
+        String safeDomain =
+                domain.trim();
 
         String cookie =
                 name.trim() +
@@ -182,16 +187,32 @@ public final class CookieStore {
                 (value == null ? "" : value) +
                 "; Path=/";
 
+        String domainCookie =
+                name.trim() +
+                "=" +
+                (value == null ? "" : value) +
+                "; Domain=" +
+                safeDomain +
+                "; Path=/";
+
         CookieManager manager =
                 CookieManager.getInstance();
 
         manager.setCookie(
-                "https://" + domain + "/",
+                "https://" + safeDomain + "/",
                 cookie);
 
         manager.setCookie(
-                "http://" + domain + "/",
+                "http://" + safeDomain + "/",
                 cookie);
+
+        manager.setCookie(
+                "https://" + safeDomain + "/",
+                domainCookie);
+
+        manager.setCookie(
+                "http://" + safeDomain + "/",
+                domainCookie);
 
         sync();
     }
@@ -201,25 +222,45 @@ public final class CookieStore {
             String name) {
 
         if (domain == null ||
-                name == null) {
+                name == null ||
+                domain.trim().isEmpty() ||
+                name.trim().isEmpty()) {
             return;
         }
 
+        String safeDomain =
+                domain.trim();
+
         String expired =
                 name.trim() +
-                "=; Max-Age=0; " +
-                "Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/";
+                "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; " +
+                "Path=/";
+
+        String expiredDomain =
+                name.trim() +
+                "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; " +
+                "Domain=" +
+                safeDomain +
+                "; Path=/";
 
         CookieManager manager =
                 CookieManager.getInstance();
 
         manager.setCookie(
-                "https://" + domain + "/",
+                "https://" + safeDomain + "/",
                 expired);
 
         manager.setCookie(
-                "http://" + domain + "/",
+                "http://" + safeDomain + "/",
                 expired);
+
+        manager.setCookie(
+                "https://" + safeDomain + "/",
+                expiredDomain);
+
+        manager.setCookie(
+                "http://" + safeDomain + "/",
+                expiredDomain);
 
         sync();
     }
@@ -335,9 +376,30 @@ public final class CookieStore {
         }
     }
 
+    public void startSync() {
+
+        try {
+            CookieSyncManager.getInstance()
+                    .startSync();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public void stopSync() {
+
+        try {
+            CookieSyncManager.getInstance()
+                    .stopSync();
+        } catch (Throwable ignored) {
+        }
+    }
+
     private void sync() {
 
         try {
+            CookieSyncManager.getInstance()
+                    .startSync();
+
             CookieSyncManager.getInstance()
                     .sync();
         } catch (Throwable ignored) {
