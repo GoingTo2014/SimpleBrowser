@@ -1378,6 +1378,10 @@ public class MainActivity extends Activity {
         removeInternalPageState(tab);
         defaultPage.show(tab);
         tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DEFAULT);
     }
 
     public void showErrorPage(
@@ -1397,6 +1401,10 @@ public class MainActivity extends Activity {
                 url,
                 description);
 
+        recordInternalVisit(
+                tab,
+                url);
+
         if (tab == getActiveTab()) {
             applyActiveTabAppearance();
         }
@@ -1415,6 +1423,10 @@ public class MainActivity extends Activity {
                 tab,
                 query);
         tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.HISTORY);
     }
 
     public void showDownloads(
@@ -1430,6 +1442,10 @@ public class MainActivity extends Activity {
                 tab,
                 query);
         tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DOWNLOADS);
     }
 
     public void showCookies(
@@ -1442,6 +1458,10 @@ public class MainActivity extends Activity {
         removeInternalPageState(tab);
         cookiesPage.show(tab);
         tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.COOKIES);
     }
 
     public void showDemoPage(
@@ -1454,6 +1474,10 @@ public class MainActivity extends Activity {
         removeInternalPageState(tab);
         demoPage.show(tab);
         tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DEMO);
     }
 
     public void refreshLocalizedChrome() {
@@ -1680,17 +1704,43 @@ public class MainActivity extends Activity {
 
         if (tab == null ||
                 tab.isIncognito ||
-                tab.settingsPage ||
-                tab.defaultPage ||
-                tab.historyPage ||
-                tab.errorPage ||
-                url == null) {
+                url == null ||
+                url.trim().isEmpty()) {
             return;
         }
 
         browserHistory.addVisit(
                 url,
-                tab.title);
+                tab.title,
+                tab.favicon);
+    }
+
+    private void recordInternalVisit(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        browserHistory.addVisit(
+                url,
+                tab.title,
+                tab.favicon);
+    }
+
+    public void updateTabIcon(
+            BrowserTab tab,
+            android.graphics.Bitmap favicon) {
+
+        if (tabManager != null) {
+            tabManager.updateTabIcon(
+                    tab,
+                    favicon);
+        }
     }
 
     public void saveTabs() {
