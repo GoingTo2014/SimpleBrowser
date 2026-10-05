@@ -112,7 +112,8 @@ public class SettingsPage {
         if ("websites".equals(section) ||
                 "appearance".equals(section) ||
                 "privacy-security"
-                        .equals(section)) {
+                        .equals(section) ||
+                "advanced".equals(section)) {
 
             return section;
         }
@@ -506,6 +507,11 @@ public class SettingsPage {
                 "var element=document.getElementById('custom-search');" +
                 "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
                 "}" +
+                "function refreshLogs(){" +
+                "var e=document.getElementById('logs');" +
+                "if(e)e.value=Android.getLogs();" +
+                "}" +
+                "function showWebViewInfo(){Android.showWebViewInfo();}" +
                 "</script>" +
                 "</head>" +
                 "<body>" +
@@ -514,7 +520,9 @@ public class SettingsPage {
 
                 "<div class='sidebar'>" +
 
-                "<div class='brand'>Simple Browser</div>" +
+                "<div class='brand'>Simple Browser " +
+                BuildConfig.VERSION_NAME +
+                "</div>" +
 
                 "<div class='nav " +
                 active(currentSection, "general") +
@@ -536,12 +544,19 @@ public class SettingsPage {
                 "' onclick=\"Android.navigate('appearance')\">" +
                 "Appearance</div>" +
 
+                "<div class='nav " +
+                active(currentSection, "advanced") +
+                "' onclick="Android.navigate('advanced')">" +
+                "Advanced</div>" +
+
                 "</div>" +
 
                 "<div class='content'>" +
 
                 "<h1>Settings</h1>" +
-                "<div class='subtitle'>Configure Simple Browser</div>" +
+                "<div class='subtitle'>Simple Browser " +
+                BuildConfig.VERSION_NAME +
+                " &bull; Configure Simple Browser</div>" +
 
                 "<div id='section-general' class='section " +
                 sectionActive(
@@ -747,6 +762,50 @@ public class SettingsPage {
                 "</div>" +
                 "</div>" +
 
+                "<div id='section-advanced' class='section " +
+                sectionActive(
+                        currentSection,
+                        "advanced") +
+                "'>" +
+
+                "<h2>Advanced</h2>" +
+                "<div class='card'>" +
+
+                "<div class='row'>" +
+                "<div class='title'>Browser information</div>" +
+                "<div class='description'>Simple Browser " +
+                BuildConfig.VERSION_NAME +
+                " &bull; Android API " +
+                android.os.Build.VERSION.SDK_INT +
+                "</div>" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<div class='title'>Developer logs</div>" +
+                "<div class='description'>Network requests, navigation changes, load errors, and JavaScript console messages. Logs are in memory only and capped automatically.</div>" +
+                "<textarea id='logs' readonly " +
+                "style='width:100%;height:300px;box-sizing:border-box;margin-top:10px;padding:10px;font-family:monospace;font-size:12px;background:" +
+                cardBackgroundHex +
+                ";color:" +
+                cardTextHex +
+                ";border:1px solid " +
+                accentBorderHex +
+                ";'></textarea>" +
+                "<div style='margin-top:10px;display:flex;gap:8px;'>" +
+                "<button onclick='refreshLogs()'>Refresh logs</button>" +
+                "<button onclick="Android.clearLogs();refreshLogs()">Clear logs</button>" +
+                "</div>" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<div class='title'>Current WebView</div>" +
+                "<div class='description'>Inspect the active tab URL and user agent.</div>" +
+                "<button style='margin-top:8px' onclick='showWebViewInfo()'>Show information</button>" +
+                "</div>" +
+
+                "</div>" +
+                "</div>" +
+
                 "<div id='section-appearance' class='section " +
                 sectionActive(
                         currentSection,
@@ -903,6 +962,57 @@ public class SettingsPage {
                                     tab,
                                     normalizeSection(
                                             section)));
+        }
+
+        @JavascriptInterface
+        public String getLogs() {
+            return BrowserLogger.getText();
+        }
+
+        @JavascriptInterface
+        public void clearLogs() {
+            BrowserLogger.clear();
+        }
+
+        @JavascriptInterface
+        public void showWebViewInfo() {
+
+            activity.runOnUiThread(
+                    () -> {
+
+                        BrowserTab current =
+                                activity.getActiveTab();
+
+                        if (current == null) {
+                            return;
+                        }
+
+                        String url =
+                                current.url == null
+                                        ? ""
+                                        : current.url;
+
+                        String userAgent =
+                                current.webView
+                                        .getSettings()
+                                        .getUserAgentString();
+
+                        new android.app.AlertDialog.Builder(
+                                activity)
+                                .setTitle(
+                                        "WebView information")
+                                .setMessage(
+                                        "URL:\n" +
+                                        url +
+                                        "\n\nUser agent:\n" +
+                                        userAgent +
+                                        "\n\nAndroid API: " +
+                                        android.os.Build.VERSION.SDK_INT)
+                                .setPositiveButton(
+                                        "OK",
+                                        null)
+                                .show();
+                    });
         }
 
         @JavascriptInterface
