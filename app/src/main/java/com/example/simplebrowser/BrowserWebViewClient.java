@@ -200,7 +200,7 @@ public class BrowserWebViewClient
             tab.url = BrowserPage.COOKIES;
             tab.title = "Cookies";
 
-        } else if (BrowserPage.ERROR.equals(route))
+        } else if (BrowserPage.ERROR.equals(route)) {
 
             /*
              * The custom error document reloads from its own
