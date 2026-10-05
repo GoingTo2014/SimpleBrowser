@@ -179,5 +179,21 @@ public final class Chinese extends LanguagePack {
         put("common.tab_overview", "标签页概览 ".trim());
         put("settings.browser_settings", "浏览器设置 ".trim());
         put("error.certificate_unverified", "无法验证网站的安全证书。 ".trim());
+        put("ua.default", "默认 Android WebView" );
+        put("ua.chrome_windows", "Chrome - Windows" );
+        put("ua.firefox_windows", "Firefox - Windows" );
+        put("ua.edge_windows", "Edge - Windows" );
+        put("ua.chrome_android", "Chrome - Android" );
+        put("ua.safari_iphone", "Safari - iPhone" );
+        put("ua.safari_ipad", "Safari - iPad" );
+        put("ua.samsung_browser", "Samsung Internet" );
+        put("ua.android_tablet", "Android 平板电脑" );
+        put("ua.playstation_5", "PlayStation 5" );
+        put("ua.xbox_series", "Xbox Series X" );
+        put("ua.nintendo_switch", "Nintendo Switch" );
+        put("ua.apple_tv", "Apple TV" );
+        put("ua.android_tv", "Android TV" );
+        put("ua.google_tv", "Google TV" );
+        put("ua.smart_tv", "Smart TV" );
     }
 }
