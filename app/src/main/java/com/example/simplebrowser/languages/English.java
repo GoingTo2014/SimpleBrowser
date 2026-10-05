@@ -8,6 +8,7 @@ public final class English extends LanguagePack {
         put("settings.title", "Settings");
         put("settings.general", "General");
         put("settings.privacy", "Privacy & Security");
+        put("strings.settings.privacy_html", "Privacy &amp; Security");
         put("settings.websites", "Websites");
         put("settings.appearance", "Appearance");
         put("settings.advanced", "Advanced");
