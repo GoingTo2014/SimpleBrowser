@@ -108,6 +108,10 @@ public class ErrorPage {
                         activity,
                         html);
 
+        tab.webView.addJavascriptInterface(
+                new Bridge(tab),
+                "Android");
+
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.ERROR,
