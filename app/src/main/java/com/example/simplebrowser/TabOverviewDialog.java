@@ -310,8 +310,10 @@ public class TabOverviewDialog {
 
         } else {
 
-            favicon.setImageResource(
-                    android.R.drawable.ic_menu_view);
+            favicon.setImageDrawable(
+                    new BrowserIconDrawable(
+                            BrowserIconDrawable.TABS,
+                            getTextColor()));
         }
 
         card.addView(
