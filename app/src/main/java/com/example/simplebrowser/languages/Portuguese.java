@@ -284,5 +284,11 @@ public final class Portuguese extends LanguagePack {
         put("demo.prompt_message", "Solicitação");
         put("demo.submit_message", "Enviar");
         put("demo.password_value", "senha");
+        put("demo.phone", "Telefone");
+        put("demo.media", "Mídia");
+        put("demo.iframe", "Quadro incorporado");
+        put("demo.form_output", "Saída do formulário");
+        put("demo.dialog", "Diálogo");
+        put("demo.dialog_text", "Elemento de diálogo padrão");
     }
 }
