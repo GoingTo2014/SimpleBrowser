@@ -824,9 +824,15 @@ public final class CookieStore {
                 break;
             }
 
-            value =
+            String parent =
                     value.substring(
                             dot + 1);
+
+            if (parent.indexOf('.') < 0) {
+                break;
+            }
+
+            value = parent;
         }
 
         return result;
