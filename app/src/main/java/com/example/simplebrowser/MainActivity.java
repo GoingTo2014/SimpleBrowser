@@ -1709,10 +1709,17 @@ public class MainActivity extends Activity {
             return;
         }
 
+        android.graphics.Bitmap icon =
+                tab.favicon != null
+                        ? tab.favicon
+                        : tab.webView == null
+                        ? null
+                        : tab.webView.getFavicon();
+
         browserHistory.addVisit(
                 url,
                 tab.title,
-                tab.favicon);
+                icon);
     }
 
     private void recordInternalVisit(
@@ -1898,6 +1905,11 @@ public class MainActivity extends Activity {
 
         updateSecurity(tab);
         updateNavigationButtons();
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.settingsUrl(
+                        section));
     }
 
     public void showSettingsSection(
