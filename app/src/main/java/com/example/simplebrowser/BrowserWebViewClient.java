@@ -182,12 +182,25 @@ public class BrowserWebViewClient
             tab.errorPage = false;
             tab.defaultPage = false;
             tab.historyPage = false;
+            tab.cookiesPage = false;
             tab.downloadsPage = true;
             tab.loading = false;
             tab.url = BrowserPage.DOWNLOADS;
             tab.title = "Downloads";
 
-        } else if (BrowserPage.ERROR.equals(route)) {
+        } else if (BrowserPage.COOKIES.equals(route)) {
+
+            tab.settingsPage = false;
+            tab.errorPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.downloadsPage = false;
+            tab.cookiesPage = true;
+            tab.loading = false;
+            tab.url = BrowserPage.COOKIES;
+            tab.title = "Cookies";
+
+        } else if (BrowserPage.ERROR.equals(route))
 
             /*
              * The custom error document reloads from its own
@@ -208,6 +221,7 @@ public class BrowserWebViewClient
                     tab.defaultPage ||
                     tab.historyPage ||
                     tab.downloadsPage ||
+                    tab.cookiesPage ||
                     tab.errorPage) {
 
                 activity.removeInternalPageState(tab);
@@ -241,6 +255,11 @@ public class BrowserWebViewClient
             activity.recordVisit(
                     tab,
                     url);
+
+            if (activity.getCookieStore() != null) {
+                activity.getCookieStore()
+                        .recordUrl(url);
+            }
         }
 
         activity.pageFinished(
