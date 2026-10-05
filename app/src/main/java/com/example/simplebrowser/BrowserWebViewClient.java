@@ -256,7 +256,8 @@ public class BrowserWebViewClient
                     tab,
                     url);
 
-            if (activity.getCookieStore() != null) {
+            if (!tab.isIncognito &&
+                    activity.getCookieStore() != null) {
                 activity.getCookieStore()
                         .recordUrl(url);
             }
