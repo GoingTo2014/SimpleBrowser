@@ -293,6 +293,28 @@ public class TabOverviewDialog {
                         previewWidth,
                         previewHeight));
 
+        ImageView favicon =
+                new ImageView(activity);
+
+        favicon.setScaleType(
+                ImageView.ScaleType.CENTER_INSIDE);
+
+        favicon.setBackgroundColor(
+                getBackgroundColor());
+
+        if (tab.favicon != null &&
+                !tab.favicon.isRecycled()) {
+
+            favicon.setImageBitmap(
+                    tab.favicon);
+        }
+
+        card.addView(
+                favicon,
+                new LinearLayout.LayoutParams(
+                        dp(36),
+                        dp(36)));
+
         LinearLayout info =
                 new LinearLayout(activity);
 
