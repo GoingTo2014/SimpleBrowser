@@ -138,7 +138,8 @@ public final class Localization {
             String value =
                     pack.get(key);
 
-            if (value != null) {
+            if (value != null &&
+                    !value.isEmpty()) {
                 return value;
             }
         }
@@ -151,7 +152,8 @@ public final class Localization {
             String value =
                     english.get(key);
 
-            if (value != null) {
+            if (value != null &&
+                    !value.isEmpty()) {
                 return value;
             }
         }
@@ -217,12 +219,14 @@ public final class Localization {
             String translated =
                     pack.get(key);
 
-            if (translated == null) {
+            if (translated == null ||
+                    translated.isEmpty()) {
                 translated =
                         english.get(key);
             }
 
-            if (translated == null) {
+            if (translated == null ||
+                    translated.isEmpty()) {
                 translated = key;
             }
 
