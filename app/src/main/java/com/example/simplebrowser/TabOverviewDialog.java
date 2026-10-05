@@ -2,9 +2,7 @@ package com.example.simplebrowser;
 
 import android.app.Dialog;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Picture;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
@@ -364,102 +362,15 @@ public class TabOverviewDialog {
             int targetWidth,
             int targetHeight) {
 
-        if (!tab.hasLoaded ||
-                tab.webView == null) {
+        if (tab == null ||
+                !tab.hasLoaded) {
             return null;
         }
 
-        try {
-
-            int width =
-                    Math.max(
-                            1,
-                            tab.webView.getWidth());
-
-            int height =
-                    Math.max(
-                            1,
-                            tab.webView.getHeight());
-
-            int bitmapWidth =
-                    targetWidth * 2;
-
-            int bitmapHeight =
-                    targetHeight * 2;
-
-            Bitmap bitmap =
-                    Bitmap.createBitmap(
-                            bitmapWidth,
-                            bitmapHeight,
-                            Bitmap.Config.ARGB_8888);
-
-            Canvas canvas =
-                    new Canvas(bitmap);
-
-            canvas.drawColor(
-                    Color.WHITE);
-
-            if (width > 1 &&
-                    height > 1) {
-
-                float scale =
-                        Math.max(
-                                bitmapWidth /
-                                        (float) width,
-                                bitmapHeight /
-                                        (float) height);
-
-                float scaledWidth =
-                        width * scale;
-
-                float scaledHeight =
-                        height * scale;
-
-                canvas.save();
-                canvas.translate(
-                        (bitmapWidth -
-                                scaledWidth) / 2f,
-                        (bitmapHeight -
-                                scaledHeight) / 2f);
-                canvas.scale(
-                        scale,
-                        scale);
-                tab.webView.draw(canvas);
-                canvas.restore();
-
-                return bitmap;
-            }
-
-            Picture picture =
-                    tab.webView.capturePicture();
-
-            if (picture == null ||
-                    picture.getWidth() <= 0 ||
-                    picture.getHeight() <= 0) {
-                bitmap.recycle();
-                return null;
-            }
-
-            float scale =
-                    Math.min(
-                            bitmapWidth /
-                                    (float) picture.getWidth(),
-                            bitmapHeight /
-                                    (float) picture.getHeight());
-
-            canvas.save();
-            canvas.scale(
-                    scale,
-                    scale);
-            picture.draw(canvas);
-            canvas.restore();
-
-            return bitmap;
-
-        } catch (Throwable ignored) {
-
-            return null;
-        }
+        return TabPreview.capture(
+                tab.webView,
+                targetWidth * 2,
+                targetHeight * 2);
     }
 
     private int getAccentColor() {
