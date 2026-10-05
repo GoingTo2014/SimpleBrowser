@@ -587,7 +587,9 @@ public class MainActivity extends Activity {
                 new CheckBox(this);
 
         desktop.setText(
-                "Desktop mode");
+                Localization.translate(
+                        this,
+                        "Desktop mode"));
 
         desktop.setTextColor(
                 ColorUtils
@@ -657,7 +659,10 @@ public class MainActivity extends Activity {
         Button button =
                 new Button(this);
 
-        button.setText(text);
+        button.setText(
+                Localization.translate(
+                        this,
+                        text));
         button.setAllCaps(false);
         button.setTextColor(readable);
         button.setBackgroundColor(accent);
@@ -907,7 +912,9 @@ public class MainActivity extends Activity {
 
             android.widget.Toast.makeText(
                     this,
-                    "Copied",
+                    Localization.translate(
+                            this,
+                            "Copied"),
                     android.widget.Toast.LENGTH_SHORT)
                     .show();
         }
@@ -932,13 +939,17 @@ public class MainActivity extends Activity {
             startActivity(
                     Intent.createChooser(
                             intent,
-                            "Share"));
+                            Localization.translate(
+                                    this,
+                                    "Share")));
 
         } catch (Exception e) {
 
             android.widget.Toast.makeText(
                     this,
-                    "No app can share this",
+                    Localization.translate(
+                            this,
+                            "No app can share this"),
                     android.widget.Toast.LENGTH_SHORT)
                     .show();
         }
@@ -1514,7 +1525,9 @@ public class MainActivity extends Activity {
 
             android.widget.Toast.makeText(
                     this,
-                    "Download started: " + filename,
+                    Localization.translate(
+                            this,
+                            "Download started: ") + filename,
                     android.widget.Toast.LENGTH_SHORT)
                     .show();
 
@@ -1522,7 +1535,9 @@ public class MainActivity extends Activity {
 
             android.widget.Toast.makeText(
                     this,
-                    "Unable to start download",
+                    Localization.translate(
+                            this,
+                            "Unable to start download"),
                     android.widget.Toast.LENGTH_SHORT)
                     .show();
         }
@@ -2063,9 +2078,11 @@ public class MainActivity extends Activity {
                         iconColor));
 
         reload.setContentDescription(
-                tab.loading
-                        ? "Stop loading"
-                        : "Reload");
+                Localization.translate(
+                        this,
+                        tab.loading
+                                ? "Stop loading"
+                                : "Reload"));
     }
 
     private int getAccentColor() {
