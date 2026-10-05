@@ -2,6 +2,7 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -34,13 +35,29 @@ jobs:
           name: SimpleBrowser-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Publish public latest build
+      - name: Read APK version
+        id: apk_version
+        run: |
+          set -e
+          version="$(
+            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk |
+            sed -n "s/.*versionName='\\([^']*\\)'.*/\\1/p"
+          )"
+          if [ -z "$version" ]; then
+            echo "Could not read APK version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Building SimpleBrowser $version"
+
+      - name: Publish versioned release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.apk_version.outputs.version }}
         run: |
           set -e
 
-          tag="simplebrowser-latest"
+          tag="$RELEASE_VERSION"
           asset="app/build/outputs/apk/debug/app-debug.apk"
 
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -53,16 +70,22 @@ jobs:
               target_commit="$GITHUB_SHA"
             fi
 
-            gh api \
-              --method POST \
-              "repos/$GITHUB_REPOSITORY/releases" \
-              -f tag_name="$tag" \
-              -f target_commitish="$target_commit" \
-              -f name="SimpleBrowser latest debug build" \
-              -f body="Automatically generated debug APK from the latest successful build." \
-              -F prerelease=true
+            gh release create "$tag" "$asset" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$target_commit" \
+              --title "SimpleBrowser $RELEASE_VERSION" \
+              --prerelease \
+              --notes "## What's new
 
-            gh release upload "$tag" "$asset" \
+- Rounded tab cards in the tabs overview.
+- Small-screen Settings now uses a vertical full-width section selector with connected rounded corners.
+- Cookies page optimized for smaller screens, including stacked cookie actions and full-width site deletion controls.
+- Reload button moved next to Forward in the toolbar."
+          fi
+
+          latest_tag="simplebrowser-latest"
+          if gh release view "$latest_tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$latest_tag" "$asset" \
               --clobber \
               --repo "$GITHUB_REPOSITORY"
           fi
