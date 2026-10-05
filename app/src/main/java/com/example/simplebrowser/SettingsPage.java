@@ -1278,6 +1278,9 @@ public class SettingsPage {
 
                         settings.reset();
 
+                        WebView.setWebContentsDebuggingEnabled(
+                                settings.isWebViewDebuggingEnabled());
+
                         activity.applyWebsiteSettings();
                         activity.applyBrowserAppearance();
 
