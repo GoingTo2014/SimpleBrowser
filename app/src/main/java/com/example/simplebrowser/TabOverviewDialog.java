@@ -4,10 +4,11 @@ import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -15,12 +16,22 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
- * Shows every tab in the current session with a readable live-page preview.
+ * Shows every tab as a large page preview that can be opened or
+ * long-pressed to reorder.
  */
 public class TabOverviewDialog {
 
+    private static final long DRAG_HOLD_MS = 450L;
+
     private final MainActivity activity;
     private final PreviewStore previewStore;
+
+    private View draggedView;
+    private BrowserTab draggedTab;
+    private ScrollView draggedScroll;
+    private Runnable dragRunnable;
+    private boolean dragging;
+    private float dragStartY;
 
     public TabOverviewDialog(
             MainActivity activity) {
@@ -41,22 +52,16 @@ public class TabOverviewDialog {
         root.setOrientation(
                 LinearLayout.VERTICAL);
         root.setPadding(
-                dp(10),
-                dp(10),
-                dp(10),
-                dp(10));
+                dp(8),
+                dp(8),
+                dp(8),
+                dp(8));
 
         int background =
                 getBackgroundColor();
 
         root.setBackgroundColor(
                 background);
-
-        final LinearLayout list =
-                new LinearLayout(activity);
-
-        list.setOrientation(
-                LinearLayout.VERTICAL);
 
         LinearLayout header =
                 new LinearLayout(activity);
@@ -90,16 +95,25 @@ public class TabOverviewDialog {
                         dp(48),
                         1f));
 
-        Button newTab =
-                new Button(activity);
+        ImageButton newTab =
+                new ImageButton(activity);
 
-        newTab.setText(
+        newTab.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.ADD,
+                        getTextColor()));
+        newTab.setContentDescription(
                 Localization.translate(
                         activity,
                         "New Tab"));
-        newTab.setAllCaps(false);
-        newTab.setTextColor(
-                getTextColor());
+        newTab.setBackgroundColor(
+                Color.TRANSPARENT);
+        newTab.setPadding(
+                dp(8),
+                dp(8),
+                dp(8),
+                dp(8));
+
         newTab.setOnClickListener(
                 v -> {
                     activity.getTabManager()
@@ -109,39 +123,54 @@ public class TabOverviewDialog {
                                             .getHomePage());
 
                     refreshTabList(
-                            list,
-                            dialog);
+                            listHolder,
+                            dialog,
+                            scrollHolder);
                 });
 
         header.addView(
                 newTab,
                 new LinearLayout.LayoutParams(
-                        dp(82),
+                        dp(44),
                         dp(44)));
 
-        Button done =
-                new Button(activity);
+        ImageButton done =
+                new ImageButton(activity);
 
-        done.setText(Localization.translate(activity, "tab.done"));
-        done.setAllCaps(false);
-        done.setTextColor(
-                getTextColor());
+        done.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.CLOSE,
+                        getTextColor()));
+        done.setContentDescription(
+                Localization.translate(
+                        activity,
+                        "Close"));
+        done.setBackgroundColor(
+                Color.TRANSPARENT);
+        done.setPadding(
+                dp(8),
+                dp(8),
+                dp(8),
+                dp(8));
         done.setOnClickListener(
                 v -> dialog.dismiss());
 
         header.addView(
                 done,
                 new LinearLayout.LayoutParams(
-                        dp(75),
+                        dp(44),
                         dp(44)));
 
-        root.addView(header);
+        root.addView(
+                header);
 
-        refreshTabList(
-                list,
-                dialog);
+        final LinearLayout list =
+                new LinearLayout(activity);
 
-        ScrollView scroll =
+        list.setOrientation(
+                LinearLayout.VERTICAL);
+
+        final ScrollView scroll =
                 new ScrollView(activity);
 
         scroll.addView(list);
@@ -152,6 +181,14 @@ public class TabOverviewDialog {
                         -1,
                         0,
                         1f));
+
+        listHolder = list;
+        scrollHolder = scroll;
+
+        refreshTabList(
+                list,
+                dialog,
+                scroll);
 
         dialog.setContentView(root);
         dialog.show();
@@ -170,13 +207,13 @@ public class TabOverviewDialog {
 
             int height =
                     Math.min(
-                            dp(650),
+                            dp(680),
                             (int) (
                                     activity
                                             .getResources()
                                             .getDisplayMetrics()
                                             .heightPixels *
-                                    0.88f));
+                                    0.90f));
 
             dialog.getWindow().setLayout(
                     width,
@@ -189,9 +226,15 @@ public class TabOverviewDialog {
         }
     }
 
+    private LinearLayout listHolder;
+    private ScrollView scrollHolder;
+
     private void refreshTabList(
             LinearLayout list,
-            Dialog dialog) {
+            Dialog dialog,
+            ScrollView scroll) {
+
+        cancelDrag();
 
         list.removeAllViews();
 
@@ -203,31 +246,28 @@ public class TabOverviewDialog {
                     createTabCard(
                             tab,
                             dialog,
-                            list));
+                            list,
+                            scroll));
         }
     }
 
     private View createTabCard(
             final BrowserTab tab,
             final Dialog dialog,
-            final LinearLayout list) {
+            final LinearLayout list,
+            final ScrollView scroll) {
 
-        LinearLayout wrapper =
+        final LinearLayout wrapper =
                 new LinearLayout(activity);
 
         wrapper.setOrientation(
                 LinearLayout.VERTICAL);
 
-        LinearLayout card =
+        final LinearLayout card =
                 new LinearLayout(activity);
 
-        card.setGravity(
-                Gravity.CENTER_VERTICAL);
-        card.setPadding(
-                dp(8),
-                dp(8),
-                dp(8),
-                dp(8));
+        card.setOrientation(
+                LinearLayout.VERTICAL);
 
         card.setBackgroundColor(
                 tab == activity.getActiveTab()
@@ -236,71 +276,22 @@ public class TabOverviewDialog {
                                 0.08f)
                         : getSurfaceColor());
 
-        int previewWidth =
-                Math.min(
-                        dp(220),
-                        Math.max(
-                                dp(140),
-                                (int) (
-                                        activity
-                                                .getResources()
-                                                .getDisplayMetrics()
-                                                .widthPixels *
-                                        0.38f)));
+        LinearLayout top =
+                new LinearLayout(activity);
 
-        int previewHeight =
-                Math.max(
-                        dp(79),
-                        Math.round(
-                                previewWidth *
-                                9f / 16f));
-
-        ImageView preview =
-                new ImageView(activity);
-
-        preview.setScaleType(
-                ImageView.ScaleType.CENTER_CROP);
-
-        Bitmap bitmap =
-                createPreview(
-                        tab,
-                        previewWidth,
-                        previewHeight);
-
-        if (bitmap != null) {
-            preview.setImageBitmap(bitmap);
-            previewStore.save(
-                    tab.previewKey,
-                    bitmap);
-        } else {
-            Bitmap saved =
-                    previewStore.load(
-                            tab.previewKey);
-
-            if (saved != null) {
-                preview.setImageBitmap(saved);
-            } else {
-                preview.setBackgroundColor(
-                        ColorUtils.darken(
-                                getSurfaceColor(),
-                                0.05f));
-            }
-        }
-
-        card.addView(
-                preview,
-                new LinearLayout.LayoutParams(
-                        previewWidth,
-                        previewHeight));
+        top.setGravity(
+                Gravity.CENTER_VERTICAL);
+        top.setPadding(
+                dp(7),
+                dp(3),
+                dp(3),
+                dp(3));
 
         ImageView favicon =
                 new ImageView(activity);
 
         favicon.setScaleType(
                 ImageView.ScaleType.CENTER_INSIDE);
-
-        favicon.setBackgroundColor(
-                getBackgroundColor());
 
         if (tab.favicon != null &&
                 !tab.favicon.isRecycled()) {
@@ -316,114 +307,51 @@ public class TabOverviewDialog {
                             getTextColor()));
         }
 
-        card.addView(
+        top.addView(
                 favicon,
                 new LinearLayout.LayoutParams(
-                        dp(36),
-                        dp(36)));
-
-        LinearLayout info =
-                new LinearLayout(activity);
-
-        info.setOrientation(
-                LinearLayout.VERTICAL);
-        info.setPadding(
-                dp(10),
-                0,
-                dp(6),
-                0);
+                        dp(28),
+                        dp(34)));
 
         TextView tabTitle =
                 new TextView(activity);
 
-        tabTitle.setText(
+        String title =
                 tab.title == null ||
                 tab.title.trim().isEmpty()
-                        ? "New Tab"
-                        : tab.title);
-        tabTitle.setTextSize(15);
-        tabTitle.setMaxLines(2);
+                        ? Localization.translate(
+                                activity,
+                                "New Tab")
+                        : tab.title;
+
+        tabTitle.setText(title);
+        tabTitle.setTextSize(14);
+        tabTitle.setSingleLine(true);
+        tabTitle.setEllipsize(
+                TextUtils.TruncateAt.END);
         tabTitle.setTextColor(
                 getTextColor());
 
-        info.addView(
+        top.addView(
                 tabTitle,
                 new LinearLayout.LayoutParams(
-                        -1,
-                        -2));
-
-        TextView url =
-                new TextView(activity);
-
-        String displayUrl =
-                BrowserPage.displayUrl(tab);
-
-        url.setText(
-                displayUrl.isEmpty()
-                        ? (tab.hasLoaded
-                                ? Localization.translate(activity, "New Tab")
-                                : Localization.translate(activity, "tab.not_loaded"))
-                        : displayUrl);
-        url.setTextSize(12);
-        url.setMaxLines(2);
-        url.setTextColor(
-                getSecondaryColor());
-
-        info.addView(
-                url,
-                new LinearLayout.LayoutParams(
-                        -1,
-                        -2));
-
-        card.addView(
-                info,
-                new LinearLayout.LayoutParams(
                         0,
-                        -2,
+                        dp(34),
                         1f));
-
-        Button open =
-                new Button(activity);
-
-        open.setText(
-                tab == activity.getActiveTab()
-                        ? Localization.translate(
-                                activity,
-                                "tab.current")
-                        : Localization.translate(
-                                activity,
-                                "Open"));
-        open.setAllCaps(false);
-        open.setTextColor(
-                getTextColor());
-        open.setOnClickListener(
-                v -> {
-                    activity.getTabManager()
-                            .selectTab(tab);
-                    dialog.dismiss();
-                });
-
-        card.addView(
-                open,
-                new LinearLayout.LayoutParams(
-                        dp(78),
-                        dp(44)));
 
         ImageButton close =
                 new ImageButton(activity);
 
-        close.setImageResource(
-                android.R.drawable
-                        .ic_menu_close_clear_cancel);
-
+        close.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.CLOSE,
+                        getTextColor()));
         close.setContentDescription(
                 Localization.translate(
                         activity,
                         "Close tab"));
-
         close.setBackgroundColor(
                 Color.TRANSPARENT);
-
         close.setPadding(
                 dp(7),
                 dp(7),
@@ -446,41 +374,372 @@ public class TabOverviewDialog {
 
                     refreshTabList(
                             list,
-                            dialog);
+                            dialog,
+                            scroll);
                 });
 
-        card.addView(
+        top.addView(
                 close,
                 new LinearLayout.LayoutParams(
-                        dp(44),
-                        dp(44)));
+                        dp(40),
+                        dp(40)));
 
-        card.setOnClickListener(
-                v -> {
-                    activity.getTabManager()
-                            .selectTab(tab);
-                    dialog.dismiss();
-                });
+        card.addView(
+                top,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)));
+
+        int screenWidth =
+                activity.getResources()
+                        .getDisplayMetrics()
+                        .widthPixels;
+
+        int previewWidth =
+                Math.min(
+                        dp(520),
+                        Math.max(
+                                dp(170),
+                                (int) (
+                                        screenWidth *
+                                        0.94f) -
+                                dp(16)));
+
+        int previewHeight =
+                Math.max(
+                        dp(96),
+                        Math.round(
+                                previewWidth *
+                                9f /
+                                16f));
+
+        ImageView preview =
+                new ImageView(activity);
+
+        preview.setScaleType(
+                ImageView.ScaleType.CENTER_CROP);
+
+        Bitmap bitmap =
+                createPreview(
+                        tab,
+                        previewWidth,
+                        previewHeight);
+
+        if (bitmap != null) {
+
+            preview.setImageBitmap(
+                    bitmap);
+
+            previewStore.save(
+                    tab.previewKey,
+                    bitmap);
+
+        } else {
+
+            Bitmap saved =
+                    previewStore.load(
+                            tab.previewKey);
+
+            if (saved != null) {
+
+                preview.setImageBitmap(
+                        saved);
+
+            } else {
+
+                preview.setBackgroundColor(
+                        ColorUtils.darken(
+                                getSurfaceColor(),
+                                0.05f));
+            }
+        }
+
+        card.addView(
+                preview,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        previewHeight));
+
+        View spacer =
+                new View(activity);
+
+        spacer.setBackgroundColor(
+                getBackgroundColor());
 
         wrapper.addView(
                 card,
                 new LinearLayout.LayoutParams(
                         -1,
-                        previewHeight + dp(16)));
-
-        View divider =
-                new View(activity);
-
-        divider.setBackgroundColor(
-                getBorderColor());
+                        dp(40) +
+                        previewHeight));
 
         wrapper.addView(
-                divider,
+                spacer,
                 new LinearLayout.LayoutParams(
                         -1,
-                        1));
+                        dp(5)));
+
+        card.setOnTouchListener(
+                (view, event) ->
+                        handleCardTouch(
+                                tab,
+                                wrapper,
+                                list,
+                                scroll,
+                                dialog,
+                                event));
 
         return wrapper;
+    }
+
+    private boolean handleCardTouch(
+            BrowserTab tab,
+            View wrapper,
+            LinearLayout list,
+            ScrollView scroll,
+            Dialog dialog,
+            MotionEvent event) {
+
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+
+                cancelDrag();
+
+                draggedView = wrapper;
+                draggedTab = tab;
+                draggedScroll = scroll;
+                dragging = false;
+                dragStartY =
+                        event.getRawY();
+
+                dragRunnable =
+                        () -> {
+
+                            if (draggedView != wrapper ||
+                                    draggedTab != tab) {
+                                return;
+                            }
+
+                            dragging = true;
+
+                            wrapper.setAlpha(
+                                    0.80f);
+                            wrapper.setScaleX(
+                                    1.02f);
+                            wrapper.setScaleY(
+                                    1.02f);
+
+                            scroll.requestDisallowInterceptTouchEvent(
+                                    true);
+                        };
+
+                wrapper.postDelayed(
+                        dragRunnable,
+                        DRAG_HOLD_MS);
+
+                return true;
+
+            case MotionEvent.ACTION_MOVE:
+
+                if (!dragging) {
+
+                    float dy =
+                            event.getRawY() -
+                            dragStartY;
+
+                    if (Math.abs(dy) >
+                            dp(10)) {
+                        cancelDrag();
+                    }
+
+                    return true;
+                }
+
+                scroll.requestDisallowInterceptTouchEvent(
+                        true);
+
+                float rawY =
+                        event.getRawY();
+
+                wrapper.setTranslationY(
+                        rawY -
+                        dragStartY);
+
+                int currentIndex =
+                        list.indexOfChild(
+                                wrapper);
+
+                int targetIndex =
+                        findDropIndex(
+                                list,
+                                wrapper,
+                                rawY);
+
+                if (targetIndex != currentIndex) {
+
+                    activity.getTabManager()
+                            .moveTab(
+                                    tab,
+                                    targetIndex);
+
+                    list.removeView(
+                            wrapper);
+
+                    list.addView(
+                            wrapper,
+                            Math.min(
+                                    targetIndex,
+                                    list.getChildCount()));
+
+                    wrapper.setTranslationY(0f);
+
+                    dragStartY = rawY;
+                }
+
+                autoScroll(
+                        scroll,
+                        rawY);
+
+                return true;
+
+            case MotionEvent.ACTION_UP:
+
+                if (dragging) {
+
+                    finishDrag();
+
+                } else {
+
+                    cancelDrag();
+
+                    activity.getTabManager()
+                            .selectTab(tab);
+
+                    dialog.dismiss();
+                }
+
+                return true;
+
+            case MotionEvent.ACTION_CANCEL:
+
+                finishDrag();
+                return true;
+        }
+
+        return true;
+    }
+
+    private int findDropIndex(
+            LinearLayout list,
+            View dragged,
+            float rawY) {
+
+        int count =
+                list.getChildCount();
+
+        for (int i = 0;
+                i < count;
+                i++) {
+
+            View child =
+                    list.getChildAt(i);
+
+            if (child == dragged) {
+                continue;
+            }
+
+            int[] location =
+                    new int[2];
+
+            child.getLocationOnScreen(
+                    location);
+
+            float midpoint =
+                    location[1] +
+                    child.getHeight() /
+                    2f;
+
+            if (rawY < midpoint) {
+                return i;
+            }
+        }
+
+        return Math.max(
+                0,
+                count - 1);
+    }
+
+    private void autoScroll(
+            ScrollView scroll,
+            float rawY) {
+
+        int[] location =
+                new int[2];
+
+        scroll.getLocationOnScreen(
+                location);
+
+        float top =
+                location[1];
+
+        float bottom =
+                top +
+                scroll.getHeight();
+
+        if (rawY < top + dp(52)) {
+
+            scroll.smoothScrollBy(
+                    0,
+                    -dp(18));
+
+        } else if (rawY >
+                bottom - dp(52)) {
+
+            scroll.smoothScrollBy(
+                    0,
+                    dp(18));
+        }
+    }
+
+    private void finishDrag() {
+
+        if (draggedView != null) {
+
+            draggedView.setAlpha(
+                    1f);
+
+            draggedView.setScaleX(
+                    1f);
+            draggedView.setScaleY(
+                    1f);
+            draggedView.setTranslationY(
+                    0f);
+        }
+
+        if (draggedScroll != null) {
+            draggedScroll
+                    .requestDisallowInterceptTouchEvent(
+                            false);
+        }
+
+        draggedView = null;
+        draggedTab = null;
+        draggedScroll = null;
+        dragRunnable = null;
+        dragging = false;
+    }
+
+    private void cancelDrag() {
+
+        if (dragRunnable != null &&
+                draggedView != null) {
+
+            draggedView.removeCallbacks(
+                    dragRunnable);
+        }
+
+        finishDrag();
     }
 
     private Bitmap createPreview(
@@ -549,25 +808,6 @@ public class TabOverviewDialog {
 
         return ColorUtils.getReadableTextColor(
                 getBackgroundColor());
-    }
-
-    private int getSecondaryColor() {
-
-        return ColorUtils.ensureContrast(
-                Color.rgb(
-                        95,
-                        95,
-                        95),
-                getBackgroundColor(),
-                4.5d);
-    }
-
-    private int getBorderColor() {
-
-        return ColorUtils.ensureContrast(
-                getAccentColor(),
-                getSurfaceColor(),
-                2.0d);
     }
 
     private int dp(int value) {
