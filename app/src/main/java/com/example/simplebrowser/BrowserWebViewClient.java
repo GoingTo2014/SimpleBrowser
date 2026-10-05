@@ -52,6 +52,23 @@ public class BrowserWebViewClient
         return false;
     }
 
+    private boolean isBrowserInternal(
+            String url) {
+
+        if (url == null) {
+            return false;
+        }
+
+        String lower =
+                url.trim()
+                        .toLowerCase();
+
+        return lower.startsWith(
+                        "browser://") ||
+                lower.startsWith(
+                        "https://browser.local/");
+    }
+
     private boolean isBrowserLocalPage(
             String url,
             String path) {
@@ -174,6 +191,11 @@ public class BrowserWebViewClient
                         url,
                         "/downloads");
 
+        boolean errorPage =
+                isBrowserLocalPage(
+                        url,
+                        "/error");
+
         if (settingsSection != null) {
 
             if (!tab.settingsPage) {
@@ -194,6 +216,7 @@ public class BrowserWebViewClient
         } else if (defaultPage ||
                 historyPage ||
                 downloadsPage ||
+                errorPage ||
                 (tab.errorPage &&
                  (url == null ||
                   url.equals(tab.url)))) {
@@ -213,6 +236,10 @@ public class BrowserWebViewClient
 
             if (downloadsPage) {
                 tab.downloadsPage = true;
+            }
+
+            if (errorPage) {
+                tab.errorPage = true;
             }
 
             tab.loading = false;
@@ -319,19 +346,34 @@ public class BrowserWebViewClient
             // but it is never written to browsing history.
         }
 
-        String current =
-                view.getUrl();
+        if (failingUrl == null ||
+                failingUrl.trim().isEmpty()) {
+            return;
+        }
 
-        if (failingUrl != null &&
-                (current == null ||
-                 failingUrl.equals(current))) {
+        /*
+         * Android 4.4 can report errors without a main-frame flag.
+         * Matching the failing URL against the tab's current navigation
+         * URL filters out most subresource errors while avoiding the
+         * browser.local URL used by the custom error document itself.
+         */
+        String currentUrl =
+                tab.url;
 
-            tab.sslError = false;
+        if (tab.errorPage ||
+                currentUrl == null ||
+                currentUrl.trim().isEmpty() ||
+                failingUrl.equals(currentUrl)) {
 
-            activity.showErrorPage(
-                    tab,
-                    failingUrl,
-                    description);
+            if (!isBrowserInternal(failingUrl)) {
+
+                tab.sslError = false;
+
+                activity.showErrorPage(
+                        tab,
+                        failingUrl,
+                        description);
+            }
         }
     }
 
