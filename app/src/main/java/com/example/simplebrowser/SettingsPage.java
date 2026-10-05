@@ -535,25 +535,37 @@ public class SettingsPage {
                 "}" +
                 ".sidebar{" +
                 "width:100%;flex:none;" +
-                "padding:10px;" +
-                "display:flex;" +
-                "flex-wrap:wrap;" +
-                "align-content:flex-start;" +
+                "padding:10px 0;" +
+                "display:block;" +
                 "}" +
                 ".brand{" +
                 "display:none;" +
                 "}" +
                 ".nav{" +
-                "width:calc(50% - 8px);" +
-                "padding:12px 8px;" +
-                "margin:4px;" +
+                "display:block;" +
+                "width:100%;" +
+                "padding:13px 14px;" +
+                "margin:0;" +
                 "font-size:13px;" +
-                "text-align:center;" +
-                "border-radius:6px;" +
+                "text-align:left;" +
+                "border-radius:0;" +
+                "border-bottom:1px solid " +
+                accentSoftHex +
+                ";" +
+                "}" +
+                ".nav:first-of-type{" +
+                "border-radius:8px 8px 0 0;" +
+                "}" +
+                ".nav:last-child{" +
+                "border-bottom:0;" +
+                "border-radius:0 0 8px 8px;" +
+                "}" +
+                ".nav:only-of-type{" +
+                "border-radius:8px;" +
                 "}" +
                 ".nav.active{" +
                 "border-left:0;" +
-                "padding-left:8px;" +
+                "padding-left:14px;" +
                 "}" +
                 ".content{" +
                 "display:none;" +
@@ -588,16 +600,16 @@ public class SettingsPage {
 
                 "@media(max-width:380px){" +
                 ".sidebar{" +
-                "padding:8px;" +
+                "padding:8px 0;" +
                 "}" +
                 ".nav{" +
-                "width:calc(50% - 6px);" +
-                "padding:10px 5px;" +
-                "margin:3px;" +
+                "width:100%;" +
+                "padding:11px 12px;" +
+                "margin:0;" +
                 "font-size:12px;" +
                 "}" +
                 ".nav.active{" +
-                "padding-left:5px;" +
+                "padding-left:12px;" +
                 "}" +
                 ".content{" +
                 "padding:12px 8px;" +
@@ -614,11 +626,11 @@ public class SettingsPage {
                 ".nav{" +
                 "width:100%;" +
                 "font-size:11px;" +
-                "padding:10px 4px;" +
-                "margin:3px 0;" +
+                "padding:10px 9px;" +
+                "margin:0;" +
                 "}" +
                 ".nav.active{" +
-                "padding-left:4px;" +
+                "padding-left:9px;" +
                 "}" +
                 ".content{" +
                 "padding:10px 7px;" +
