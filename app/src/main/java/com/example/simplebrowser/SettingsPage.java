@@ -692,7 +692,11 @@ public class SettingsPage {
                         settings.getHomeSelection())
                         ? " selected"
                         : "") +
-                ">Custom</option>" +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Custom") +
+                "</option>" +
 
                 "</select>" +
                 "</div>" +
@@ -1096,7 +1100,10 @@ public class SettingsPage {
                             ? " selected"
                             : "") +
                     ">" +
-                    UserAgentProfiles.label(i) +
+                    Localization.translate(
+                            activity,
+                            "ua." +
+                            UserAgentProfiles.id(i)) +
                     "</option>");
         }
 
