@@ -236,5 +236,8 @@ public final class Chinese extends LanguagePack {
         put("demo.table_label", "表格" );
         put("demo.image", "图片" );
         put("demo.details", "详细信息" );
+        put("history.cleared", "历史记录已清除");
+        put("settings.webview_cache_cleared", "WebView 缓存已清除");
+        put("settings.browsing_data_cleared", "浏览数据已清除");
     }
 }
