@@ -46,6 +46,12 @@ public class BrowserWebViewClient
             return true;
         }
 
+        if (BrowserPage.DEMO.equals(
+                BrowserPage.toPublicRoute(url))) {
+            activity.showDemoPage(tab);
+            return true;
+        }
+
         if (BrowserPage.isInternalUrl(url)) {
             return true;
         }
