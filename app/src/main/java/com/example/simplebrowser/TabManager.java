@@ -1,6 +1,8 @@
 package com.example.simplebrowser;
 
 import android.animation.LayoutTransition;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -312,6 +314,10 @@ public class TabManager {
 
                     return false;
                 });
+
+        tab.webView.setOnLongClickListener(
+                v -> activity.handleWebViewLongPress(
+                        tab));
 
         tab.webView.setDownloadListener(
                 (url,
