@@ -1117,7 +1117,9 @@ public class SettingsPage {
                         new android.app.AlertDialog.Builder(
                                 activity)
                                 .setTitle(
-                                        "WebView information")
+                                        Localization.translate(
+                                                activity,
+                                                "WebView information"))
                                 .setMessage(
                                         "URL:\n" +
                                         url +
@@ -1126,7 +1128,9 @@ public class SettingsPage {
                                         "\n\nAndroid API: " +
                                         android.os.Build.VERSION.SDK_INT)
                                 .setPositiveButton(
-                                        "OK",
+                                        Localization.translate(
+                                                activity,
+                                                "OK"),
                                         null)
                                 .show();
                     });
