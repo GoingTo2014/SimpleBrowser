@@ -2,6 +2,12 @@ plugins {
     id 'com.android.application'
 }
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
+
+def buildVersionName = new SimpleDateFormat('yyyy.MM.dd.HHmm', Locale.US).format(new Date())
+
 android {
     namespace 'com.example.simplebrowser'
     compileSdk 35
@@ -15,6 +21,6 @@ android {
         minSdk 19
         targetSdk 35
         versionCode 4
-        versionName '1.4'
+        versionName buildVersionName
     }
 }
