@@ -236,5 +236,8 @@ public final class Hindi extends LanguagePack {
         put("demo.table_label", "तालिका" );
         put("demo.image", "छवि" );
         put("demo.details", "विवरण" );
+        put("history.cleared", "इतिहास साफ़ किया गया");
+        put("settings.webview_cache_cleared", "WebView कैश साफ़ किया गया");
+        put("settings.browsing_data_cleared", "ब्राउज़िंग डेटा साफ़ किया गया");
     }
 }
