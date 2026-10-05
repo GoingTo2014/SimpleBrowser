@@ -36,9 +36,6 @@ import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
 
-    private static final String SETTINGS_ROOT =
-            "browser://settings";
-
     private EditText urlBox;
     private ProgressBar progressBar;
     private LinearLayout toolbar;
@@ -1772,7 +1769,7 @@ public class MainActivity extends Activity {
             } else if (tab.historyPage) {
 
                 setUrlText(
-                        "browser://history");
+                        BrowserPage.HISTORY);
 
             } else if (tab.downloadsPage) {
 
@@ -1853,6 +1850,23 @@ public class MainActivity extends Activity {
 
         updateReloadButton(tab);
         updateNavigationButtons();
+    }
+
+    public void goBackFromInternalPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        hideKeyboard();
+
+        if (tab.webView.canGoBack()) {
+            tab.webView.goBack();
+            return;
+        }
+
+        showDefaultPage(tab);
     }
 
     public void updateTabTitle(
@@ -2146,6 +2160,17 @@ public class MainActivity extends Activity {
 
         BrowserTab tab =
                 getActiveTab();
+
+        if (tab != null &&
+                (tab.settingsPage ||
+                 tab.defaultPage ||
+                 tab.historyPage ||
+                 tab.downloadsPage ||
+                 tab.errorPage)) {
+
+            goBackFromInternalPage(tab);
+            return;
+        }
 
         if (tab != null &&
                 tab.webView.canGoBack()) {
