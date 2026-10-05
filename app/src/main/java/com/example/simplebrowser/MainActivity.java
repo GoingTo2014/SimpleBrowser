@@ -972,19 +972,19 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if ("browser://default".equalsIgnoreCase(value)) {
+        if (BrowserPage.DEFAULT.equalsIgnoreCase(value)) {
 
             showDefaultPage(tab);
             return;
         }
 
-        if ("browser://history".equalsIgnoreCase(value)) {
+        if (BrowserPage.HISTORY.equalsIgnoreCase(value)) {
 
             showHistory(tab, "");
             return;
         }
 
-        if ("browser://downloads".equalsIgnoreCase(value)) {
+        if (BrowserPage.DOWNLOADS.equalsIgnoreCase(value)) {
 
             showDownloads(tab, "");
             return;
@@ -1025,71 +1025,15 @@ public class MainActivity extends Activity {
         private String getSettingsSection(
             String url) {
 
-        if (url == null) {
-            return null;
-        }
-
-        String lower =
-                url.trim()
-                        .toLowerCase();
-
-        if (!lower.startsWith(
-                SETTINGS_ROOT)) {
-
-            return null;
-        }
-
-        if (lower.equals(
-                SETTINGS_ROOT)) {
-
-            return "general";
-        }
-
-        String suffix =
-                lower.substring(
-                        SETTINGS_ROOT.length());
-
-        if (suffix.startsWith("/")) {
-            suffix = suffix.substring(1);
-        }
-
-        if ("general".equals(suffix)) {
-            return "general";
-        }
-
-        if ("websites".equals(suffix)) {
-            return "websites";
-        }
-
-        if ("appearance".equals(suffix)) {
-            return "appearance";
-        }
-
-        if ("privacy".equals(suffix) ||
-                "privacy-security"
-                        .equals(suffix)) {
-            return "privacy-security";
-        }
-
-        if ("advanced".equals(suffix)) {
-            return "advanced";
-        }
-
-        return null;
+        return BrowserPage.getSettingsSection(
+                url);
     }
 
     public String getSettingsUrl(
             String section) {
 
-        if (!"websites".equals(section) &&
-                !"appearance".equals(section) &&
-                !"privacy-security".equals(section)) {
-            section = "general";
-        }
-
-        return SETTINGS_ROOT +
-                "/" +
-                section;
+        return BrowserPage.settingsUrl(
+                section);
     }
 
     private boolean isLocalPath(
@@ -1256,19 +1200,19 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if ("browser://default".equalsIgnoreCase(url)) {
+        if (BrowserPage.DEFAULT.equalsIgnoreCase(url)) {
 
             showDefaultPage(tab);
             return;
         }
 
-        if ("browser://history".equalsIgnoreCase(url)) {
+        if (BrowserPage.HISTORY.equalsIgnoreCase(url)) {
 
             showHistory(tab, "");
             return;
         }
 
-        if ("browser://downloads".equalsIgnoreCase(url)) {
+        if (BrowserPage.DOWNLOADS.equalsIgnoreCase(url)) {
 
             showDownloads(tab, "");
             return;
@@ -1571,10 +1515,17 @@ public class MainActivity extends Activity {
                 BrowserIconDrawable.MORE,
                 readable);
 
-        setToolbarIcon(
-                R.id.tab_overview,
-                BrowserIconDrawable.TABS,
-                readable);
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        tabOverview.setImageDrawable(
+                new TabCountDrawable(
+                        readable,
+                        tabManager == null
+                                ? 0
+                                : tabManager
+                                        .getTabs()
+                                        .size()));
 
         ImageButton newTab =
                 findViewById(R.id.new_tab);
@@ -1776,12 +1727,12 @@ public class MainActivity extends Activity {
             } else if (tab.historyPage) {
 
                 setUrlText(
-                        "browser://history");
+                        BrowserPage.HISTORY);
 
             } else if (tab.downloadsPage) {
 
                 setUrlText(
-                        "browser://downloads");
+                        BrowserPage.DOWNLOADS);
 
             } else if (tab.errorPage) {
 
@@ -1826,7 +1777,7 @@ public class MainActivity extends Activity {
             } else if (tab.downloadsPage) {
 
                 setUrlText(
-                        "browser://downloads");
+                        BrowserPage.DOWNLOADS);
 
             } else if (tab.errorPage) {
 
