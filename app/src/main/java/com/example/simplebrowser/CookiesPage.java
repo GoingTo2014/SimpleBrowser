@@ -323,7 +323,9 @@ public class CookiesPage {
                                                             domain,
                                                             name,
                                                             input.getText()
-                                                                    .toString());
+                                                                    .toString(),
+                                                            activity.getBrowserHistory(),
+                                                            getOpenTabUrls());
 
                                             if (!success) {
                                                 Toast.makeText(
@@ -352,7 +354,9 @@ public class CookiesPage {
                         boolean success =
                                 store.deleteCookie(
                                         domain,
-                                        name);
+                                        name,
+                                        activity.getBrowserHistory(),
+                                        getOpenTabUrls());
 
                         if (!success) {
                             Toast.makeText(
