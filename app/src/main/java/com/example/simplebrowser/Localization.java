@@ -296,6 +296,14 @@ public final class Localization {
             return "strings.untranslated";
         }
 
+        LanguagePack english =
+                PACKS.get(ENGLISH);
+
+        if (english != null &&
+                english.get(keyOrEnglish) != null) {
+            return keyOrEnglish;
+        }
+
         if (keyOrEnglish.startsWith(
                 "strings.")) {
             return keyOrEnglish;
