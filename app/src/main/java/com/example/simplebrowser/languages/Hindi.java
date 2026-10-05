@@ -179,5 +179,21 @@ public final class Hindi extends LanguagePack {
         put("common.tab_overview", "टैब अवलोकन ".trim());
         put("settings.browser_settings", "ब्राउज़र सेटिंग्स ".trim());
         put("error.certificate_unverified", "साइट के सुरक्षा प्रमाणपत्र की पुष्टि नहीं की जा सकी। ".trim());
+        put("ua.default", "डिफ़ॉल्ट Android WebView" );
+        put("ua.chrome_windows", "Chrome - Windows" );
+        put("ua.firefox_windows", "Firefox - Windows" );
+        put("ua.edge_windows", "Edge - Windows" );
+        put("ua.chrome_android", "Chrome - Android" );
+        put("ua.safari_iphone", "Safari - iPhone" );
+        put("ua.safari_ipad", "Safari - iPad" );
+        put("ua.samsung_browser", "Samsung Internet" );
+        put("ua.android_tablet", "Android टैबलेट" );
+        put("ua.playstation_5", "PlayStation 5" );
+        put("ua.xbox_series", "Xbox Series X" );
+        put("ua.nintendo_switch", "Nintendo Switch" );
+        put("ua.apple_tv", "Apple TV" );
+        put("ua.android_tv", "Android TV" );
+        put("ua.google_tv", "Google TV" );
+        put("ua.smart_tv", "Smart TV" );
     }
 }
