@@ -1007,6 +1007,9 @@ public class TabManager {
             webViewContainer.removeView(
                     tab.webView);
 
+            previewStore.remove(
+                    tab.previewKey);
+
             tab.webView.stopLoading();
             tab.webView.destroy();
 
@@ -1086,13 +1089,16 @@ public class TabManager {
                         tab.settingsSection);
 
             } else if (tab.defaultPage) {
-                url = "browser://default";
+                url = BrowserPage.DEFAULT;
 
             } else if (tab.historyPage) {
-                url = "browser://history";
+                url = BrowserPage.HISTORY;
 
             } else if (tab.downloadsPage) {
-                url = "browser://downloads";
+                url = BrowserPage.DOWNLOADS;
+
+            } else if (tab.cookiesPage) {
+                url = BrowserPage.COOKIES;
 
             } else if (tab.errorPage) {
                 url = tab.url;
