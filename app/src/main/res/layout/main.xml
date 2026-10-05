@@ -36,18 +36,11 @@
             android:contentDescription="Reload" />
 
         <ImageButton
-            android:id="@+id/home"            android:layout_width="44dp"
-            android:layout_height="48dp"
-            android:padding="10dp"
-            android:contentDescription="Home" />
-
-        <ImageButton
-            android:id="@+id/security"
-
+            android:id="@+id/home"
             android:layout_width="44dp"
             android:layout_height="48dp"
             android:padding="10dp"
-            android:contentDescription="Reload" />
+            android:contentDescription="Home" />
 
         <ImageButton
             android:id="@+id/security"
@@ -83,7 +76,7 @@
             android:padding="10dp"
             android:contentDescription="Browser settings" />
 
-    </LinearLayout>
+    
 
     <LinearLayout
         android:id="@+id/url_row"
