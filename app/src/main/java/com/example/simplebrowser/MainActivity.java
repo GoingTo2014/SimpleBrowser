@@ -1420,6 +1420,10 @@ public class MainActivity extends Activity {
         return cookieStore;
     }
 
+    public BrowserHistory getBrowserHistory() {
+        return browserHistory;
+    }
+
     public void startDownload(
             BrowserTab tab,
             String url,
