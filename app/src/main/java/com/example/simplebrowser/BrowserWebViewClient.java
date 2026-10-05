@@ -92,7 +92,8 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
-        if (url != null) {
+        if (url != null &&
+                !BrowserPage.isInternalUrl(url)) {
             BrowserLogger.log(
                     "NETWORK",
                     "GET " + url);
@@ -110,11 +111,16 @@ public class BrowserWebViewClient
                 request != null &&
                 request.getUrl() != null) {
 
-            BrowserLogger.log(
-                    "NETWORK",
-                    request.getMethod() +
-                    " " +
-                    request.getUrl().toString());
+            String url =
+                    request.getUrl().toString();
+
+            if (!BrowserPage.isInternalUrl(url)) {
+                BrowserLogger.log(
+                        "NETWORK",
+                        request.getMethod() +
+                        " " +
+                        url);
+            }
         }
 
         return null;
