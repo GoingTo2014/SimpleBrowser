@@ -117,8 +117,23 @@ public class DownloadHistory
     public synchronized List<Entry> getEntries(
             String query) {
 
+        return getEntries(
+                query,
+                Integer.MAX_VALUE,
+                0);
+    }
+
+    public synchronized List<Entry> getEntries(
+            String query,
+            int limit,
+            int offset) {
+
         ArrayList<Entry> entries =
                 new ArrayList<>();
+
+        if (limit <= 0) {
+            return entries;
+        }
 
         SQLiteDatabase db =
                 getReadableDatabase();
@@ -144,6 +159,11 @@ public class DownloadHistory
                     };
         }
 
+        String limitClause =
+                offset +
+                "," +
+                limit;
+
         Cursor cursor =
                 db.query(
                         TABLE_DOWNLOADS,
@@ -159,7 +179,8 @@ public class DownloadHistory
                         args,
                         null,
                         null,
-                        "time DESC");
+                        "time DESC",
+                        limitClause);
 
         try {
 
