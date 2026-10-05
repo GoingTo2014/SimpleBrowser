@@ -157,7 +157,7 @@ public class CookiesPage {
 
             html.append(
                     "<div class='sub'>" +
-                    "Websites that currently have cookies stored by Simple Browser." +
+                    "Websites discovered with cookies in Simple Browser, based on visited sites and open tabs." +
                     "</div>");
         }
 
