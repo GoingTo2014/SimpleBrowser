@@ -2530,6 +2530,9 @@ public class MainActivity extends Activity {
         ImageButton tabOverview =
                 findViewById(R.id.tab_overview);
 
+        View toolbarSpacer =
+                findViewById(R.id.toolbar_spacer);
+
         int tabButtonSize =
                 widthDp < 360
                         ? 34
@@ -2583,13 +2586,31 @@ public class MainActivity extends Activity {
                             .removeView(tabOverview);
                 }
 
-                int settingsIndex =
-                        toolbar.indexOfChild(
-                                findViewById(R.id.settings));
+                int spacerIndex =
+                        toolbarSpacer == null
+                                ? toolbar.indexOfChild(
+                                        findViewById(R.id.settings))
+                                : toolbar.indexOfChild(
+                                        toolbarSpacer);
 
                 toolbar.addView(
                         tabOverview,
-                        Math.max(0, settingsIndex));
+                        Math.max(0, spacerIndex));
+            }
+
+            if (toolbarSpacer != null) {
+                toolbarSpacer.setVisibility(View.VISIBLE);
+
+                LinearLayout.LayoutParams spacerParams =
+                        (LinearLayout.LayoutParams)
+                                toolbarSpacer.getLayoutParams();
+
+                spacerParams.width = 0;
+                spacerParams.height = -1;
+                spacerParams.weight = 1f;
+
+                toolbarSpacer.setLayoutParams(
+                        spacerParams);
             }
 
             if (urlBox.getParent() != urlRow) {
@@ -2654,6 +2675,21 @@ public class MainActivity extends Activity {
                 toolbar.addView(
                         urlBox,
                         Math.max(0, settingsIndex));
+            }
+
+            if (toolbarSpacer != null) {
+                toolbarSpacer.setVisibility(View.GONE);
+
+                LinearLayout.LayoutParams spacerParams =
+                        (LinearLayout.LayoutParams)
+                                toolbarSpacer.getLayoutParams();
+
+                spacerParams.width = 0;
+                spacerParams.height = -1;
+                spacerParams.weight = 0f;
+
+                toolbarSpacer.setLayoutParams(
+                        spacerParams);
             }
 
             urlRow.setVisibility(View.GONE);
