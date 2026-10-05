@@ -169,6 +169,12 @@ public class HistoryPage {
                 "margin-bottom:10px;}");
 
         html.append(
+                ".icon{width:36px;height:36px;flex:0 0 36px;object-fit:contain;border-radius:7px;background:" + background + ";}");
+
+        html.append(
+                ".icon-fallback{display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:bold;color:" + secondary + ";}");
+
+        html.append(
                 ".row{display:flex;gap:12px;" +
                 "align-items:flex-start;}");
 
@@ -203,6 +209,12 @@ public class HistoryPage {
         html.append(
                 ".loading{text-align:center;padding:12px;" +
                 "color:" + secondary + ";display:none;}");
+
+        html.append(
+                "@media(max-width:600px){.page{padding:16px 12px 24px;}.top{flex-wrap:wrap;}.top input{flex:1 1 100%;}.top button{flex:1 1 0;min-width:0;}.entry{padding:11px;border-radius:10px;}.row{gap:8px;}.delete{padding:0 9px;}}");
+
+        html.append(
+                "@media(max-width:380px){.page{padding:13px 9px 20px;}h1{font-size:23px;}.top{gap:6px;margin-bottom:14px;}input,button{height:40px;font-size:14px;}.entry{padding:9px;margin-bottom:8px;}.icon{width:32px;height:32px;flex-basis:32px;}.title{font-size:14px;line-height:18px;}.url,.time{font-size:11px;line-height:15px;}}");
 
         html.append("</style></head><body>");
         html.append("<div class='page'>");
@@ -368,6 +380,24 @@ public class HistoryPage {
         return Localization.translateHtml(activity, html.toString());
     }
 
+    private String entryIconHtml(
+            BrowserHistory.Entry entry) {
+
+        String icon =
+                BrowserHistory.faviconDataUri(
+                        entry.favicon);
+
+        if (icon.isEmpty()) {
+            return
+                    "<div class='icon icon-fallback'>S</div>";
+        }
+
+        return
+                "<img class='icon' src='" +
+                icon +
+                "'>";
+    }
+
     private String entryHtml(
             BrowserHistory.Entry entry,
             String text,
@@ -386,6 +416,7 @@ public class HistoryPage {
 
         return
                 "<div class='entry'><div class='row'>" +
+                entryIconHtml(entry) +
                 "<div class='grow'>" +
                 "<div class='title'>" +
                 "<a href='javascript:openEntry(" +
@@ -494,6 +525,11 @@ public class HistoryPage {
                             format.format(
                                     new Date(
                                             entry.time)));
+
+                    object.put(
+                            "favicon",
+                            BrowserHistory.faviconDataUri(
+                                    entry.favicon));
 
                     array.put(object);
                 }
