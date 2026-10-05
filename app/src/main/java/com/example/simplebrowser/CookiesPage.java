@@ -140,8 +140,31 @@ public class CookiesPage {
         html.append(
                 ".danger{background:#B3261E;}");
         html.append(
+                ".site-delete{width:100%;margin-top:4px;}" +
                 ".empty{text-align:center;padding:50px 10px;" +
                 "color:" + secondary + ";}");
+
+        html.append(
+                "@media(max-width:600px){" +
+                ".page{padding:16px 10px 24px;}" +
+                "h1{font-size:23px;}" +
+                ".sub{font-size:12px;line-height:1.4;margin-bottom:14px;}" +
+                ".entry{padding:10px;border-radius:10px;}" +
+                ".domain{font-size:15px;margin-bottom:7px;word-break:break-word;}" +
+                ".cookie{align-items:stretch;flex-wrap:wrap;gap:6px;padding:9px 0;}" +
+                ".grow{flex:1 1 100%;}" +
+                ".cookie button{flex:1 1 0;min-width:0;height:40px;padding:0 8px;}" +
+                ".site-delete{height:40px;}" +
+                ".empty{padding:38px 8px;}" +
+                "}" +
+                "@media(max-width:380px){" +
+                ".page{padding:13px 7px 20px;}" +
+                "h1{font-size:21px;}" +
+                ".entry{padding:8px;}" +
+                ".cookie{gap:5px;}" +
+                ".cookie button{font-size:12px;padding:0 5px;}" +
+                ".site-delete{font-size:12px;}" +
+                "}");
         html.append("</style></head><body>");
         html.append("<div class='page'>");
         html.append("<h1>Cookies</h1>");
@@ -225,6 +248,7 @@ public class CookiesPage {
 
                 html.append(
                         "<button class='danger' " +
+                        "class='danger site-delete' " +
                         "onclick=\"CookiesPage.deleteDomain('" +
                         js(domain) +
                         "')\">Delete site cookies</button>");
