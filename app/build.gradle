@@ -7,6 +7,7 @@ import java.util.Date
 import java.util.TimeZone
 
 def buildVersionName = new SimpleDateFormat('yyyy.MM.dd.HHmm', Locale.US).format(new Date())
+def buildVersionCode = (System.currentTimeMillis() / 10000L).intValue()
 
 android {
     namespace 'com.example.simplebrowser'
@@ -20,7 +21,32 @@ android {
         applicationId 'com.example.simplebrowser'
         minSdk 19
         targetSdk 35
-        versionCode 4
+        versionCode buildVersionCode
         versionName buildVersionName
+    }
+
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv('SIMPLEBROWSER_KEYSTORE_FILE')
+            def storePasswordValue = System.getenv('SIMPLEBROWSER_STORE_PASSWORD')
+            def keyAliasValue = System.getenv('SIMPLEBROWSER_KEY_ALIAS')
+            def keyPasswordValue = System.getenv('SIMPLEBROWSER_KEY_PASSWORD')
+
+            if (keystorePath && storePasswordValue && keyAliasValue && keyPasswordValue) {
+                storeFile file(keystorePath)
+                storePassword storePasswordValue
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            } else {
+                throw new GradleException(
+                        'Release signing credentials are not configured.')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
     }
 }
