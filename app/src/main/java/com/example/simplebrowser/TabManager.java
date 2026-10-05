@@ -215,13 +215,24 @@ public class TabManager {
                         false);
 
         if (title != null &&
-                !title.trim().isEmpty()) {
+                !title.trim().isEmpty() &&
+                !"about:blank".equalsIgnoreCase(
+                        title.trim())) {
 
             tab.title =
                     title.trim();
 
-            updateTabTitle(tab);
+        } else {
+
+            tab.title = "New Tab";
         }
+
+        if ("browser://default".equalsIgnoreCase(
+                tab.pendingUrl)) {
+            tab.title = "New Tab";
+        }
+
+        updateTabTitle(tab);
 
         return tab;
     }
