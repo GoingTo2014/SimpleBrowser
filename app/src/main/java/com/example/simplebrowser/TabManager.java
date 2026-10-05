@@ -909,10 +909,9 @@ public class TabManager {
                                 63, 81, 181));
 
         int inactiveBackground =
-                ColorUtils.mix(
+                ColorUtils.darken(
                         accent,
-                        Color.WHITE,
-                        0.55f);
+                        0.16f);
 
         int background =
                 tab == activeTab
