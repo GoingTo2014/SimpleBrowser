@@ -38,10 +38,19 @@ public final class CookieStore {
 
     public void recordUrl(String url) {
 
-        String domain =
-                getDomain(url);
+        if (url == null) {
+            return;
+        }
 
-        if (domain == null) {
+        recordUrls(
+                Collections.singletonList(url));
+    }
+
+    public void recordUrls(
+            List<String> urls) {
+
+        if (urls == null ||
+                urls.isEmpty()) {
             return;
         }
 
@@ -52,7 +61,15 @@ public final class CookieStore {
                                 Collections
                                         .<String>emptySet()));
 
-        domains.add(domain);
+        for (String url : urls) {
+
+            String domain =
+                    getDomain(url);
+
+            if (domain != null) {
+                domains.add(domain);
+            }
+        }
 
         preferences.edit()
                 .putStringSet(
@@ -86,6 +103,9 @@ public final class CookieStore {
             return;
         }
 
+        List<String> urls =
+                new ArrayList<>();
+
         int offset = 0;
         int pageSize = 250;
 
@@ -105,7 +125,7 @@ public final class CookieStore {
             for (BrowserHistory.Entry entry :
                     entries) {
 
-                recordUrl(entry.url);
+                urls.add(entry.url);
             }
 
             offset += entries.size();
@@ -114,6 +134,8 @@ public final class CookieStore {
                 break;
             }
         }
+
+        recordUrls(urls);
     }
 
     public String getCookies(
