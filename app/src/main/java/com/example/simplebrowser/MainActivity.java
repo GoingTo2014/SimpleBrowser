@@ -2198,9 +2198,24 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        if (cookieStore != null) {
+            cookieStore.startSync();
+        }
+    }
+
+    @Override
     protected void onPause() {
 
         saveTabs();
+
+        if (cookieStore != null) {
+            cookieStore.stopSync();
+        }
+
         super.onPause();
     }
 
