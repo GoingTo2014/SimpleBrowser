@@ -48,13 +48,18 @@ jobs:
               --clobber \
               --repo "$GITHUB_REPOSITORY"
           else
+            target_commit="$(git ls-remote origin "refs/heads/$GITHUB_REF_NAME" | cut -f1)"
+            if [ -z "$target_commit" ]; then
+              target_commit="$GITHUB_SHA"
+            fi
+
             gh api \
               --method POST \
               "repos/$GITHUB_REPOSITORY/releases" \
               -f tag_name="$tag" \
-              -f target_commitish="$GITHUB_SHA" \
+              -f target_commitish="$target_commit" \
               -f name="SimpleBrowser latest debug build" \
-              -f body="Automatically generated debug APK from the latest successful manual build." \
+              -f body="Automatically generated debug APK from the latest successful build." \
               -F prerelease=true
 
             gh release upload "$tag" "$asset" \
