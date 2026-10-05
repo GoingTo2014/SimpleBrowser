@@ -372,5 +372,26 @@ public class BrowserWebViewClient
         activity.updateSecurity(tab);
 
         handler.cancel();
+
+        String url =
+                error == null ||
+                error.getUrl() == null
+                        ? tab.url
+                        : error.getUrl();
+
+        if (url != null &&
+                !url.trim().isEmpty() &&
+                !BrowserPage.isInternalUrl(url) &&
+                !tab.errorPage) {
+
+            BrowserLogger.log(
+                    "ERROR",
+                    "SSL error for " + url);
+
+            activity.showErrorPage(
+                    tab,
+                    url,
+                    "The site's security certificate could not be verified.");
+        }
     }
 }
