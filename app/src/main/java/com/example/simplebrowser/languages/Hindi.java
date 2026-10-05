@@ -239,5 +239,8 @@ public final class Hindi extends LanguagePack {
         put("history.cleared", "इतिहास साफ़ किया गया");
         put("settings.webview_cache_cleared", "WebView कैश साफ़ किया गया");
         put("settings.browsing_data_cleared", "ब्राउज़िंग डेटा साफ़ किया गया");
+        put("downloads.search", "डाउनलोड खोजें");
+        put("downloads.download", "डाउनलोड");
+        put("ua.custom", "कस्टम");
     }
 }
