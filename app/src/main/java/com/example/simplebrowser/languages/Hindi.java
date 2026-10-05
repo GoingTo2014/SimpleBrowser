@@ -8,6 +8,7 @@ public final class Hindi extends LanguagePack {
         put("settings.title", "सेटिंग्स");
         put("settings.general", "सामान्य");
         put("settings.privacy", "गोपनीयता और सुरक्षा");
+        put("strings.settings.privacy_html", "गोपनीयता और सुरक्षा");
         put("settings.websites", "वेबसाइटें");
         put("settings.appearance", "दिखावट");
         put("settings.advanced", "उन्नत");
