@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -269,12 +270,30 @@ public class TabOverviewDialog {
         card.setOrientation(
                 LinearLayout.VERTICAL);
 
-        card.setBackgroundColor(
+        int cardColor =
                 tab == activity.getActiveTab()
                         ? ColorUtils.darken(
                                 getAccentColor(),
                                 0.08f)
-                        : getSurfaceColor());
+                        : getSurfaceColor();
+
+        GradientDrawable cardBackground =
+                new GradientDrawable();
+
+        cardBackground.setColor(
+                cardColor);
+
+        cardBackground.setCornerRadius(
+                dp(12));
+
+        card.setBackground(
+                cardBackground);
+
+        wrapper.setPadding(
+                0,
+                0,
+                0,
+                dp(8));
 
         LinearLayout top =
                 new LinearLayout(activity);
