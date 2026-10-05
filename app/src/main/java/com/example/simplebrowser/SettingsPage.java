@@ -1261,6 +1261,7 @@ public class SettingsPage {
 
                         activity.clearBrowserHistory();
                         activity.clearDownloadHistory();
+                        activity.clearCookieIndex();
 
                         Toast.makeText(
                                 activity,
