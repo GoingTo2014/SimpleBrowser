@@ -361,6 +361,46 @@ public class BrowserHistory
                         });
     }
 
+    public synchronized void updateLatestFavicon(
+            String url,
+            String title,
+            Bitmap faviconBitmap) {
+
+        if (url == null ||
+                url.trim().isEmpty() ||
+                faviconBitmap == null ||
+                faviconBitmap.isRecycled()) {
+            return;
+        }
+
+        ContentValues values =
+                new ContentValues();
+
+        byte[] encoded =
+                encodeFavicon(faviconBitmap);
+
+        if (encoded != null) {
+            values.put(
+                    "favicon",
+                    encoded);
+        }
+
+        if (title != null) {
+            values.put(
+                    "title",
+                    title.trim());
+        }
+
+        getWritableDatabase().update(
+                TABLE_VISITS,
+                values,
+                "id = (SELECT id FROM " +
+                TABLE_VISITS +
+                " WHERE url = ? " +
+                "ORDER BY time DESC LIMIT 1)",
+                new String[] { url.trim() });
+    }
+
     public synchronized void clear() {
 
         getWritableDatabase()
