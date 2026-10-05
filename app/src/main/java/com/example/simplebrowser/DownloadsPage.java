@@ -55,13 +55,12 @@ public class DownloadsPage {
                 new Bridge(tab),
                 "DownloadsPage");
 
-        webView.loadDataWithBaseURL(
-                "https://browser.local/downloads",
+        BrowserPage.load(
+                webView,
+                BrowserPage.DOWNLOADS,
                 createHtml(
                         query,
                         tab.isIncognito),
-                "text/html",
-                "UTF-8",
                 null);
 
         activity.updateTabTitle(tab);
