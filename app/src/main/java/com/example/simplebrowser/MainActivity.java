@@ -1493,6 +1493,12 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.DEMO.equals(
+                tab.url)) {
+            demoPage.show(tab);
+            return;
+        }
+
         if (tab.errorPage) {
             String retry =
                     tab.url;
