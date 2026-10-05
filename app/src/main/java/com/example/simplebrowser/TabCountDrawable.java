@@ -48,10 +48,18 @@ public final class TabCountDrawable extends Drawable {
         Rect bounds =
                 getBounds();
 
+        canvas.save();
+        canvas.scale(
+                1.16f,
+                1.16f,
+                bounds.exactCenterX(),
+                bounds.exactCenterY());
+
         tabsIcon.setBounds(
                 bounds);
 
         tabsIcon.draw(canvas);
+        canvas.restore();
 
         float size =
                 Math.min(
@@ -63,8 +71,8 @@ public final class TabCountDrawable extends Drawable {
                         9f,
                         size * (
                                 countText.length() > 2
-                                        ? 0.26f
-                                        : 0.34f)));
+                                        ? 0.33f
+                                        : 0.43f)));
 
         Paint.FontMetrics metrics =
                 textPaint.getFontMetrics();
