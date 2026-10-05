@@ -38,8 +38,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view simplebrowser-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload simplebrowser-latest               app/build/outputs/apk/debug/app-debug.apk               --clobber               --repo "$GITHUB_REPOSITORY"
+          set -e
+
+          tag="simplebrowser-latest"
+          asset="app/build/outputs/apk/debug/app-debug.apk"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" \
+              --clobber \
+              --repo "$GITHUB_REPOSITORY"
           else
-            gh release create simplebrowser-latest               app/build/outputs/apk/debug/app-debug.apk               --title "SimpleBrowser latest debug build"               --notes "Automatically generated debug APK from the latest manual GitHub Actions build."               --prerelease               --target "$GITHUB_SHA"               --repo "$GITHUB_REPOSITORY"
+            gh api \
+              --method POST \
+              "repos/$GITHUB_REPOSITORY/releases" \
+              -f tag_name="$tag" \
+              -f target_commitish="$GITHUB_SHA" \
+              -f name="SimpleBrowser latest debug build" \
+              -f body="Automatically generated debug APK from the latest successful manual build." \
+              -F prerelease=true
+
+            gh release upload "$tag" "$asset" \
+              --clobber \
+              --repo "$GITHUB_REPOSITORY"
           fi
