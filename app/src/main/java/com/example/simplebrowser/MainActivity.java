@@ -1426,6 +1426,18 @@ public class MainActivity extends Activity {
         tabManager.selectTab(tab);
     }
 
+    public void showDemoPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        demoPage.show(tab);
+        tabManager.selectTab(tab);
+    }
+
     public void refreshTab(
             BrowserTab tab) {
 
