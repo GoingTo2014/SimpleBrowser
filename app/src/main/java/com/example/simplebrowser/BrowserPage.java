@@ -318,6 +318,11 @@ public final class BrowserPage {
         }
 
         if (lower.equals(
+                DEMO)) {
+            return DEMO;
+        }
+
+        if (lower.equals(
                 SETTINGS)) {
             return SETTINGS + "/general";
         }
