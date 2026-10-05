@@ -1573,29 +1573,6 @@ public class TabManager {
         bitmap.recycle();
     }
 
-    public void updateTabIcon(
-            BrowserTab tab,
-            android.graphics.Bitmap favicon) {
-
-        if (tab == null ||
-                tab.faviconView == null) {
-            return;
-        }
-
-        if (favicon == null ||
-                favicon.isRecycled()) {
-            tab.faviconView.setImageDrawable(null);
-            tab.faviconView.setVisibility(
-                    View.GONE);
-            return;
-        }
-
-        tab.favicon = favicon;
-        tab.faviconView.setImageBitmap(favicon);
-        tab.faviconView.setVisibility(
-                View.VISIBLE);
-    }
-
     public void updateTabTitle(
             BrowserTab tab) {
 
