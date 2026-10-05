@@ -37,11 +37,11 @@ public class BrowserChromeClient
 
         if (tab.settingsPage) {
 
-            tab.title = "Settings";
+            tab.title = Localization.translate(activity, "Settings");
 
         } else if (tab.errorPage) {
 
-            tab.title = "Page unavailable";
+            tab.title = Localization.translate(activity, "Page unavailable");
 
         } else if (tab.defaultPage ||
                 "about:blank".equalsIgnoreCase(title) ||
@@ -52,7 +52,7 @@ public class BrowserChromeClient
              * The built-in new-tab document must never expose
              * the WebView's temporary about:blank title.
              */
-            tab.title = "New Tab";
+            tab.title = Localization.translate(activity, "New Tab");
 
         } else {
 
