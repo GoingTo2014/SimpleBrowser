@@ -240,26 +240,6 @@ public class BrowserWebViewClient
     }
 
     @Override
-    public void onConsoleMessage(
-            ConsoleMessage message) {
-
-        if (message != null) {
-            BrowserLogger.log(
-                    "CONSOLE",
-                    message.message() +
-                    " (" +
-                    message.sourceId() +
-                    ":" +
-                    message.lineNumber() +
-                    ", " +
-                    message.messageLevel() +
-                    ")");
-        }
-
-        super.onConsoleMessage(message);
-    }
-
-    @Override
     public void onPageStarted(
             WebView view,
             String url,
