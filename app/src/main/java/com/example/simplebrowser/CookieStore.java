@@ -79,6 +79,43 @@ public final class CookieStore {
         return domains;
     }
 
+    public void discoverFromHistory(
+            BrowserHistory history) {
+
+        if (history == null) {
+            return;
+        }
+
+        int offset = 0;
+        int pageSize = 250;
+
+        while (offset < 5000) {
+
+            List<BrowserHistory.Entry> entries =
+                    history.getEntries(
+                            "",
+                            pageSize,
+                            offset);
+
+            if (entries == null ||
+                    entries.isEmpty()) {
+                break;
+            }
+
+            for (BrowserHistory.Entry entry :
+                    entries) {
+
+                recordUrl(entry.url);
+            }
+
+            offset += entries.size();
+
+            if (entries.size() < pageSize) {
+                break;
+            }
+        }
+    }
+
     public String getCookies(
             String domain) {
 
