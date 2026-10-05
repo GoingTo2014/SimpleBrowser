@@ -45,7 +45,7 @@ public class SettingsPage {
         tab.url =
                 activity.getSettingsUrl(
                         section);
-        tab.title = "Settings";
+        tab.title = Localization.translate(activity, "Settings");
 
         WebView webView =
                 tab.webView;
@@ -653,7 +653,34 @@ public class SettingsPage {
                 "</select>" +
                 "</div>" +
 
-                "<div id='custom-search' class='row " +
+                "<div class='row'>" +
+                "<div class='title'>Language</div>" +
+                "<div class='description'>Choose the browser language. System default follows the closest supported language.</div>" +
+                "<select onchange="Android.setLanguage(this.value)">" +
+                "<option value='system'" +
+                (Localization.SYSTEM.equals(settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">System default</option>" +
+                "<option value='en'" +
+                (Localization.ENGLISH.equals(settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">English</option>" +
+                "<option value='es'" +
+                (Localization.SPANISH.equals(settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">Español</option>" +
+                "<option value='pt'" +
+                (Localization.PORTUGUESE.equals(settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">Português</option>" +
+                "</select>" +
+                "</div>" +
+
+                "<div id='custom-search' class='row "
                 ("custom".equals(
                         settings.getSearchEngine())
                         ? ""
@@ -1103,6 +1130,18 @@ public class SettingsPage {
                                         null)
                                 .show();
                     });
+        }
+
+        @JavascriptInterface
+        public void setLanguage(
+                String language) {
+
+            settings.setLanguage(language);
+
+            activity.runOnUiThread(
+                    () -> show(
+                            tab,
+                            tab.settingsSection));
         }
 
         @JavascriptInterface
