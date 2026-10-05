@@ -29,14 +29,21 @@
             android:contentDescription="Forward" />
 
         <ImageButton
-            android:id="@+id/home"
+            android:id="@+id/reload"
             android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:padding="10dp"
+            android:contentDescription="Reload" />
+
+        <ImageButton
+            android:id="@+id/home"            android:layout_width="44dp"
             android:layout_height="48dp"
             android:padding="10dp"
             android:contentDescription="Home" />
 
         <ImageButton
-            android:id="@+id/reload"
+            android:id="@+id/security"
+
             android:layout_width="44dp"
             android:layout_height="48dp"
             android:padding="10dp"
