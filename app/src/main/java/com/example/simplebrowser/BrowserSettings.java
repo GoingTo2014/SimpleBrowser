@@ -15,6 +15,27 @@ public class BrowserSettings {
                 context.getSharedPreferences(
                         PREFS,
                         Context.MODE_PRIVATE);
+
+        /*
+         * Versions before the built-in New Tab page used Google as
+         * the implicit default. Migrate that old implicit value once,
+         * while allowing the user to explicitly select Google again.
+         */
+        if (!preferences.contains("home_default_migrated") &&
+                "https://www.google.com/".equals(
+                        preferences.getString(
+                                "home",
+                                null))) {
+
+            preferences.edit()
+                    .putString(
+                            "home",
+                            "browser://default")
+                    .putBoolean(
+                            "home_default_migrated",
+                            true)
+                    .apply();
+        }
     }
 
     public String getHomePage() {
