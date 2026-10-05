@@ -38,7 +38,7 @@ public class HistoryPage {
         tab.downloadsPage = false;
         tab.loading = false;
         tab.url = "browser://history";
-        tab.title = "History";
+        tab.title = Localization.translate(activity, "History");
 
         WebView webView =
                 tab.webView;
@@ -365,7 +365,7 @@ public class HistoryPage {
 
         html.append("</body></html>");
 
-        return html.toString();
+        return Localization.translateHtml(activity, html.toString());
     }
 
     private String entryHtml(
