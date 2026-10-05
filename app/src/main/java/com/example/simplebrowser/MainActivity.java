@@ -145,12 +145,7 @@ public class MainActivity extends Activity {
 
         if (launchUrl != null) {
 
-            BrowserTab initialTab =
-                    tabManager.addTab(
-                            "about:blank");
-
-            loadTabUrl(
-                    initialTab,
+            tabManager.addTab(
                     launchUrl);
 
         } else if (
@@ -161,12 +156,7 @@ public class MainActivity extends Activity {
 
         } else {
 
-            BrowserTab initialTab =
-                    tabManager.addTab(
-                            "about:blank");
-
-            loadTabUrl(
-                    initialTab,
+            tabManager.addTab(
                     browserSettings.getHomePage());
         }
     }
@@ -460,13 +450,11 @@ public class MainActivity extends Activity {
                         accent);
 
         int menuBackground =
-                incognito
-                        ? Color.rgb(
-                                32, 33, 36)
-                        : ColorUtils.mix(
-                                accent,
-                                Color.WHITE,
-                                0.90f);
+                ColorUtils.darken(
+                        accent,
+                        incognito
+                                ? 0.03f
+                                : 0.06f);
 
         LinearLayout menu =
                 new LinearLayout(this);
@@ -648,6 +636,14 @@ public class MainActivity extends Activity {
         button.setAllCaps(false);
         button.setTextColor(readable);
         button.setBackgroundColor(accent);
+        button.setGravity(
+                android.view.Gravity.RIGHT |
+                android.view.Gravity.CENTER_VERTICAL);
+        button.setPadding(
+                dp(12),
+                0,
+                dp(14),
+                0);
 
         button.setOnClickListener(
                 v -> action.run());
@@ -673,6 +669,14 @@ public class MainActivity extends Activity {
         button.setAllCaps(false);
         button.setTextColor(readable);
         button.setBackgroundColor(accent);
+        button.setGravity(
+                android.view.Gravity.RIGHT |
+                android.view.Gravity.CENTER_VERTICAL);
+        button.setPadding(
+                dp(12),
+                0,
+                dp(14),
+                0);
 
         button.setOnClickListener(
                 v -> {
