@@ -31,6 +31,23 @@ public class BrowserChromeClient
     }
 
     @Override
+    public void onReceivedIcon(
+            WebView view,
+            android.graphics.Bitmap favicon) {
+
+        if (favicon == null ||
+                favicon.isRecycled()) {
+            return;
+        }
+
+        tab.favicon = favicon;
+
+        activity.updateTabIcon(
+                tab,
+                favicon);
+    }
+
+    @Override
     public void onReceivedTitle(
             WebView view,
             String title) {
