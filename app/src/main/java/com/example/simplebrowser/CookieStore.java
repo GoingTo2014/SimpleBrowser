@@ -180,8 +180,8 @@ public final class CookieStore {
      * and the host-only form, then create one canonical host-only cookie.
      *
      * This matters because Android WebView identifies a cookie by its
-     * domain, path, and name. The old implementation wrote four cookies
-     * for every edit. cite not allowed in source
+     * domain, path, and name. The old implementation wrote several
+     * overlapping cookie variants for every edit.
      */
     public boolean setCookie(
             String domain,
@@ -787,20 +787,48 @@ public final class CookieStore {
             String domain,
             String name) {
 
-        List<String> scopes =
+        List<String> all =
+                getCookieScopeDomains(domain);
+
+        List<String> parentScopes =
                 new ArrayList<>();
 
-        for (String scope :
-                getCookieScopeDomains(domain)) {
+        for (int i = 1;
+                i < all.size();
+                i++) {
+
+            String scope =
+                    all.get(i);
 
             if (containsCookieName(
                     getCookies(scope),
                     name)) {
-                scopes.add(scope);
+                parentScopes.add(scope);
             }
         }
 
-        return scopes;
+        /*
+         * A parent-domain cookie is also returned by getCookie() for the
+         * child host. Therefore the child query cannot prove that a
+         * host-only cookie exists. Prefer the matching parent scope when
+         * one is observable; otherwise use the exact host.
+         */
+        if (!parentScopes.isEmpty()) {
+            return parentScopes;
+        }
+
+        List<String> result =
+                new ArrayList<>();
+
+        if (!all.isEmpty() &&
+                containsCookieName(
+                        getCookies(
+                                all.get(0)),
+                        name)) {
+            result.add(all.get(0));
+        }
+
+        return result;
     }
 
     private List<String> getCookieScopeDomains(
