@@ -332,9 +332,15 @@ public class BrowserWebViewClient
             currentUrl = tab.url;
         }
 
-        if (currentUrl == null ||
-                currentUrl.trim().isEmpty() ||
-                !failingUrl.equals(currentUrl)) {
+        boolean matchesCurrent =
+                failingUrl.equals(currentUrl);
+
+        boolean matchesTracked =
+                failingUrl.equals(
+                        tab.url);
+
+        if (!matchesCurrent &&
+                !matchesTracked) {
             return;
         }
 
