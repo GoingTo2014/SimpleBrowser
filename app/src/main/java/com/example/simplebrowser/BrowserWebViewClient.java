@@ -195,6 +195,11 @@ public class BrowserWebViewClient
             return "privacy-security";
         }
 
+        if (lower.equals(
+                browserRoot + "/advanced")) {
+            return "advanced";
+        }
+
         /*
          * Settings HTML uses this HTTPS base URL so the
          * WebView can keep the page in its back/forward
