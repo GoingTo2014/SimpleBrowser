@@ -53,13 +53,12 @@ public class HistoryPage {
                 new Bridge(tab),
                 "HistoryPage");
 
-        webView.loadDataWithBaseURL(
-                "https://browser.local/history",
+        BrowserPage.load(
+                webView,
+                BrowserPage.HISTORY,
                 createHtml(
                         query,
                         tab.isIncognito),
-                "text/html",
-                "UTF-8",
                 null);
 
         activity.updateTabTitle(tab);
