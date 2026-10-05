@@ -18,6 +18,25 @@ public final class Localization {
 
     static {
         add("Settings", "Configuración", "Configurações");
+        add("Privacy & Security", "Privacidad y seguridad", "Privacidade e segurança");
+        add("Desktop mode", "Modo de escritorio", "Modo desktop");
+        add("Enter Incognito Mode", "Entrar en modo incógnito", "Entrar no modo anônimo");
+        add("Exit Incognito Mode", "Salir del modo incógnito", "Sair do modo anônimo");
+        add("Image", "Imagen", "Imagem");
+        add("Audio", "Audio", "Áudio");
+        add("Video", "Vídeo", "Vídeo");
+        add("Link", "Enlace", "Link");
+        add("Open", "Abrir", "Abrir");
+        add("Open in new tab", "Abrir en una pestaña nueva", "Abrir em uma nova aba");
+        add("Download", "Descargar", "Baixar");
+        add("Share", "Compartir", "Compartilhar");
+        add("Copy URL", "Copiar URL", "Copiar URL");
+        add("Copy link", "Copiar enlace", "Copiar link");
+        add("Image URL", "URL de imagen", "URL da imagem");
+        add("Audio URL", "URL de audio", "URL do áudio");
+        add("Video URL", "URL de vídeo", "URL do vídeo");
+        add("Copied", "Copiado", "Copiado");
+        add("No app can share this", "Ninguna aplicación puede compartir esto", "Nenhum aplicativo pode compartilhar isto");
         add("General", "General", "Geral");
         add("Privacy &amp; Security", "Privacidad y seguridad", "Privacidade e segurança");
         add("Websites", "Sitios web", "Sites");
