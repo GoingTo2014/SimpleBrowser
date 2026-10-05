@@ -44,7 +44,7 @@ public class CookiesPage {
         tab.cookiesPage = true;
         tab.loading = false;
         tab.url = BrowserPage.COOKIES;
-        tab.title = "Cookies";
+        tab.title = Localization.translate(activity, "Cookies");
 
         WebView webView =
                 tab.webView;
@@ -241,7 +241,7 @@ public class CookiesPage {
 
         html.append("</div></body></html>");
 
-        return html.toString();
+        return Localization.translateHtml(activity, html.toString());
     }
 
     private String escape(String value) {
