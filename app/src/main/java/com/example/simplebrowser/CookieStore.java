@@ -209,22 +209,37 @@ public final class CookieStore {
         CookieManager manager =
                 CookieManager.getInstance();
 
+        boolean secure =
+                isSecureCookie(
+                        manager,
+                        safeDomain,
+                        safeName);
+
         expireCookieVariants(
                 manager,
                 safeDomain,
                 safeName,
                 "/");
 
-        manager.setCookie(
-                httpsUrl(
-                        safeDomain,
-                        "/"),
+        String cookie =
                 safeName +
                 "=" +
                 (value == null
                         ? ""
                         : value) +
-                "; Path=/");
+                "; Path=/";
+
+        if (secure ||
+                safeName.startsWith("__Secure-") ||
+                safeName.startsWith("__Host-")) {
+            cookie += "; Secure";
+        }
+
+        manager.setCookie(
+                httpsUrl(
+                        safeDomain,
+                        "/"),
+                cookie);
 
         syncCookies();
 
@@ -598,6 +613,13 @@ public final class CookieStore {
                         path),
                 expired);
 
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired +
+                "; Secure");
+
         /*
          * Domain=domain and Domain=.domain are both issued intentionally.
          * They cover cookies created by different WebView/website code paths
@@ -618,6 +640,70 @@ public final class CookieStore {
                 expired +
                 "; Domain=." +
                 domain);
+
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired +
+                "; Domain=" +
+                domain +
+                "; Secure");
+
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired +
+                "; Domain=." +
+                domain +
+                "; Secure");
+    }
+
+    private boolean isSecureCookie(
+            CookieManager manager,
+            String domain,
+            String name) {
+
+        String https =
+                manager.getCookie(
+                        httpsUrl(
+                                domain,
+                                "/"));
+
+        String http =
+                manager.getCookie(
+                        "http://" +
+                        domain +
+                        "/");
+
+        boolean inHttps =
+                containsCookieName(
+                        https,
+                        name);
+
+        boolean inHttp =
+                containsCookieName(
+                        http,
+                        name);
+
+        return inHttps &&
+                !inHttp;
+    }
+
+    private boolean containsCookieName(
+            String raw,
+            String name) {
+
+        for (CookieValue cookie :
+                parseCookies(raw)) {
+
+            if (name.equals(cookie.name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean hasCookieName(
