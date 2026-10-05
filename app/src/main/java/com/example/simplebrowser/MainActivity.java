@@ -289,6 +289,9 @@ public class MainActivity extends Activity {
         ImageButton settings =
                 findViewById(R.id.settings);
 
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
         back.setOnClickListener(v -> {
 
             hideKeyboard();
@@ -372,6 +375,14 @@ public class MainActivity extends Activity {
             showBrowserMenu(settings);
         });
 
+        tabOverview.setOnClickListener(v -> {
+
+            hideKeyboard();
+
+            new TabOverviewDialog(this)
+                    .show();
+        });
+
         ImageButton newTab =
                 findViewById(R.id.new_tab);
 
@@ -388,6 +399,7 @@ public class MainActivity extends Activity {
         setupButtonPressAnimation(home);
         setupButtonPressAnimation(reload);
         setupButtonPressAnimation(settings);
+        setupButtonPressAnimation(tabOverview);
 
         urlBox.setOnEditorActionListener(
                 (v, actionId, event) -> {
@@ -1540,6 +1552,11 @@ public class MainActivity extends Activity {
         setToolbarIcon(
                 R.id.settings,
                 BrowserIconDrawable.MORE,
+                readable);
+
+        setToolbarIcon(
+                R.id.tab_overview,
+                BrowserIconDrawable.TABS,
                 readable);
 
         ImageButton newTab =
