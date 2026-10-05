@@ -1322,6 +1322,12 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.DEMO.equalsIgnoreCase(url)) {
+
+            showDemoPage(tab);
+            return;
+        }
+
         removeInternalPageState(tab);
 
         tab.webView.loadUrl(url);
