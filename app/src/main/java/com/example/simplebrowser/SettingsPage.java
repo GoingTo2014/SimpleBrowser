@@ -715,6 +715,36 @@ public class SettingsPage {
                         activity,
                         "French") +
                 "</option>" +
+                "<option value='ja'" +
+                (Localization.JAPANESE.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Japanese") +
+                "</option>" +
+                "<option value='zh'" +
+                (Localization.CHINESE.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Chinese") +
+                "</option>" +
+                "<option value='hi'" +
+                (Localization.HINDI.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">" +
+                Localization.translate(
+                        activity,
+                        "Hindi") +
+                "</option>" +
                 "</select>" +
                 "</div>" +
 
