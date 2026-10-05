@@ -1356,7 +1356,7 @@ public class SettingsPage {
 
                         Toast.makeText(
                                 activity,
-                                "WebView cache cleared",
+                                Localization.translate(activity, "WebView cache cleared"),
                                 Toast.LENGTH_SHORT)
                                 .show();
                     });
@@ -1472,7 +1472,7 @@ public class SettingsPage {
 
                         Toast.makeText(
                                 activity,
-                                "Browsing data cleared",
+                                Localization.translate(activity, "Browsing data cleared"),
                                 Toast.LENGTH_SHORT)
                                 .show();
                     });
