@@ -1422,6 +1422,52 @@ public class TabManager {
         return tabs;
     }
 
+    /**
+     * Moves a tab within the current session and keeps the visible
+     * tab strip in the same order.
+     */
+    public void moveTab(
+            BrowserTab tab,
+            int targetIndex) {
+
+        if (tab == null ||
+                !tabs.contains(tab) ||
+                tabs.size() < 2) {
+            return;
+        }
+
+        int fromIndex =
+                tabs.indexOf(tab);
+
+        int safeTarget =
+                Math.max(
+                        0,
+                        Math.min(
+                                targetIndex,
+                                tabs.size() - 1));
+
+        if (fromIndex == safeTarget) {
+            return;
+        }
+
+        tabs.remove(fromIndex);
+        tabs.add(safeTarget, tab);
+
+        tabsLayout.removeView(
+                tab.tabView);
+
+        tabsLayout.addView(
+                tab.tabView,
+                safeTarget);
+
+        if (!incognitoMode) {
+            saveTabs();
+        }
+
+        activity.updateTabOverviewIcon();
+        updateTabAppearanceColors();
+    }
+
     public void applyWebSettings() {
 
         BrowserSettings browserSettings =
