@@ -2,6 +2,7 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -25,14 +26,38 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Build APK
-        run: gradle assembleDebug --no-daemon
+      - name: Prepare signing keystore
+        env:
+          SIMPLEBROWSER_KEYSTORE_BASE64: ${{ secrets.SIMPLEBROWSER_KEYSTORE_BASE64 }}
+        run: |
+          set -e
+          if [ -z "$SIMPLEBROWSER_KEYSTORE_BASE64" ]; then
+            echo "SIMPLEBROWSER_KEYSTORE_BASE64 is not configured"
+            exit 1
+          fi
+          echo "$SIMPLEBROWSER_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/simplebrowser-release.jks"
+
+      - name: Build signed APK
+        env:
+          SIMPLEBROWSER_KEYSTORE_FILE: ${{ runner.temp }}/simplebrowser-release.jks
+          SIMPLEBROWSER_STORE_PASSWORD: ${{ secrets.SIMPLEBROWSER_STORE_PASSWORD }}
+          SIMPLEBROWSER_KEY_ALIAS: ${{ secrets.SIMPLEBROWSER_KEY_ALIAS }}
+          SIMPLEBROWSER_KEY_PASSWORD: ${{ secrets.SIMPLEBROWSER_KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon
+
+      - name: Verify APK signature
+        run: |
+          set -e
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify \
+            --verbose \
+            --print-certs \
+            app/build/outputs/apk/release/app-release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SimpleBrowser-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: SimpleBrowser-release
+          path: app/build/outputs/apk/release/app-release.apk
 
       - name: Read APK version
         id: apk_version
