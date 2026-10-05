@@ -71,6 +71,14 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/url_row"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyleHorizontal"
