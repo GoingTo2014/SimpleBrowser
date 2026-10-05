@@ -406,7 +406,7 @@ public class DownloadsPage {
                 escape(
                         entry.mimeType == null ||
                         entry.mimeType.trim().isEmpty()
-                                ? "Unknown type"
+                                ? Localization.translate(activity, "downloads.unknown_type")
                                 : entry.mimeType) +
                 " &bull; " +
                 escape(
@@ -426,7 +426,7 @@ public class DownloadsPage {
             long downloadId) {
 
         if (manager == null) {
-            return "Status unavailable";
+            return Localization.translate(activity, "downloads.status_unavailable");
         }
 
         try {
@@ -443,7 +443,7 @@ public class DownloadsPage {
             try {
 
                 if (!cursor.moveToFirst()) {
-                    return "Download record unavailable";
+                    return Localization.translate(activity, "downloads.record_unavailable");
                 }
 
                 int status =
@@ -455,34 +455,34 @@ public class DownloadsPage {
                 if (status ==
                         DownloadManager
                                 .STATUS_SUCCESSFUL) {
-                    return "Completed";
+                    return Localization.translate(activity, "Completed");
                 }
 
                 if (status ==
                         DownloadManager
                                 .STATUS_FAILED) {
-                    return "Failed";
+                    return Localization.translate(activity, "Failed");
                 }
 
                 if (status ==
                         DownloadManager
                                 .STATUS_RUNNING) {
-                    return "Downloading";
+                    return Localization.translate(activity, "Downloading");
                 }
 
                 if (status ==
                         DownloadManager
                                 .STATUS_PENDING) {
-                    return "Queued";
+                    return Localization.translate(activity, "common.queued");
                 }
 
                 if (status ==
                         DownloadManager
                                 .STATUS_PAUSED) {
-                    return "Paused";
+                    return Localization.translate(activity, "common.paused");
                 }
 
-                return "Waiting";
+                return Localization.translate(activity, "common.waiting");
 
             } finally {
 
@@ -491,7 +491,7 @@ public class DownloadsPage {
 
         } catch (Exception e) {
 
-            return "Status unavailable";
+            return Localization.translate(activity, "downloads.status_unavailable");
         }
     }
 
@@ -580,7 +580,7 @@ public class DownloadsPage {
                             "mimeType",
                             entry.mimeType == null ||
                             entry.mimeType.trim().isEmpty()
-                                    ? "Unknown type"
+                                    ? Localization.translate(activity, "downloads.unknown_type")
                                     : entry.mimeType);
 
                     object.put(
@@ -628,7 +628,7 @@ public class DownloadsPage {
 
                         Toast.makeText(
                                 activity,
-                                "Downloads history cleared",
+                                Localization.translate(activity, "Downloads history cleared"),
                                 Toast.LENGTH_SHORT)
                                 .show();
 
@@ -668,7 +668,7 @@ public class DownloadsPage {
 
                                 Toast.makeText(
                                         activity,
-                                        "Download is not ready",
+                                        Localization.translate(activity, "Download is not ready"),
                                         Toast.LENGTH_SHORT)
                                         .show();
 
@@ -695,7 +695,7 @@ public class DownloadsPage {
 
                             Toast.makeText(
                                     activity,
-                                    "No app can open this download",
+                                    Localization.translate(activity, "No app can open this download"),
                                     Toast.LENGTH_SHORT)
                                     .show();
                         }
