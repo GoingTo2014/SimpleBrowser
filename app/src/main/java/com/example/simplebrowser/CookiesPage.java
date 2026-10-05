@@ -318,15 +318,24 @@ public class CookiesPage {
                                                 "Save"),
                                         (dialog, which) -> {
 
-                                            store.setCookie(
-                                                    domain,
-                                                    name,
-                                                    input.getText()
-                                                            .toString());
+                                            boolean success =
+                                                    store.setCookie(
+                                                            domain,
+                                                            name,
+                                                            input.getText()
+                                                                    .toString());
 
-                                            tab.webView.postDelayed(
-                                                    () -> show(tab),
-                                                    150);
+                                            if (!success) {
+                                                Toast.makeText(
+                                                        activity,
+                                                        Localization.translate(
+                                                                activity,
+                                                                "Cookie could not be changed"),
+                                                        Toast.LENGTH_SHORT)
+                                                        .show();
+                                            }
+
+                                            show(tab);
                                         })
                                 .show();
                     });
@@ -340,13 +349,22 @@ public class CookiesPage {
             activity.runOnUiThread(
                     () -> {
 
-                        store.deleteCookie(
-                                domain,
-                                name);
+                        boolean success =
+                                store.deleteCookie(
+                                        domain,
+                                        name);
 
-                        tab.webView.postDelayed(
-                                () -> show(tab),
-                                150);
+                        if (!success) {
+                            Toast.makeText(
+                                    activity,
+                                    Localization.translate(
+                                            activity,
+                                            "Cookie could not be deleted"),
+                                    Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+
+                        show(tab);
                     });
         }
 
@@ -357,22 +375,42 @@ public class CookiesPage {
             activity.runOnUiThread(
                     () -> {
 
-                        store.removeDomain(
-                                domain);
+                        boolean success =
+                                store.deleteSiteCookies(
+                                        domain,
+                                        activity.getBrowserHistory(),
+                                        getOpenTabUrls());
 
                         Toast.makeText(
                                 activity,
                                 Localization.translate(
                                         activity,
-                                        "Site cookies deleted"),
+                                        success
+                                                ? "Site cookies deleted"
+                                                : "Some site cookies could not be deleted"),
                                 Toast.LENGTH_SHORT)
                                 .show();
 
-                        tab.webView.postDelayed(
-                                () -> show(tab),
-                                150);
+                        show(tab);
                     });
         }
+    }
+
+    private List<String> getOpenTabUrls() {
+
+        java.util.ArrayList<String> urls =
+                new java.util.ArrayList<>();
+
+        for (BrowserTab current :
+                activity.getTabManager().getTabs()) {
+
+            if (!current.isIncognito &&
+                    current.url != null) {
+                urls.add(current.url);
+            }
+        }
+
+        return urls;
     }
 
     private String findValue(
