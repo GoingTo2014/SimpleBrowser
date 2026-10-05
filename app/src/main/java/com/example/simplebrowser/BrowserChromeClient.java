@@ -39,6 +39,10 @@ public class BrowserChromeClient
 
             tab.title = "Settings";
 
+        } else if (tab.errorPage) {
+
+            tab.title = "Page unavailable";
+
         } else if (tab.defaultPage ||
                 "about:blank".equalsIgnoreCase(title) ||
                 title == null ||
