@@ -24,7 +24,7 @@ public class DefaultPage {
         tab.url = "";
         tab.pendingUrl = "browser://default";
         tab.hasLoaded = true;
-        tab.title = "New Tab";
+        tab.title = Localization.translate(activity, "New Tab");
 
         WebView webView = tab.webView;
 
@@ -78,7 +78,7 @@ public class DefaultPage {
                         ? "#B9B9B9"
                         : "#666666";
 
-        return "<!DOCTYPE html>" +
+        return Localization.translateHtml(activity, "<!DOCTYPE html>" +
                 "<html><head>" +
                 "<meta name='viewport' " +
                 "content='width=device-width,initial-scale=1'>" +
