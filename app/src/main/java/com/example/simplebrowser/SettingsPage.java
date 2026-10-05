@@ -546,7 +546,7 @@ public class SettingsPage {
 
                 "<div class='nav " +
                 active(currentSection, "advanced") +
-                "' onclick="Android.navigate('advanced')">" +
+                "' onclick=\"Android.navigate('advanced')\">" +
                 "Advanced</div>" +
 
                 "</div>" +
@@ -793,7 +793,7 @@ public class SettingsPage {
                 ";'></textarea>" +
                 "<div style='margin-top:10px;display:flex;gap:8px;'>" +
                 "<button onclick='refreshLogs()'>Refresh logs</button>" +
-                "<button onclick="Android.clearLogs();refreshLogs()">Clear logs</button>" +
+                "<button onclick=\"Android.clearLogs();refreshLogs()\">Clear logs</button>" +
                 "</div>" +
                 "</div>" +
 
