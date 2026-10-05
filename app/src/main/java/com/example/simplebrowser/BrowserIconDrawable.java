@@ -21,6 +21,7 @@ public final class BrowserIconDrawable extends Drawable {
     public static final int SECURE = 8;
     public static final int FILE = 9;
     public static final int UNLOCK = 10;
+    public static final int TABS = 11;
 
     private final int type;
 
@@ -137,6 +138,10 @@ public final class BrowserIconDrawable extends Drawable {
 
             case UNLOCK:
                 drawUnlock(canvas);
+                break;
+
+            case TABS:
+                drawTabs(canvas);
                 break;
         }
 
@@ -427,6 +432,26 @@ public final class BrowserIconDrawable extends Drawable {
         canvas.drawLine(
                 20f, 9f,
                 25f, 9f,
+                paint);
+    }
+
+    private void drawTabs(
+            Canvas canvas) {
+
+        canvas.drawRoundRect(
+                new RectF(
+                        7f, 9f,
+                        23f, 26f),
+                2f,
+                2f,
+                paint);
+
+        canvas.drawRoundRect(
+                new RectF(
+                        11f, 6f,
+                        27f, 23f),
+                2f,
+                2f,
                 paint);
     }
 
