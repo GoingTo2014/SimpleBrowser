@@ -262,8 +262,10 @@ public class BrowserWebViewClient
                         .recordUrl(url);
             }
 
-            if (!tab.isIncognito) {
-                activity.saveTabPreview(tab);
+            if (!tab.isIncognito &&
+                    activity.getTabManager() != null) {
+                activity.getTabManager()
+                        .savePreview(tab);
             }
         }
 
