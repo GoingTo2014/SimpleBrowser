@@ -284,5 +284,11 @@ public final class French extends LanguagePack {
         put("demo.prompt_message", "Invite");
         put("demo.submit_message", "Envoyer");
         put("demo.password_value", "mot de passe");
+        put("demo.phone", "Téléphone");
+        put("demo.media", "Médias");
+        put("demo.iframe", "Cadre intégré");
+        put("demo.form_output", "Sortie du formulaire");
+        put("demo.dialog", "Boîte de dialogue");
+        put("demo.dialog_text", "Élément de dialogue standard");
     }
 }
