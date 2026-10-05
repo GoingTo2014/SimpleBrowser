@@ -68,11 +68,11 @@ public final class TabCountDrawable extends Drawable {
 
         textPaint.setTextSize(
                 Math.max(
-                        9f,
+                        7f,
                         size * (
                                 countText.length() > 2
-                                        ? 0.44f
-                                        : 0.52f)));
+                                        ? 0.30f
+                                        : 0.34f)));
 
         Paint.FontMetrics metrics =
                 textPaint.getFontMetrics();
