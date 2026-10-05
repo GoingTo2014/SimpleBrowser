@@ -3,6 +3,10 @@ package com.example.simplebrowser;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.webkit.SslErrorHandler;
+import android.webkit.ConsoleMessage;
+import android.os.Build;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -49,7 +53,75 @@ public class BrowserWebViewClient
             activity.removeSettingsBridge(tab);
         }
 
+        BrowserLogger.log(
+                "NAV",
+                "shouldOverrideUrlLoading: " +
+                url);
+
         return false;
+    }
+
+    @Override
+    public void doUpdateVisitedHistory(
+            WebView view,
+            String url,
+            boolean isReload) {
+
+        if (url == null ||
+                isBrowserInternal(url) ||
+                tab.settingsPage ||
+                tab.defaultPage ||
+                tab.historyPage ||
+                tab.downloadsPage ||
+                tab.errorPage) {
+            return;
+        }
+
+        tab.url = url;
+
+        if (tab == activity.getActiveTab()) {
+            activity.setUrlText(url);
+            activity.updateSecurity(tab);
+            activity.updateNavigationButtonsForTabs();
+        }
+
+        BrowserLogger.log(
+                "HISTORY",
+                (isReload ? "reload: " : "url: ") +
+                url);
+    }
+
+    @Override
+    public WebResourceResponse shouldInterceptRequest(
+            WebView view,
+            String url) {
+
+        if (url != null) {
+            BrowserLogger.log(
+                    "NETWORK",
+                    "GET " + url);
+        }
+
+        return null;
+    }
+
+    @Override
+    public WebResourceResponse shouldInterceptRequest(
+            WebView view,
+            WebResourceRequest request) {
+
+        if (Build.VERSION.SDK_INT >= 21 &&
+                request != null &&
+                request.getUrl() != null) {
+
+            BrowserLogger.log(
+                    "NETWORK",
+                    request.getMethod() +
+                    " " +
+                    request.getUrl().toString());
+        }
+
+        return null;
     }
 
     private boolean isBrowserInternal(
@@ -165,6 +237,26 @@ public class BrowserWebViewClient
         }
 
         return null;
+    }
+
+    @Override
+    public void onConsoleMessage(
+            ConsoleMessage message) {
+
+        if (message != null) {
+            BrowserLogger.log(
+                    "CONSOLE",
+                    message.message() +
+                    " (" +
+                    message.sourceId() +
+                    ":" +
+                    message.lineNumber() +
+                    ", " +
+                    message.messageLevel() +
+                    ")");
+        }
+
+        super.onConsoleMessage(message);
     }
 
     @Override
@@ -366,6 +458,15 @@ public class BrowserWebViewClient
                 failingUrl.equals(currentUrl)) {
 
             if (!isBrowserInternal(failingUrl)) {
+
+                BrowserLogger.log(
+                        "ERROR",
+                        "Load error " +
+                        errorCode +
+                        " for " +
+                        failingUrl +
+                        ": " +
+                        description);
 
                 tab.sslError = false;
 
