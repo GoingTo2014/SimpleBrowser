@@ -974,7 +974,7 @@ public class SettingsPage {
                 "<button id='automatic-updates-button' class='update-auto-button' " +
                 "data-enabled='" +
                 (settings.isAutomaticUpdatesEnabled() ? "1" : "0") +
-                "' onclick='Android.setAutomaticUpdates(this.getAttribute(\\'data-enabled\\') !== \\'1\\')'>" +
+                "' onclick="Android.setAutomaticUpdates(this.getAttribute('data-enabled') !== '1')">" +
                 (settings.isAutomaticUpdatesEnabled()
                         ? Localization.translate(activity, "settings.disable_auto_updates")
                         : Localization.translate(activity, "settings.enable_auto_updates")) +
