@@ -40,6 +40,7 @@ public class TabManager {
     private final TabStripLayout tabStrip;
     private final HorizontalScrollView tabScroll;
     private final LayoutTransition tabTransition;
+    private final PreviewStore previewStore;
 
     private final List<BrowserTab> normalTabs =
             new ArrayList<>();
@@ -64,6 +65,9 @@ public class TabManager {
                 webViewContainer;
         this.tabsLayout =
                 tabsLayout;
+
+        previewStore =
+                new PreviewStore(activity);
 
         this.tabStrip =
                 tabsLayout instanceof TabStripLayout
@@ -208,13 +212,20 @@ public class TabManager {
 
     public BrowserTab addRestoredTab(
             String url,
-            String title) {
+            String title,
+            String previewKey) {
 
         BrowserTab tab =
                 addTab(
                         url,
                         false,
                         false);
+
+        if (previewKey != null &&
+                !previewKey.trim().isEmpty()) {
+            tab.previewKey =
+                    previewKey.trim();
+        }
 
         if (title != null &&
                 !title.trim().isEmpty() &&
@@ -871,7 +882,11 @@ public class TabManager {
 
         } else if (tab.downloadsPage) {
 
-            url = "browser://downloads";
+            url = BrowserPage.DOWNLOADS;
+
+        } else if (tab.cookiesPage) {
+
+            url = BrowserPage.COOKIES;
 
         } else if (tab.errorPage) {
 
@@ -897,6 +912,7 @@ public class TabManager {
 
         activity.updateSecurity(tab);
         activity.applyActiveTabAppearance();
+        activity.updateTabOverviewIcon();
     }
 
     public void updateTabAppearance(
@@ -1029,6 +1045,9 @@ public class TabManager {
         webViewContainer.removeView(
                 tab.webView);
 
+        previewStore.remove(
+                tab.previewKey);
+
         tab.webView.stopLoading();
         tab.webView.destroy();
 
@@ -1044,6 +1063,7 @@ public class TabManager {
         }
 
         activity.updateNavigationButtonsForTabs();
+        activity.updateTabOverviewIcon();
     }
 
     public void saveTabs() {
@@ -1108,6 +1128,10 @@ public class TabManager {
                 object.put(
                         "title",
                         tab.title);
+
+                object.put(
+                        "previewKey",
+                        tab.previewKey);
 
                 array.put(object);
 
@@ -1223,7 +1247,10 @@ public class TabManager {
                                     "about:blank"),
                             object.optString(
                                     "title",
-                                    "New Tab"));
+                                    "New Tab"),
+                            object.optString(
+                                    "previewKey",
+                                    ""));
                 }
 
                 selectTab(
@@ -1348,6 +1375,7 @@ public class TabManager {
 
             activeTab = null;
             activity.setUrlText("");
+            activity.updateTabOverviewIcon();
             activity.updateNavigationButtonsForTabs();
             activity.applyActiveTabAppearance();
         }
@@ -1476,7 +1504,13 @@ public class TabManager {
         } else {
 
             webSettings.setUserAgentString(
-                    tab.defaultUserAgent);
+                    browserSettings.getUserAgentProfile()
+                            .equals(UserAgentProfiles.DEFAULT)
+                            ? tab.defaultUserAgent
+                            : UserAgentProfiles.getValue(
+                                    browserSettings.getUserAgentProfile(),
+                                    browserSettings.getCustomUserAgent(),
+                                    tab.defaultUserAgent));
 
             webSettings.setUseWideViewPort(false);
             webSettings.setLoadWithOverviewMode(false);
