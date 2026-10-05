@@ -2,6 +2,7 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -64,7 +65,7 @@ jobs:
           set -e
           version="$(
             "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/release/app-release.apk |
-            awk -F"'" '/versionName=/{print $4; exit}'
+            sed -n "s/.*versionName='\\([^']*\\)'.*/\\1/p"
           )"
           if [ -z "$version" ]; then
             echo "Could not read APK version"
