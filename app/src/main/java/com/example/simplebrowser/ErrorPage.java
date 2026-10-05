@@ -62,6 +62,7 @@ public class ErrorPage {
                 "<!DOCTYPE html><html><head>" +
                 "<meta name='viewport' " +
                 "content='width=device-width,initial-scale=1'>" +
+                "<title>Page unavailable</title>" +
                 "<style>" +
                 "html,body{margin:0;min-height:100%;" +
                 "font-family:sans-serif;background:" +
@@ -99,20 +100,35 @@ public class ErrorPage {
                 "<button onclick='goBack()'>Go back</button>" +
                 "</div></div>" +
                 "<script>" +
-                "function goBack(){history.back();}" +
+                "function goBack(){Android.goBack();}" +
                 "</script></body></html>";
 
-        tab.webView.loadDataWithBaseURL(
-                "https://browser.local/error",
+        BrowserPage.load(
+                tab.webView,
+                BrowserPage.ERROR,
                 html,
-                "text/html",
-                "UTF-8",
-                url);
+                null);
 
         activity.updateTabTitle(tab);
         activity.setUrlText(url);
         activity.setLoading(false);
         activity.updateSecurity(tab);
+    }
+
+
+    private class Bridge {
+
+        private final BrowserTab tab;
+
+        Bridge(BrowserTab tab) {
+            this.tab = tab;
+        }
+
+        @android.webkit.JavascriptInterface
+        public void goBack() {
+            activity.runOnUiThread(
+                    () -> activity.goBackFromInternalPage(tab));
+        }
     }
 
     private String escape(String value) {
