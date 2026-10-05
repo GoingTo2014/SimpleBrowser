@@ -3,14 +3,17 @@ package com.example.simplebrowser;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public final class CookieStore {
@@ -138,35 +141,49 @@ public final class CookieStore {
         recordUrls(urls);
     }
 
+    /*
+     * Always read the cookie jar through HTTPS.
+     *
+     * A non-secure cookie is also visible to HTTPS, while a Secure cookie
+     * is not visible to HTTP. Reading both schemes and concatenating the
+     * results was the cause of the duplicate-looking cookies in the old UI.
+     */
     public String getCookies(
             String domain) {
+
+        if (domain == null ||
+                domain.trim().isEmpty()) {
+            return "";
+        }
 
         CookieManager manager =
                 CookieManager.getInstance();
 
-        String https =
-                manager.getCookie(
-                        "https://" + domain + "/");
+        String url =
+                "https://" +
+                domain.trim() +
+                "/";
 
-        String http =
-                manager.getCookie(
-                        "http://" + domain + "/");
+        String cookies =
+                manager.getCookie(url);
 
-        if (https == null ||
-                https.trim().isEmpty()) {
-            return http == null ? "" : http;
+        if (cookies == null) {
+            return "";
         }
 
-        if (http == null ||
-                http.trim().isEmpty() ||
-                https.equals(http)) {
-            return https;
-        }
-
-        return https + "; " + http;
+        return cookies;
     }
 
-    public void setCookie(
+    /*
+     * Replace a visible root-path cookie without creating another
+     * host/domain variant. We first expire both possible domain forms
+     * and the host-only form, then create one canonical host-only cookie.
+     *
+     * This matters because Android WebView identifies a cookie by its
+     * domain, path, and name. The old implementation wrote four cookies
+     * for every edit. cite not allowed in source
+     */
+    public boolean setCookie(
             String domain,
             String name,
             String value) {
@@ -175,49 +192,49 @@ public final class CookieStore {
                 name == null ||
                 domain.trim().isEmpty() ||
                 name.trim().isEmpty()) {
-            return;
+            return false;
         }
 
         String safeDomain =
-                domain.trim();
+                normalizeDomain(domain);
 
-        String cookie =
-                name.trim() +
-                "=" +
-                (value == null ? "" : value) +
-                "; Path=/";
+        String safeName =
+                name.trim();
 
-        String domainCookie =
-                name.trim() +
-                "=" +
-                (value == null ? "" : value) +
-                "; Domain=" +
-                safeDomain +
-                "; Path=/";
+        if (safeDomain == null ||
+                safeDomain.isEmpty()) {
+            return false;
+        }
 
         CookieManager manager =
                 CookieManager.getInstance();
 
-        manager.setCookie(
-                "https://" + safeDomain + "/",
-                cookie);
+        expireCookieVariants(
+                manager,
+                safeDomain,
+                safeName,
+                "/");
 
         manager.setCookie(
-                "http://" + safeDomain + "/",
-                cookie);
+                httpsUrl(
+                        safeDomain,
+                        "/"),
+                safeName +
+                "=" +
+                (value == null
+                        ? ""
+                        : value) +
+                "; Path=/");
 
-        manager.setCookie(
-                "https://" + safeDomain + "/",
-                domainCookie);
+        syncCookies();
 
-        manager.setCookie(
-                "http://" + safeDomain + "/",
-                domainCookie);
-
-        sync();
+        return hasCookie(
+                safeDomain,
+                safeName,
+                value == null ? "" : value);
     }
 
-    public void deleteCookie(
+    public boolean deleteCookie(
             String domain,
             String name) {
 
@@ -225,77 +242,181 @@ public final class CookieStore {
                 name == null ||
                 domain.trim().isEmpty() ||
                 name.trim().isEmpty()) {
-            return;
+            return false;
         }
 
         String safeDomain =
-                domain.trim();
+                normalizeDomain(domain);
 
-        String expired =
-                name.trim() +
-                "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; " +
-                "Path=/";
+        String safeName =
+                name.trim();
 
-        String expiredDomain =
-                name.trim() +
-                "=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; " +
-                "Domain=" +
-                safeDomain +
-                "; Path=/";
+        if (safeDomain == null ||
+                safeDomain.isEmpty()) {
+            return false;
+        }
 
         CookieManager manager =
                 CookieManager.getInstance();
 
-        manager.setCookie(
-                "https://" + safeDomain + "/",
-                expired);
+        expireCookieVariants(
+                manager,
+                safeDomain,
+                safeName,
+                "/");
 
-        manager.setCookie(
-                "http://" + safeDomain + "/",
-                expired);
+        syncCookies();
 
-        manager.setCookie(
-                "https://" + safeDomain + "/",
-                expiredDomain);
+        return !hasCookieName(
+                safeDomain,
+                safeName);
+    }
 
-        manager.setCookie(
-                "http://" + safeDomain + "/",
-                expiredDomain);
+    /*
+     * Delete cookies belonging to the site at all paths that Simple
+     * Browser can actually observe from its recorded navigation URLs.
+     *
+     * Android 4.4's public CookieManager API exposes cookie lines, not
+     * their domain/path metadata, so a path-specific cookie cannot be
+     * deleted safely unless we address the path where it was observed.
+     */
+    public boolean deleteSiteCookies(
+            String domain,
+            BrowserHistory history,
+            List<String> openUrls) {
 
-        sync();
+        String safeDomain =
+                normalizeDomain(domain);
+
+        if (safeDomain == null ||
+                safeDomain.isEmpty()) {
+            return false;
+        }
+
+        LinkedHashSet<String> urls =
+                new LinkedHashSet<>();
+
+        urls.add(
+                httpsUrl(
+                        safeDomain,
+                        "/"));
+
+        if (openUrls != null) {
+            for (String url : openUrls) {
+                addSiteUrl(
+                        urls,
+                        safeDomain,
+                        url);
+            }
+        }
+
+        if (history != null) {
+
+            List<BrowserHistory.Entry> entries =
+                    history.getEntries(
+                            "",
+                            1000,
+                            0);
+
+            if (entries != null) {
+                for (BrowserHistory.Entry entry :
+                        entries) {
+                    addSiteUrl(
+                            urls,
+                            safeDomain,
+                            entry.url);
+                }
+            }
+        }
+
+        LinkedHashSet<String> paths =
+                new LinkedHashSet<>();
+
+        for (String url : urls) {
+            paths.addAll(
+                    getPathCandidates(url));
+        }
+
+        CookieManager manager =
+                CookieManager.getInstance();
+
+        Set<String> names =
+                new LinkedHashSet<>();
+
+        /*
+         * First collect names from every observable path. This avoids
+         * changing the collection while iterating through it.
+         */
+        for (String url : urls) {
+
+            String cookies =
+                    manager.getCookie(
+                            toHttps(url));
+
+            for (CookieValue cookie :
+                    parseCookies(cookies)) {
+                names.add(cookie.name);
+            }
+        }
+
+        for (String name : names) {
+
+            for (String path : paths) {
+
+                expireCookieVariants(
+                        manager,
+                        safeDomain,
+                        name,
+                        path);
+            }
+        }
+
+        syncCookies();
+
+        boolean remaining = false;
+
+        for (String url : urls) {
+
+            String cookies =
+                    manager.getCookie(
+                            toHttps(url));
+
+            if (cookies != null &&
+                    !cookies.trim().isEmpty()) {
+                remaining = true;
+                break;
+            }
+        }
+
+        if (!remaining) {
+
+            Set<String> domains =
+                    new LinkedHashSet<>(
+                            preferences.getStringSet(
+                                    KEY,
+                                    Collections
+                                            .<String>emptySet()));
+
+            domains.remove(
+                    safeDomain);
+
+            preferences.edit()
+                    .putStringSet(
+                            KEY,
+                            domains)
+                    .apply();
+        }
+
+        return !remaining;
     }
 
     public void removeDomain(
             String domain) {
 
-        if (domain == null) {
-            return;
-        }
-
-        List<CookieValue> cookies =
-                parseCookies(
-                        getCookies(domain));
-
-        for (CookieValue cookie : cookies) {
-            deleteCookie(
-                    domain,
-                    cookie.name);
-        }
-
-        Set<String> domains =
-                new LinkedHashSet<>(
-                        preferences.getStringSet(
-                                KEY,
-                                Collections
-                                        .<String>emptySet()));
-
-        domains.remove(domain);
-
-        preferences.edit()
-                .putStringSet(
-                        KEY,
-                        domains)
-                .apply();
+        deleteSiteCookies(
+                domain,
+                null,
+                null);
     }
 
     public void clearIndex() {
@@ -315,6 +436,9 @@ public final class CookieStore {
                 raw.trim().isEmpty()) {
             return result;
         }
+
+        Set<String> seen =
+                new HashSet<>();
 
         String[] parts =
                 raw.split(";");
@@ -342,6 +466,15 @@ public final class CookieStore {
                             equals + 1)
                             .trim();
 
+            String key =
+                    name +
+                    "\u0000" +
+                    cookieValue;
+
+            if (!seen.add(key)) {
+                continue;
+            }
+
             result.add(
                     new CookieValue(
                             name,
@@ -351,10 +484,253 @@ public final class CookieStore {
         return result;
     }
 
+    private void addSiteUrl(
+            Set<String> urls,
+            String domain,
+            String url) {
+
+        String candidateDomain =
+                getDomain(url);
+
+        if (!domain.equals(candidateDomain)) {
+            return;
+        }
+
+        try {
+
+            URI uri =
+                    new URI(url);
+
+            String path =
+                    uri.getRawPath();
+
+            if (path == null ||
+                    path.isEmpty()) {
+                path = "/";
+            }
+
+            urls.add(
+                    "https://" +
+                    domain +
+                    path);
+
+        } catch (Exception ignored) {
+        }
+    }
+
+    private Set<String> getPathCandidates(
+            String url) {
+
+        LinkedHashSet<String> paths =
+                new LinkedHashSet<>();
+
+        paths.add("/");
+
+        try {
+
+            URI uri =
+                    new URI(
+                            toHttps(url));
+
+            String path =
+                    uri.getRawPath();
+
+            if (path == null ||
+                    path.isEmpty()) {
+                return paths;
+            }
+
+            if (!path.startsWith("/")) {
+                path =
+                        "/" + path;
+            }
+
+            StringBuilder current =
+                    new StringBuilder();
+
+            String[] parts =
+                    path.split(
+                            "/");
+
+            for (int i = 1;
+                    i < parts.length;
+                    i++) {
+
+                if (parts[i].isEmpty()) {
+                    continue;
+                }
+
+                current.append("/")
+                        .append(parts[i]);
+
+                paths.add(
+                        current.toString());
+
+                paths.add(
+                        current.toString() +
+                        "/");
+            }
+
+            paths.add(path);
+
+        } catch (Exception ignored) {
+        }
+
+        return paths;
+    }
+
+    private void expireCookieVariants(
+            CookieManager manager,
+            String domain,
+            String name,
+            String path) {
+
+        String expired =
+                name +
+                "=; Max-Age=0; " +
+                "Expires=Thu, 01 Jan 1970 00:00:00 GMT; " +
+                "Path=" +
+                path;
+
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired);
+
+        /*
+         * Domain=domain and Domain=.domain are both issued intentionally.
+         * They cover cookies created by different WebView/website code paths
+         * while the host-only request above covers a host-only cookie.
+         */
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired +
+                "; Domain=" +
+                domain);
+
+        manager.setCookie(
+                httpsUrl(
+                        domain,
+                        path),
+                expired +
+                "; Domain=." +
+                domain);
+    }
+
+    private boolean hasCookieName(
+            String domain,
+            String name) {
+
+        for (CookieValue cookie :
+                parseCookies(
+                        getCookies(domain))) {
+
+            if (name.equals(cookie.name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasCookie(
+            String domain,
+            String name,
+            String expectedValue) {
+
+        for (CookieValue cookie :
+                parseCookies(
+                        getCookies(domain))) {
+
+            if (name.equals(cookie.name) &&
+                    expectedValue.equals(
+                            cookie.value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String httpsUrl(
+            String domain,
+            String path) {
+
+        if (path == null ||
+                path.isEmpty()) {
+            path = "/";
+        }
+
+        return "https://" +
+                domain +
+                (path.startsWith("/")
+                        ? path
+                        : "/" + path);
+    }
+
+    private String toHttps(
+            String url) {
+
+        if (url == null) {
+            return "";
+        }
+
+        try {
+
+            URI uri =
+                    new URI(url);
+
+            String host =
+                    uri.getHost();
+
+            if (host == null) {
+                return url;
+            }
+
+            String path =
+                    uri.getRawPath();
+
+            if (path == null ||
+                    path.isEmpty()) {
+                path = "/";
+            }
+
+            return httpsUrl(
+                    host.toLowerCase(
+                            Locale.US),
+                    path);
+
+        } catch (Exception ignored) {
+            return url;
+        }
+    }
+
+    private String normalizeDomain(
+            String domain) {
+
+        String value =
+                domain == null
+                        ? ""
+                        : domain.trim()
+                                .toLowerCase(
+                                        Locale.US);
+
+        while (value.startsWith(".")) {
+            value =
+                    value.substring(1);
+        }
+
+        return value;
+    }
+
     private String getDomain(
             String url) {
 
         try {
+
             URI uri =
                     new URI(url);
 
@@ -370,13 +746,19 @@ public final class CookieStore {
                 return null;
             }
 
-            return host.toLowerCase();
+            return host.toLowerCase(
+                    Locale.US);
+
         } catch (Exception ignored) {
             return null;
         }
     }
 
     public void startSync() {
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            return;
+        }
 
         try {
             CookieSyncManager.getInstance()
@@ -387,6 +769,10 @@ public final class CookieStore {
 
     public void stopSync() {
 
+        if (Build.VERSION.SDK_INT >= 21) {
+            return;
+        }
+
         try {
             CookieSyncManager.getInstance()
                     .stopSync();
@@ -394,17 +780,25 @@ public final class CookieStore {
         }
     }
 
-    private void sync() {
+    private void syncCookies() {
+
+        CookieManager manager =
+                CookieManager.getInstance();
 
         try {
-            CookieSyncManager.getInstance()
-                    .startSync();
 
-            CookieSyncManager.getInstance()
-                    .sync();
+            if (Build.VERSION.SDK_INT >= 21) {
+                manager.flush();
+            } else {
+                CookieSyncManager.getInstance()
+                        .sync();
+            }
 
-            CookieManager.getInstance()
-                    .removeExpiredCookie();
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            manager.removeExpiredCookie();
         } catch (Throwable ignored) {
         }
     }
