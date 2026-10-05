@@ -5,6 +5,9 @@ import android.content.Context;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class Localization {
 
@@ -12,9 +15,14 @@ public final class Localization {
     public static final String ENGLISH = "en";
     public static final String SPANISH = "es";
     public static final String PORTUGUESE = "pt";
+    public static final String FRENCH = "fr";
 
     private static final Map<String, String[]> TRANSLATIONS =
             new HashMap<>();
+
+    private static final Map<String, String> FRENCH_TRANSLATIONS =
+            new HashMap<>();
+
 
     static {
         add("Settings", "Configuración", "Configurações");
@@ -159,6 +167,68 @@ public final class Localization {
         add("Back", "Atrás", "Voltar");
         add("Forward", "Adelante", "Avançar");
         add("Settings", "Configuración", "Configurações");
+        french("Settings", "Paramètres");
+        french("General", "Général");
+        french("Privacy &amp; Security", "Confidentialité et sécurité");
+        french("Websites", "Sites web");
+        french("Appearance", "Apparence");
+        french("Advanced", "Avancé");
+        french("Cookies", "Cookies");
+        french("Configure Simple Browser", "Configurer Simple Browser");
+        french("Home page", "Page d’accueil");
+        french("Search engine", "Moteur de recherche");
+        french("Custom home page", "Page d’accueil personnalisée");
+        french("Custom search URL", "URL de recherche personnalisée");
+        french("Restore tabs on startup", "Restaurer les onglets au démarrage");
+        french("Reopen your normal tabs when Simple Browser starts again.", "Rouvrir vos onglets normaux au prochain démarrage de Simple Browser.");
+        french("Use a complete URL such as https://example.com/", "Utilisez une URL complète telle que https://example.com/");
+        french("Use %s where the search text should be inserted.", "Utilisez %s à l’emplacement du texte de recherche.");
+        french("Clear browsing data", "Effacer les données de navigation");
+        french("Restore default settings", "Restaurer les paramètres par défaut");
+        french("JavaScript", "JavaScript");
+        french("Allow websites to run JavaScript", "Autoriser les sites web à exécuter JavaScript");
+        french("Pop-ups", "Fenêtres pop-up");
+        french("Allow websites to open new windows", "Autoriser les sites web à ouvrir de nouvelles fenêtres");
+        french("Allow websites to store cookies", "Autoriser les sites web à stocker des cookies");
+        french("Website storage", "Stockage des sites web");
+        french("Allow websites to use local storage", "Autoriser les sites web à utiliser le stockage local");
+        french("Images", "Images");
+        french("Allow websites to load network images", "Autoriser les sites web à charger des images réseau");
+        french("Zoom", "Zoom");
+        french("Allow page zoom and pinch-to-zoom", "Autoriser le zoom de page et le pincement pour zoomer");
+        french("Location access", "Accès à la localisation");
+        french("Allow websites to request device location", "Autoriser les sites web à demander la localisation de l’appareil");
+        french("Media autoplay", "Lecture automatique des médias");
+        french("Allow audio and video to start without a user gesture", "Autoriser l’audio et la vidéo à démarrer sans action de l’utilisateur");
+        french("Browser information", "Informations sur le navigateur");
+        french("Developer logs", "Journaux du développeur");
+        french("Network requests, navigation changes, load errors, and JavaScript console messages. Logs are in memory only and capped automatically.", "Requêtes réseau, changements de navigation, erreurs de chargement et messages de la console JavaScript. Les journaux restent uniquement en mémoire et sont limités automatiquement.");
+        french("Refresh logs", "Actualiser les journaux");
+        french("Clear logs", "Effacer les journaux");
+        french("User agent", "Agent utilisateur");
+        french("Choose how websites identify this browser. Desktop mode still takes priority while it is enabled.", "Choisissez comment les sites web identifient ce navigateur. Le mode bureau reste prioritaire lorsqu’il est activé.");
+        french("Custom user agent", "Agent utilisateur personnalisé");
+        french("Enter a complete User-Agent string.", "Saisissez une chaîne User-Agent complète.");
+        french("WebView debugging", "Débogage WebView");
+        french("Allow Chrome-based developer tools to inspect Simple Browser WebViews.", "Autoriser les outils de développement basés sur Chrome à inspecter les WebView de Simple Browser.");
+        french("WebView cache", "Cache WebView");
+        french("Clear cached website resources from every open tab.", "Effacer les ressources web mises en cache de tous les onglets ouverts.");
+        french("Clear WebView cache", "Effacer le cache WebView");
+        french("Current WebView", "WebView actuel");
+        french("Inspect the active tab URL and user agent.", "Consulter l’URL et l’agent utilisateur de l’onglet actif.");
+        french("Show information", "Afficher les informations");
+        french("Browser color", "Couleur du navigateur");
+        french("Changes the toolbar, tabs, menu, and every part of the built-in settings UI.", "Modifie la barre d’outils, les onglets, le menu et toute l’interface intégrée des paramètres.");
+        french("Language", "Langue");
+        french("Choose the browser language. System default follows the closest supported language.", "Choisissez la langue du navigateur. Le réglage système utilise la langue prise en charge la plus proche.");
+        french("System default", "Langue du système");
+        french("English", "Anglais");
+        french("Spanish", "Espagnol");
+        french("Portuguese", "Portugais");
+        french("Save", "Enregistrer");
+        french("Cancel", "Annuler");
+        french("OK", "OK");
+
     }
 
     private Localization() {
@@ -178,6 +248,15 @@ public final class Localization {
                 });
     }
 
+    private static void french(
+            String english,
+            String value) {
+
+        FRENCH_TRANSLATIONS.put(
+                english,
+                value);
+    }
+
     public static String resolve(
             Context context,
             String requested) {
@@ -191,6 +270,7 @@ public final class Localization {
         if (!SYSTEM.equals(choice)) {
             if (SPANISH.equals(choice) ||
                     PORTUGUESE.equals(choice) ||
+                    FRENCH.equals(choice) ||
                     ENGLISH.equals(choice)) {
                 return choice;
             }
@@ -207,6 +287,10 @@ public final class Localization {
 
         if (PORTUGUESE.equalsIgnoreCase(system)) {
             return PORTUGUESE;
+        }
+
+        if (FRENCH.equalsIgnoreCase(system)) {
+            return FRENCH;
         }
 
         return ENGLISH;
@@ -239,6 +323,15 @@ public final class Localization {
 
         if (PORTUGUESE.equals(language)) {
             return values[2];
+        }
+
+        if (FRENCH.equals(language)) {
+            String french =
+                    FRENCH_TRANSLATIONS.get(value);
+
+            return french == null
+                    ? values[0]
+                    : french;
         }
 
         return values[0];
@@ -280,14 +373,30 @@ public final class Localization {
             String[] values =
                     TRANSLATIONS.get(key);
 
-            String replacement =
-                    SPANISH.equals(language)
-                            ? values[1]
-                            : values[2];
+            String replacement;
 
-            result = result.replace(
-                    key,
-                    replacement);
+            if (SPANISH.equals(language)) {
+                replacement = values[1];
+            } else if (PORTUGUESE.equals(language)) {
+                replacement = values[2];
+            } else if (FRENCH.equals(language)) {
+                String french =
+                        FRENCH_TRANSLATIONS.get(key);
+
+                replacement =
+                        french == null
+                                ? values[0]
+                                : french;
+            } else {
+                replacement = values[0];
+            }
+
+            result = result.replaceAll(
+                    "(?<![A-Za-z0-9_])" +
+                    Pattern.quote(key) +
+                    "(?![A-Za-z0-9_])",
+                    Matcher.quoteReplacement(
+                            replacement));
         }
 
         return result;
