@@ -550,6 +550,10 @@ public class SettingsPage {
                 active(currentSection, "advanced") +
                 "' onclick=\"Android.navigate('advanced')\">" +
                 "Advanced</div>" +
+                
+                "<div class='nav' " +
+                "onclick=\"Android.navigate('cookies')\">" +
+                "Cookies</div>" +
 
                 "</div>" +
 
