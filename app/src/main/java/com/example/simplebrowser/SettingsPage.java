@@ -60,14 +60,12 @@ public class SettingsPage {
                 new SettingsBridge(tab),
                 "Android");
 
-        webView.loadDataWithBaseURL(
-                "https://browser.local/settings/" +
-                        section,
+        BrowserPage.load(
+                webView,
+                BrowserPage.settingsUrl(section),
                 createHtml(
                         section,
                         tab.isIncognito),
-                "text/html",
-                "UTF-8",
                 null);
 
         activity.updateTabTitle(tab);
