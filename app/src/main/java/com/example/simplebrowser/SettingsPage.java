@@ -534,28 +534,10 @@ public class SettingsPage {
                 ".nav.active{" +
                 "padding-left:6px;" +
                 "}" +
-                "flex-basis:125px;" +
-                "}" +
-                ".content{" +
-                "padding:20px 14px;" +
-                "}" +
-                ".brand{" +
-                "padding-left:12px;" +
-                "padding-right:10px;" +
-                "}" +
-                ".nav{" +
-                "padding-left:12px;" +
-                "padding-right:8px;" +
-                "}" +
-                ".nav.active{" +
-                "padding-left:9px;" +
-                "}" +
-                "}" +
-
                 "@media(max-width:380px){" +
                 ".sidebar{" +
                 "width:98px;" +
-                "flex-basis:108px;" +
+                "flex-basis:98px;" +
                 "padding-top:12px;" +
                 "}" +
                 ".brand{" +
