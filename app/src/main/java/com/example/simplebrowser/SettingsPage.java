@@ -513,7 +513,27 @@ public class SettingsPage {
 
                 "@media(max-width:600px){" +
                 ".sidebar{" +
-                "width:125px;" +
+                "width:116px;" +
+                "flex-basis:116px;" +
+                "}" +
+                ".content{" +
+                "padding:16px 11px;" +
+                "}" +
+                ".row{" +
+                "padding:13px 12px;" +
+                "}" +
+                ".switchrow{" +
+                "gap:8px;" +
+                "}" +
+                ".brand{" +
+                "font-size:18px;padding-left:10px;padding-right:8px;" +
+                "}" +
+                ".nav{" +
+                "padding:10px 9px;font-size:13px;" +
+                "}" +
+                ".nav.active{" +
+                "padding-left:6px;" +
+                "}" +
                 "flex-basis:125px;" +
                 "}" +
                 ".content{" +
@@ -534,7 +554,7 @@ public class SettingsPage {
 
                 "@media(max-width:380px){" +
                 ".sidebar{" +
-                "width:108px;" +
+                "width:98px;" +
                 "flex-basis:108px;" +
                 "padding-top:12px;" +
                 "}" +
@@ -568,7 +588,7 @@ public class SettingsPage {
 
                 "@media(max-width:300px){" +
                 ".sidebar{" +
-                "width:96px;" +
+                "width:88px;" +
                 "flex-basis:96px;" +
                 "}" +
                 ".nav{" +
