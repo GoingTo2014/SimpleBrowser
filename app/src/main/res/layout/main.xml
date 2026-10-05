@@ -109,6 +109,13 @@
             android:src="@android:drawable/ic_input_add"
             android:contentDescription="New tab" />
 
+        <ImageButton
+            android:id="@+id/tab_overview"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="8dp"
+            android:contentDescription="Tab overview" />
+
     </LinearLayout>
 
     <FrameLayout
