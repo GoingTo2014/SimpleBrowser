@@ -63,8 +63,12 @@ public class TabOverviewDialog {
         title.setText(
                 activity.getTabManager()
                         .isIncognitoMode()
-                        ? "Incognito tabs"
-                        : "Tabs");
+                        ? Localization.translate(
+                                activity,
+                                "tab.incognito_tabs")
+                        : Localization.translate(
+                                activity,
+                                "Tabs"));
         title.setTextSize(20);
         title.setTypeface(
                 android.graphics.Typeface.DEFAULT,
@@ -82,7 +86,7 @@ public class TabOverviewDialog {
         Button done =
                 new Button(activity);
 
-        done.setText("Done");
+        done.setText(Localization.translate(activity, "tab.done"));
         done.setAllCaps(false);
         done.setTextColor(
                 getTextColor());
@@ -285,8 +289,8 @@ public class TabOverviewDialog {
         url.setText(
                 displayUrl.isEmpty()
                         ? (tab.hasLoaded
-                                ? "New Tab"
-                                : "Not loaded")
+                                ? Localization.translate(activity, "New Tab")
+                                : Localization.translate(activity, "tab.not_loaded"))
                         : displayUrl);
         url.setTextSize(12);
         url.setMaxLines(2);
@@ -311,8 +315,12 @@ public class TabOverviewDialog {
 
         open.setText(
                 tab == activity.getActiveTab()
-                        ? "Current"
-                        : "Open");
+                        ? Localization.translate(
+                                activity,
+                                "tab.current")
+                        : Localization.translate(
+                                activity,
+                                "Open"));
         open.setAllCaps(false);
         open.setTextColor(
                 getTextColor());
