@@ -38,11 +38,10 @@ public class DefaultPage {
                 new Bridge(tab),
                 "DefaultPage");
 
-        webView.loadDataWithBaseURL(
-                "https://browser.local/default",
+        BrowserPage.load(
+                webView,
+                BrowserPage.DEFAULT,
                 createHtml(tab.isIncognito),
-                "text/html",
-                "UTF-8",
                 null);
 
         activity.updateTabTitle(tab);
