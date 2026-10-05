@@ -37,8 +37,8 @@ public final class PreviewStore {
             Bitmap scaled =
                     Bitmap.createScaledBitmap(
                             bitmap,
-                            320,
-                            180,
+                            480,
+                            270,
                             true);
 
             ByteArrayOutputStream output =
@@ -46,7 +46,7 @@ public final class PreviewStore {
 
             scaled.compress(
                     Bitmap.CompressFormat.JPEG,
-                    78,
+                    85,
                     output);
 
             scaled.recycle();
