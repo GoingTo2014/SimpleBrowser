@@ -2575,29 +2575,6 @@ public class MainActivity extends Activity {
 
         if (compactPhoneLayout) {
 
-            if (tabOverview != null &&
-                    tabOverview.getParent() != toolbar) {
-
-                if (tabOverview.getParent()
-                        instanceof android.view.ViewGroup) {
-
-                    ((android.view.ViewGroup)
-                            tabOverview.getParent())
-                            .removeView(tabOverview);
-                }
-
-                int spacerIndex =
-                        toolbarSpacer == null
-                                ? toolbar.indexOfChild(
-                                        findViewById(R.id.settings))
-                                : toolbar.indexOfChild(
-                                        toolbarSpacer);
-
-                toolbar.addView(
-                        tabOverview,
-                        Math.max(0, spacerIndex));
-            }
-
             if (toolbarSpacer != null) {
                 toolbarSpacer.setVisibility(View.VISIBLE);
 
@@ -2611,6 +2588,49 @@ public class MainActivity extends Activity {
 
                 toolbarSpacer.setLayoutParams(
                         spacerParams);
+            }
+
+            int spacerIndex =
+                    toolbarSpacer == null
+                            ? toolbar.indexOfChild(
+                                    findViewById(R.id.settings))
+                            : toolbar.indexOfChild(
+                                    toolbarSpacer);
+
+            if (newTab != null &&
+                    newTab.getParent() != toolbar) {
+
+                if (newTab.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            newTab.getParent())
+                            .removeView(newTab);
+                }
+
+                toolbar.addView(
+                        newTab,
+                        Math.min(
+                                toolbar.getChildCount(),
+                                spacerIndex + 1));
+            }
+
+            if (tabOverview != null &&
+                    tabOverview.getParent() != toolbar) {
+
+                if (tabOverview.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            tabOverview.getParent())
+                            .removeView(tabOverview);
+                }
+
+                toolbar.addView(
+                        tabOverview,
+                        Math.min(
+                                toolbar.getChildCount(),
+                                spacerIndex + 2));
             }
 
             if (urlBox.getParent() != urlRow) {
@@ -2638,6 +2658,24 @@ public class MainActivity extends Activity {
 
         } else {
 
+            if (newTab != null &&
+                    newTab.getParent() != tabBar) {
+
+                if (newTab.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            newTab.getParent())
+                            .removeView(newTab);
+                }
+
+                tabBar.addView(newTab);
+            } else if (newTab != null) {
+
+                tabBar.removeView(newTab);
+                tabBar.addView(newTab);
+            }
+
             if (tabOverview != null &&
                     tabOverview.getParent() != tabBar) {
 
@@ -2649,6 +2687,10 @@ public class MainActivity extends Activity {
                             .removeView(tabOverview);
                 }
 
+                tabBar.addView(tabOverview);
+            } else if (tabOverview != null) {
+
+                tabBar.removeView(tabOverview);
                 tabBar.addView(tabOverview);
             }
 
