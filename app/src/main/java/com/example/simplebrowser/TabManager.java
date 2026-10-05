@@ -35,6 +35,7 @@ public class TabManager {
     private final MainActivity activity;
     private final FrameLayout webViewContainer;
     private final LinearLayout tabsLayout;
+    private final TabStripLayout tabStrip;
     private final HorizontalScrollView tabScroll;
     private final LayoutTransition tabTransition;
 
@@ -61,6 +62,11 @@ public class TabManager {
                 webViewContainer;
         this.tabsLayout =
                 tabsLayout;
+
+        this.tabStrip =
+                tabsLayout instanceof TabStripLayout
+                        ? (TabStripLayout) tabsLayout
+                        : null;
 
         this.tabs = normalTabs;
 
@@ -542,6 +548,11 @@ public class TabManager {
                     tab.tabView.setTranslationX(
                             0f);
 
+                    if (tabStrip != null) {
+                        tabStrip.setDraggedChild(
+                                tab.tabView);
+                    }
+
                 };
 
         tab.titleView.postDelayed(
@@ -766,6 +777,10 @@ public class TabManager {
 
         commitDrag(tab);
 
+        if (tabStrip != null) {
+            tabStrip.clearDraggedChild();
+        }
+
         tab.tabView
                 .setAlpha(1f);
 
@@ -890,7 +905,9 @@ public class TabManager {
 
         int background =
                 tab == activeTab
-                        ? accent
+                        ? ColorUtils.darken(
+                                accent,
+                                0.08f)
                         : inactiveBackground;
 
         int textColor =
@@ -1271,6 +1288,10 @@ public class TabManager {
          * Replace the visible tab strip with only this session's
          * tabs, and hide all WebViews belonging to the other session.
          */
+        if (tabStrip != null) {
+            tabStrip.clearDraggedChild();
+        }
+
         tabsLayout.setLayoutTransition(null);
         tabsLayout.removeAllViews();
 
