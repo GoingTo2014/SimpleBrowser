@@ -656,7 +656,7 @@ public class SettingsPage {
                 "<div class='row'>" +
                 "<div class='title'>Language</div>" +
                 "<div class='description'>Choose the browser language. System default follows the closest supported language.</div>" +
-                "<select onchange="Android.setLanguage(this.value)">" +
+                "<select onchange=\"Android.setLanguage(this.value)\">" +
                 "<option value='system'" +
                 (Localization.SYSTEM.equals(settings.getLanguage())
                         ? " selected"
@@ -680,7 +680,7 @@ public class SettingsPage {
                 "</select>" +
                 "</div>" +
 
-                "<div id='custom-search' class='row "
+                "<div id='custom-search' class='row " +
                 ("custom".equals(
                         settings.getSearchEngine())
                         ? ""
