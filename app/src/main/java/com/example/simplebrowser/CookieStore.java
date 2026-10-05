@@ -229,11 +229,20 @@ public final class CookieStore {
                         safeDomain,
                         safeName);
 
+        if (safeName.startsWith("__Host-")) {
+            scopes.clear();
+            scopes.add(safeDomain);
+        }
+
         if (scopes.isEmpty()) {
             scopes.add(safeDomain);
         }
 
+        boolean hostCookie =
+                safeName.startsWith("__Host-");
+
         boolean secure =
+                hostCookie ||
                 isSecureCookie(
                         manager,
                         safeDomain,
@@ -279,8 +288,9 @@ public final class CookieStore {
             String scopedCookie =
                     cookie;
 
-            if (!scope.equals(
-                    safeDomain)) {
+            if (!hostCookie &&
+                    !scope.equals(
+                            safeDomain)) {
                 scopedCookie +=
                         "; Domain=." +
                         scope;
