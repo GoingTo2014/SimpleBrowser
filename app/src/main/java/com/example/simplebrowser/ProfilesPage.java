@@ -141,7 +141,7 @@ public final class ProfilesPage {
         html.append(ColorUtils.toHex(secondary));
         html.append(";margin-top:3px}");
         html.append(".actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}");
-        html.append("a.button{display:inline-block;border:1px solid ");
+        html.append("a.button,button.button{display:inline-block;border:1px solid ");
         html.append(ColorUtils.toHex(button));
         html.append(";background:");
         html.append(ColorUtils.toHex(button));
@@ -264,13 +264,11 @@ public final class ProfilesPage {
                 escapeJavaScript(
                         profileId);
 
-        return "<a class='button' href='https://browser.local/profiles/action/switch/" +
-                attribute(profileId) +
-                "' onclick=\"ProfileActions.switchProfile('" +
+        return "<button class='button' type='button' onclick=\"ProfileActions.switchProfile('" +
                 safeId +
-                "');return false;\">" +
+                "');\">" +
                 escape(label) +
-                "</a>";
+                "</button>";
     }
 
     private String escapeJavaScript(
