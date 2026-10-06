@@ -402,16 +402,17 @@ public class BrowserWebViewClient
             view.removeJavascriptInterface(
                     "PasswordCapture");
 
-            view.getSettings()
-                    .setJavaScriptEnabled(true);
+            if (activity.getBrowserSettings()
+                    .isJavaScriptEnabled()) {
 
-            view.addJavascriptInterface(
-                    new PasswordCaptureBridge(
-                            activity,
-                            tab),
-                    "PasswordCapture");
+                view.addJavascriptInterface(
+                        new PasswordCaptureBridge(
+                                activity,
+                                tab),
+                        "PasswordCapture");
 
-            injectPasswordSubmitWatcher(view);
+                injectPasswordSubmitWatcher(view);
+            }
 
             tab.url = url;
             tab.loading = false;
