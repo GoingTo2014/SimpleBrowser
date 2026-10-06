@@ -17,9 +17,20 @@ public final class PreviewStore {
     private final SharedPreferences preferences;
 
     public PreviewStore(Context context) {
+        this(
+                context,
+                ProfileManager.getActiveProfileId(context));
+    }
+
+    public PreviewStore(
+            Context context,
+            String profileId) {
+
         preferences =
                 context.getSharedPreferences(
-                        PREFS,
+                        ProfileManager.scopedPrefsName(
+                                PREFS,
+                                profileId),
                         Context.MODE_PRIVATE);
     }
 
