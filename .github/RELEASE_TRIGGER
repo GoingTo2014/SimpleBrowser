@@ -14,3 +14,5 @@ Profile switching one-tap and Main profile handoff fix.
 Profile action navigation fallback verification build.
 
 Fix profile fallback compilation and final release build.
+
+Profile lifecycle, WebView reuse, and first-tap switch hardening.
