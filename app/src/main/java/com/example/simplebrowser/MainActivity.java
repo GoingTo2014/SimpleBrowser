@@ -1675,6 +1675,8 @@ public class MainActivity extends Activity {
              * cleared. onPause() is deliberately prevented from taking a
              * second snapshot while this switch is in progress.
              */
+            cookieStore.discoverFromHistory(
+                    browserHistory);
             cookieStore.recordUrls(
                     getOpenWebUrls());
             cookieStore.snapshotCookies();
