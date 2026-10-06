@@ -589,7 +589,9 @@ public class UpdateManager {
 
             if (!partial.renameTo(target)) {
                 throw new Exception(
-                        "Could not prepare the downloaded update.");
+                        Localization.translate(
+                                activity,
+                                "settings.update_prepare_failed"));
             }
 
             return target;
