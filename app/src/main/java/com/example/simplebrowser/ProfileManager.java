@@ -90,7 +90,7 @@ public final class ProfileManager {
                 .putString(
                         KEY_ACTIVE,
                         profileId)
-                .apply();
+                .commit();
     }
 
     public static String createGuestSession() {
