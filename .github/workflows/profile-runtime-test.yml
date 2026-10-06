@@ -67,7 +67,7 @@ jobs:
             set -eu
 
             adb install -r "$GITHUB_WORKSPACE/app/build/outputs/apk/release/app-release.apk"
-            adb shell pm clear "$package" >/dev/null
+            adb shell pm clear "com.example.simplebrowser" >/dev/null
             adb logcat -c
 
             dump_ui() {
@@ -134,13 +134,13 @@ jobs:
             sleep 2
 
             adb shell am force-stop "com.example.simplebrowser"
-            adb shell am start -W -n "$package/.MainActivity" >/tmp/start2.txt || true
+            adb shell am start -W -n "com.example.simplebrowser/.MainActivity" >/tmp/start2.txt || true
             sleep 8
 
             echo "Second launch:"
             cat /tmp/start2.txt || true
 
-            if ! adb shell pidof "$package" >/dev/null; then
+            if ! adb shell pidof "com.example.simplebrowser" >/dev/null; then
               echo "SimpleBrowser died after creating a profile and force-stop"
               adb logcat -d
               exit 1
