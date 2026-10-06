@@ -205,6 +205,9 @@ public class BrowserWebViewClient
             tab.defaultPage = false;
             tab.historyPage = false;
             tab.cookiesPage = false;
+            tab.bookmarksPage = false;
+            tab.passwordsPage = false;
+            tab.profilesPage = false;
             tab.downloadsPage = true;
             tab.loading = false;
             tab.url = BrowserPage.DOWNLOADS;
@@ -223,6 +226,9 @@ public class BrowserWebViewClient
             tab.defaultPage = false;
             tab.historyPage = false;
             tab.downloadsPage = false;
+            tab.bookmarksPage = false;
+            tab.passwordsPage = false;
+            tab.profilesPage = false;
             tab.cookiesPage = true;
             tab.loading = false;
             tab.url = BrowserPage.COOKIES;
@@ -233,6 +239,69 @@ public class BrowserWebViewClient
             activity.setBrowserPageIcon(
                     tab,
                     BrowserIconDrawable.SECURE);
+
+        } else if (BrowserPage.BOOKMARKS.equals(route)) {
+
+            tab.settingsPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.downloadsPage = false;
+            tab.cookiesPage = false;
+            tab.passwordsPage = false;
+            tab.profilesPage = false;
+            tab.bookmarksPage = true;
+            tab.errorPage = false;
+            tab.loading = false;
+            tab.url = BrowserPage.BOOKMARKS;
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Bookmarks");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.HOME);
+
+        } else if (BrowserPage.PASSWORDS.equals(route)) {
+
+            tab.settingsPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.downloadsPage = false;
+            tab.cookiesPage = false;
+            tab.bookmarksPage = false;
+            tab.profilesPage = false;
+            tab.passwordsPage = true;
+            tab.errorPage = false;
+            tab.loading = false;
+            tab.url = BrowserPage.PASSWORDS;
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Password manager");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.SECURE);
+
+        } else if (BrowserPage.PROFILES.equals(route)) {
+
+            tab.settingsPage = false;
+            tab.defaultPage = false;
+            tab.historyPage = false;
+            tab.downloadsPage = false;
+            tab.cookiesPage = false;
+            tab.bookmarksPage = false;
+            tab.passwordsPage = false;
+            tab.profilesPage = true;
+            tab.errorPage = false;
+            tab.loading = false;
+            tab.url = BrowserPage.PROFILES;
+            tab.title =
+                    Localization.translate(
+                            activity,
+                            "Profiles");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.HOME);
 
         } else if (BrowserPage.DEMO.equals(route)) {
 
@@ -283,6 +352,9 @@ public class BrowserWebViewClient
                     tab.historyPage ||
                     tab.downloadsPage ||
                     tab.cookiesPage ||
+                    tab.bookmarksPage ||
+                    tab.passwordsPage ||
+                    tab.profilesPage ||
                     tab.errorPage) {
 
                 activity.removeInternalPageState(tab);
