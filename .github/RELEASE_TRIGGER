@@ -18,3 +18,5 @@ Fix profile fallback compilation and final release build.
 Profile lifecycle, WebView reuse, and first-tap switch hardening.
 
 Scope ProfileActions bridge to Profiles page only.
+
+Deep cross-process profile identity and registry hardening.
