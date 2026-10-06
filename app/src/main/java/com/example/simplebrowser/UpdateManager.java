@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class UpdateManager {
@@ -100,7 +101,9 @@ public class UpdateManager {
 
         postStatus(
                 tab,
-                "Checking for updates...",
+                Localization.translate(
+                        activity,
+                        "settings.update_checking"),
                 false,
                 false);
 
@@ -121,13 +124,9 @@ public class UpdateManager {
                     } catch (Exception exception) {
 
                         error =
-                                exception.getMessage();
-
-                        if (error == null ||
-                                error.trim().isEmpty()) {
-                            error =
-                                    "Could not connect to GitHub.";
-                        }
+                                Localization.translate(
+                                        activity,
+                                        "settings.update_connection_error");
                     }
 
                     final UpdateInfo update =
@@ -218,8 +217,12 @@ public class UpdateManager {
                     HttpURLConnection.HTTP_OK) {
 
                 throw new Exception(
-                        "GitHub returned HTTP " +
-                        responseCode + ".");
+                        String.format(
+                                Locale.US,
+                                Localization.translate(
+                                        activity,
+                                        "settings.update_github_http_error"),
+                                responseCode));
             }
 
             String response =
@@ -346,18 +349,24 @@ public class UpdateManager {
 
         postStatus(
                 tab,
-                "Downloading update " +
-                update.version +
-                "...",
+                String.format(
+                        Locale.US,
+                        Localization.translate(
+                                activity,
+                                "settings.update_downloading"),
+                        update.version),
                 false,
                 false);
 
         if (automatic) {
             Toast.makeText(
                     activity,
-                    Localization.translate(
-                            activity,
-                            "Downloading update"),
+                    String.format(
+                            Locale.US,
+                            Localization.translate(
+                                    activity,
+                                    "settings.update_downloading"),
+                            update.version),
                     Toast.LENGTH_SHORT)
                     .show();
         }
@@ -382,7 +391,9 @@ public class UpdateManager {
                         if (error == null ||
                                 error.trim().isEmpty()) {
                             error =
-                                    "The update could not be verified.";
+                                    Localization.translate(
+                                            activity,
+                                            "settings.update_verification_failed");
                         }
                     }
 
@@ -417,14 +428,18 @@ public class UpdateManager {
 
                                 postStatus(
                                         tab,
-                                        "Update downloaded. Android will ask you to install it.",
+                                        Localization.translate(
+                                                activity,
+                                                "settings.update_downloaded"),
                                         false,
                                         true);
 
                                 if (automatic) {
                                     Toast.makeText(
                                             activity,
-                                            "Update downloaded. Opening installer...",
+                                            Localization.translate(
+                                                    activity,
+                                                    "settings.update_opening_installer"),
                                             Toast.LENGTH_SHORT)
                                             .show();
                                 }
@@ -496,8 +511,12 @@ public class UpdateManager {
                     HttpURLConnection.HTTP_OK) {
 
                 throw new Exception(
-                        "Update download failed with HTTP " +
-                        responseCode + ".");
+                        String.format(
+                                Locale.US,
+                                Localization.translate(
+                                        activity,
+                                        "settings.update_download_http_error"),
+                                responseCode));
             }
 
             InputStream input =
@@ -556,7 +575,9 @@ public class UpdateManager {
                     actualDigest)) {
 
                 throw new Exception(
-                        "Update verification failed: APK hash does not match the GitHub release.");
+                        Localization.translate(
+                                activity,
+                                "settings.update_hash_mismatch"));
             }
 
             verifyApkIdentityAndSignature(
@@ -603,7 +624,9 @@ public class UpdateManager {
                         .equals(archiveInfo.packageName)) {
 
             throw new Exception(
-                    "Update verification failed: package name does not match.");
+                    Localization.translate(
+                            activity,
+                            "settings.update_package_mismatch"));
         }
 
         PackageInfo installedInfo =
@@ -617,7 +640,9 @@ public class UpdateManager {
                 archiveInfo.signatures.length == 0) {
 
             throw new Exception(
-                    "Update verification failed: signing certificate is missing.");
+                    Localization.translate(
+                            activity,
+                            "settings.update_certificate_missing"));
         }
 
         byte[] installed =
@@ -631,7 +656,9 @@ public class UpdateManager {
                 downloaded)) {
 
             throw new Exception(
-                    "Update verification failed: signing certificate does not match the installed app.");
+                    Localization.translate(
+                            activity,
+                            "settings.update_certificate_mismatch"));
         }
     }
 
@@ -770,7 +797,7 @@ public class UpdateManager {
                         activity,
                         Localization.translate(
                                 activity,
-                                "Allow Simple Browser to install updates, then return to Simple Browser."),
+                                "settings.update_allow_install"),
                         Toast.LENGTH_LONG)
                         .show();
 
@@ -822,7 +849,9 @@ public class UpdateManager {
 
             Toast.makeText(
                     activity,
-                    "Could not open Android's installer.",
+                    Localization.translate(
+                            activity,
+                            "settings.update_installer_error"),
                     Toast.LENGTH_LONG)
                     .show();
         }
