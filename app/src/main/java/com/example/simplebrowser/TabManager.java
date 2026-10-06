@@ -356,7 +356,8 @@ public class TabManager {
 
         tab.webView.addJavascriptInterface(
                 new StorageCaptureBridge(
-                        activity),
+                        activity,
+                        tab),
                 "StorageCapture");
 
         tab.webView.setWebViewClient(
@@ -1640,7 +1641,7 @@ public class TabManager {
             activeTab = null;
             activity.setUrlText("");
             activity.updateTabOverviewIcon();
-            activity.updateNavigationButtons();
+            activity.updateNavigationButtonsForTabs();
             activity.applyActiveTabAppearance();
         }
     }
