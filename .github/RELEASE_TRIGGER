@@ -7,3 +7,4 @@ Publish again with corrected changelog formatting.
 Profile/bookmark/password/settings fixes release.
 Final persistence and profile fixes.
 Retry release after language-pack constructor fix.
+Retry after final Java quote escaping fix.
