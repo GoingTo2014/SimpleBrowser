@@ -445,5 +445,13 @@ public final class Arabic extends LanguagePack {
         put("demo.dialog_text", "عنصر حوار افتراضي");
         put("Bookmark", "إشارة مرجعية");
         put("privacy.clear_storage", "مسح تخزين مواقع الويب");
+        put("Settings", "الإعدادات");
+        put("settings.wide_viewport", "منفذ عرض واسع");
+        put("settings.wide_viewport_desc", "استخدام منفذ العرض الذي يحدده الموقع حتى تتمكن الصفحات المتجاوبة من اختيار تخطيطها.");
+        put("settings.offline_mode", "وضع عدم الاتصال");
+        put("settings.offline_mode_desc", "حظر تحميل الشبكة في WebView. يمكن الاستمرار في عرض الصفحات المخزنة مؤقتًا.");
+        put("privacy.clear_security_title", "مسح قرارات الأمان؟");
+        put("privacy.clear_security_message", "سيؤدي ذلك إلى مسح قرارات شهادات SSL وأذونات الموقع المحفوظة وقرارات شهادات العميل. لن يتم حذف كلمات المرور.");
+        put("privacy.security_decisions_cleared", "تم مسح قرارات الأمان");
     }
 }
