@@ -300,6 +300,11 @@ public class MainActivity extends Activity {
                 BrowserIconDrawable.MORE,
                 iconColor);
 
+        setToolbarIcon(
+                R.id.bookmark,
+                BrowserIconDrawable.BOOKMARK,
+                iconColor);
+
         setContentDescription(
                 R.id.back,
                 "Back");
@@ -315,6 +320,9 @@ public class MainActivity extends Activity {
         setContentDescription(
                 R.id.settings,
                 "Browser settings");
+        setContentDescription(
+                R.id.bookmark,
+                "Bookmark");
         setContentDescription(
                 R.id.tab_overview,
                 "Tab overview");
@@ -492,6 +500,39 @@ public class MainActivity extends Activity {
             showBrowserMenu(settings);
         });
 
+        ImageButton bookmark =
+                findViewById(R.id.bookmark);
+
+        bookmark.setOnClickListener(v -> {
+            BrowserTab tab = getActiveTab();
+
+            if (tab == null ||
+                    tab.isIncognito ||
+                    bookmarkStore == null ||
+                    tab.webView == null) {
+                return;
+            }
+
+            String url = tab.webView.getUrl();
+
+            if (url == null ||
+                    (!url.startsWith("http://") &&
+                     !url.startsWith("https://"))) {
+                return;
+            }
+
+            if (bookmarkStore.isBookmarked(url)) {
+                bookmarkStore.deleteByUrl(url);
+            } else {
+                bookmarkStore.addOrUpdate(
+                        url,
+                        tab.title,
+                        tab.favicon);
+            }
+
+            updateBookmarkButton(tab);
+        });
+
         tabOverview.setOnClickListener(v -> {
 
             hideKeyboard();
@@ -516,6 +557,7 @@ public class MainActivity extends Activity {
         setupButtonPressAnimation(home);
         setupButtonPressAnimation(reload);
         setupButtonPressAnimation(settings);
+        setupButtonPressAnimation(bookmark);
         setupButtonPressAnimation(tabOverview);
 
         urlBox.setOnEditorActionListener(
@@ -3124,6 +3166,52 @@ public class MainActivity extends Activity {
         button.setScaleY(1f);
     }
 
+    private void updateBookmarkButton(
+            BrowserTab tab) {
+
+        ImageButton button =
+                findViewById(R.id.bookmark);
+
+        if (button == null) {
+            return;
+        }
+
+        int color =
+                tab != null &&
+                        tab.isIncognito
+                        ? ColorUtils.getReadableTextColor(
+                                INCOGNITO_CHROME)
+                        : ColorUtils.getReadableTextColor(
+                                getAccentColor());
+
+        boolean bookmarked =
+                tab != null &&
+                        !tab.isIncognito &&
+                        bookmarkStore != null &&
+                        tab.webView != null &&
+                        tab.webView.getUrl() != null &&
+                        bookmarkStore.isBookmarked(
+                                tab.webView.getUrl());
+
+        button.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.BOOKMARK,
+                        color,
+                        bookmarked));
+
+        button.setEnabled(
+                tab != null &&
+                        !tab.isIncognito &&
+                        tab.webView != null &&
+                        tab.webView.getUrl() != null);
+
+        button.setAlpha(
+                tab != null &&
+                        !tab.isIncognito
+                        ? 1f
+                        : 0.35f);
+    }
+
     private void updateReloadButton(
             BrowserTab tab) {
 
@@ -3247,6 +3335,7 @@ public class MainActivity extends Activity {
                 R.id.home,
                 R.id.reload,
                 R.id.security,
+                R.id.bookmark,
                 R.id.settings
         };
 
