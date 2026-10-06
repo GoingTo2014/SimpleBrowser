@@ -438,6 +438,7 @@ put("common.cancel", "Cancelar");
         put("privacy.clear_security_title", "¿Borrar decisiones de seguridad?");
         put("privacy.clear_security_message", "Esto borra las decisiones sobre certificados SSL, los permisos de ubicación guardados y las decisiones sobre certificados de cliente. No elimina las contraseñas.");
         put("privacy.security_decisions_cleared", "Decisiones de seguridad borradas");
+        put("privacy.clear_security", "Borrar decisiones de seguridad");
     }
 
 }
