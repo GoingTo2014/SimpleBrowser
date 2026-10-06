@@ -186,9 +186,9 @@ public final class PasswordsPage {
         html.append(escape(t("passwords.export")));
         html.append("</button>");
         if (!selectedSite.trim().isEmpty()) {
-            html.append("<a class='button' href='simplebrowser://password-site/'>");
+            html.append("<button type='button' onclick='showSites()'>");
             html.append(escape(t("passwords.all_sites")));
-            html.append("</a>");
+            html.append("</button>");
         }
         html.append("</div>");
 
@@ -241,10 +241,9 @@ public final class PasswordsPage {
             for (PasswordStore.SiteGroup group :
                     groups) {
 
-                html.append("<a class='site' href='simplebrowser://password-site/");
-                html.append(attribute(
-                        android.net.Uri.encode(group.site)));
-                html.append("'>");
+                html.append("<div class='site' role='button' tabindex='0' onclick='showSite(");
+                html.append(js(group.site));
+                html.append(")'>");
 
                 appendFavicon(
                         html,
@@ -263,7 +262,8 @@ public final class PasswordsPage {
                         group.count == 1
                                 ? t("passwords.saved_one")
                                 : t("passwords.saved_many")));
-                html.append("</div></div></div>");
+                html.append("</div></div>");
+                html.append("</div>");
             }
 
         } catch (Exception exception) {
