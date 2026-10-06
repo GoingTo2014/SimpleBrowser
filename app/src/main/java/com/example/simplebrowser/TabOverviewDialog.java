@@ -9,9 +9,11 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -75,7 +77,12 @@ public class TabOverviewDialog {
 
         title.setText(
                 activity.getTabManager()
-                        .isIncognitoMode()
+                        .isGuestMode()
+                        ? Localization.translate(
+                                activity,
+                                "tab.guest_tabs")
+                        : activity.getTabManager()
+                                .isIncognitoMode()
                         ? Localization.translate(
                                 activity,
                                 "tab.incognito_tabs")
@@ -165,11 +172,13 @@ public class TabOverviewDialog {
         root.addView(
                 header);
 
-        final LinearLayout list =
-                new LinearLayout(activity);
+        final GridLayout list =
+                new GridLayout(activity);
 
-        list.setOrientation(
-                LinearLayout.VERTICAL);
+        list.setColumnCount(
+                getTabColumns());
+
+        list.setUseDefaultMargins(false);
 
         final ScrollView scroll =
                 new ScrollView(activity);
@@ -209,11 +218,11 @@ public class TabOverviewDialog {
         }
     }
 
-    private LinearLayout listHolder;
+    private GridLayout listHolder;
     private ScrollView scrollHolder;
 
     private void refreshTabList(
-            LinearLayout list,
+            GridLayout list,
             Dialog dialog,
             ScrollView scroll) {
 
@@ -237,7 +246,7 @@ public class TabOverviewDialog {
     private View createTabCard(
             final BrowserTab tab,
             final Dialog dialog,
-            final LinearLayout list,
+            final ViewGroup list,
             final ScrollView scroll) {
 
         final LinearLayout wrapper =
@@ -271,11 +280,30 @@ public class TabOverviewDialog {
         card.setBackground(
                 cardBackground);
 
+        int cardWidth =
+                getTabCardWidth();
+
+        GridLayout.LayoutParams gridParams =
+                new GridLayout.LayoutParams();
+
+        gridParams.width = cardWidth;
+        gridParams.height =
+                ViewGroup.LayoutParams.WRAP_CONTENT;
+
+        gridParams.setMargins(
+                dp(4),
+                dp(4),
+                dp(4),
+                dp(4));
+
+        wrapper.setLayoutParams(
+                gridParams);
+
         wrapper.setPadding(
                 0,
                 0,
                 0,
-                dp(8));
+                dp(4));
 
         LinearLayout top =
                 new LinearLayout(activity);
@@ -391,24 +419,14 @@ public class TabOverviewDialog {
                         -1,
                         dp(40)));
 
-        int screenWidth =
-                activity.getResources()
-                        .getDisplayMetrics()
-                        .widthPixels;
-
         int previewWidth =
-                Math.min(
-                        dp(520),
-                        Math.max(
-                                dp(170),
-                                (int) (
-                                        screenWidth *
-                                        0.94f) -
-                                dp(16)));
+                Math.max(
+                        dp(120),
+                        cardWidth);
 
         int previewHeight =
                 Math.max(
-                        dp(96),
+                        dp(76),
                         Math.round(
                                 previewWidth *
                                 9f /
@@ -632,7 +650,7 @@ public class TabOverviewDialog {
     }
 
     private int findDropIndex(
-            LinearLayout list,
+            ViewGroup list,
             View dragged,
             float rawY) {
 
@@ -773,6 +791,11 @@ public class TabOverviewDialog {
                 activity.getActiveTab();
 
         if (active != null &&
+                active.isGuest) {
+            return Color.WHITE;
+        }
+
+        if (active != null &&
                 active.isIncognito) {
             return Color.rgb(
                     32,
@@ -792,6 +815,14 @@ public class TabOverviewDialog {
                 activity.getActiveTab();
 
         if (active != null &&
+                active.isGuest) {
+            return Color.rgb(
+                    245,
+                    245,
+                    245);
+        }
+
+        if (active != null &&
                 active.isIncognito) {
             return Color.rgb(
                     48,
@@ -803,6 +834,58 @@ public class TabOverviewDialog {
                 getAccentColor(),
                 Color.WHITE,
                 0.90f);
+    }
+
+    private int getTabColumns() {
+
+        int widthDp =
+                (int) (
+                        activity.getResources()
+                                .getDisplayMetrics()
+                                .widthPixels /
+                        activity.getResources()
+                                .getDisplayMetrics()
+                                .density);
+
+        if (widthDp >= 700) {
+            return 3;
+        }
+
+        if (widthDp >= 360) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    private int getTabCardWidth() {
+
+        int columns =
+                getTabColumns();
+
+        int screenWidth =
+                activity.getResources()
+                        .getDisplayMetrics()
+                        .widthPixels;
+
+        int rootPadding =
+                dp(16);
+
+        int childMargins =
+                dp(8) * columns;
+
+        int interColumnGaps =
+                dp(8) * Math.max(
+                        0,
+                        columns - 1);
+
+        return Math.max(
+                dp(120),
+                (screenWidth -
+                        rootPadding -
+                        childMargins -
+                        interColumnGaps) /
+                        columns);
     }
 
     private int getTextColor() {
