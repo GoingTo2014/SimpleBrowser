@@ -474,6 +474,24 @@ public class BrowserWebViewClient
                 "PasswordCapture.submitted(location.href,user,p.value);" +
                 "}catch(e){}" +
                 "},true);" +
+                "document.addEventListener('click',function(event){" +
+                "try{" +
+                "var target=event.target;" +
+                "var tag=target&&String(target.tagName||'').toLowerCase();" +
+                "var type=target&&String(target.type||'').toLowerCase();" +
+                "if(tag!=='button'&&!(tag==='input'&&(type==='submit'||type==='button')))return;" +
+                "var form=target.form;" +
+                "if(!form)return;" +
+                "setTimeout(function(){" +
+                "try{" +
+                "var p=form.querySelector('input[type=password]');" +
+                "if(!p||!p.value)return;" +
+                "var u=form.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]');" +
+                "PasswordCapture.submitted(location.href,u?u.value:'',p.value);" +
+                "}catch(e){}" +
+                "},150);" +
+                "}catch(e){}" +
+                "},true);" +
                 "}catch(e){}" +
                 "})();";
 
