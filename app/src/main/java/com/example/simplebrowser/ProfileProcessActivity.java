@@ -29,6 +29,57 @@ public abstract class ProfileProcessActivity
                         : intent.getStringExtra(
                                 EXTRA_PROFILE_ID);
 
+        /*
+         * A dedicated profile process must never fall through to MainActivity
+         * without an explicit persistent profile identity. Doing so could
+         * make it initialize WebView against the default directory.
+         */
+        if (profileId == null ||
+                profileId.trim().isEmpty() ||
+                ProfileManager.MAIN_ID.equals(
+                        profileId) ||
+                ProfileManager.isGuest(profileId)) {
+            finish();
+            return;
+        }
+
+        profileId =
+                profileId.trim();
+
+        /*
+         * Do not start a deleted/stale profile. Return to the normal launcher
+         * path so the router can recover the app to Main.
+         */
+        if (!ProfileManager.isKnownPersistentProfile(
+                this,
+                profileId)) {
+
+            ProfileManager.setActiveProfileId(
+                    this,
+                    ProfileManager.MAIN_ID);
+
+            try {
+                Intent fallback =
+                        new Intent(
+                                this,
+                                MainActivity.class);
+
+                fallback.setAction(
+                        Intent.ACTION_MAIN);
+
+                fallback.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                startActivity(fallback);
+            } catch (Throwable ignored) {
+            }
+
+            finish();
+            return;
+        }
+
         ProfileManager.setProcessProfileId(
                 profileId);
 
