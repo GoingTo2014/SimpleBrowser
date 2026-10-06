@@ -1143,7 +1143,7 @@ public class SettingsPage {
 
                 settingRow(
                         "Website storage",
-                        "Allow websites to use local storage",
+                        "Allow websites to use profile-isolated local storage and Web SQL storage",
                         "storage",
                         settings.isStorageEnabled()) +
 
@@ -1896,6 +1896,19 @@ public class SettingsPage {
                 String mode) {
 
             settings.setCacheMode(mode);
+
+            activity.runOnUiThread(
+                    activity::applyWebsiteSettings);
+        }
+
+        @JavascriptInterface
+        public void setIntSetting(
+                String name,
+                int value) {
+
+            settings.setInt(
+                    name,
+                    value);
 
             activity.runOnUiThread(
                     activity::applyWebsiteSettings);
