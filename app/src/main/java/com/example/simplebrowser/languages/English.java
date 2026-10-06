@@ -445,6 +445,9 @@ put("common.cancel", "Cancel");
         put("privacy.clear_security_message", "This clears SSL certificate decisions, saved location permissions, and client-certificate decisions. It does not delete passwords.");
         put("privacy.security_decisions_cleared", "Security decisions cleared");
         put("privacy.clear_security", "Clear security decisions");
+        put("tab.guest_tabs", "Guest tabs");
+        put("guest.enter", "Enter Guest Mode");
+        put("guest.exit", "Exit Guest Mode");
     }
 
 }
