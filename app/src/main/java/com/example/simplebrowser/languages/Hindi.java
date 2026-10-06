@@ -430,6 +430,14 @@ put("common.cancel", "रद्द करें");
         put("common.deny", "अस्वीकार करें");
         put("strings.test.example", "स्ट्रिंग उदाहरण");
         put("privacy.clear_storage", "वेबसाइट स्टोरेज साफ़ करें");
+        put("Settings", "सेटिंग्स");
+        put("settings.wide_viewport", "वाइड व्यूपोर्ट");
+        put("settings.wide_viewport_desc", "वेबसाइट द्वारा कॉन्फ़िगर किए गए व्यूपोर्ट का उपयोग करें ताकि responsive पेज अपना लेआउट चुन सकें।");
+        put("settings.offline_mode", "ऑफ़लाइन मोड");
+        put("settings.offline_mode_desc", "WebView में नेटवर्क लोड को रोकें। कैश किए गए पेज फिर भी दिखाए जा सकते हैं।");
+        put("privacy.clear_security_title", "सुरक्षा निर्णय साफ़ करें?");
+        put("privacy.clear_security_message", "यह SSL प्रमाणपत्र निर्णय, सहेजी गई स्थान अनुमतियाँ और क्लाइंट-प्रमाणपत्र निर्णय साफ़ करेगा। पासवर्ड नहीं मिटेंगे।");
+        put("privacy.security_decisions_cleared", "सुरक्षा निर्णय साफ़ किए गए");
     }
 
 }
