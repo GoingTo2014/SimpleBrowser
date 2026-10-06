@@ -439,6 +439,9 @@ put("common.cancel", "Cancelar");
         put("privacy.clear_security_message", "Isso limpa decisões de certificados SSL, permissões de localização salvas e decisões de certificados de cliente. Não apaga senhas.");
         put("privacy.security_decisions_cleared", "Decisões de segurança limpas");
         put("privacy.clear_security", "Limpar decisões de segurança");
+        put("tab.guest_tabs", "Abas de convidado");
+        put("guest.enter", "Entrar no modo convidado");
+        put("guest.exit", "Sair do modo convidado");
     }
 
 }
