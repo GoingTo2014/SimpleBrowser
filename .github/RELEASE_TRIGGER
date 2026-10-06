@@ -10,3 +10,4 @@ Retry release after language-pack constructor fix.
 Retry after final Java quote escaping fix.
 Final behavior review: respect JavaScript setting.
 Final profile-count and Guest Profile visibility fixes.
+Profile cookies, media permissions, advanced settings, logs and new languages review.
