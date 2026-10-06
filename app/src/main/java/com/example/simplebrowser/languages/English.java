@@ -435,6 +435,7 @@ put("common.cancel", "Cancel");
         put("passwords.export_failed", "Could not export the encrypted password backup.");
         put("passwords.import_failed", "Could not import the encrypted password backup.");
 
+        put("privacy.clear_storage", "Clear website storage");
     }
 
 }
