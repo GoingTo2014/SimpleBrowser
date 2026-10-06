@@ -288,7 +288,7 @@ public final class ProfilesPage {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace(""", "&quot;");
+                .replace("\"", "&quot;");
     }
 
     private String attribute(String value) {
@@ -302,8 +302,8 @@ public final class ProfilesPage {
         }
 
         return "'" +
-                value.replace("\", "\\")
-                        .replace("'", "\'") +
+                value.replace("\\", "\\\\")
+                        .replace("'", "\\'") +
                 "'";
     }
 
