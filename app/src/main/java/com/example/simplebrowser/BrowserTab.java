@@ -32,6 +32,7 @@ public class BrowserTab {
     public boolean passwordsPage = false;
     public boolean profilesPage = false;
     public boolean isIncognito = false;
+    public boolean isGuest = false;
 
     /*
      * Restored tabs keep their URL here and do not load it until
