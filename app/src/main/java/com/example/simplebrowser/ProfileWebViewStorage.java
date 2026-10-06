@@ -94,17 +94,21 @@ public final class ProfileWebViewStorage {
             Context context,
             String profileId) {
 
+        /*
+         * The old application used one shared WebView directory. During an
+         * upgrade, the directory belongs to whichever persistent profile was
+         * active at the moment of the upgrade. Preserve that active profile
+         * once, but never clone Main's data into a profile created later.
+         */
         try {
             SharedPreferences preferences =
                     context.getSharedPreferences(
                             MIGRATION_PREFS,
                             Context.MODE_PRIVATE);
 
-            String key =
-                    MIGRATION_PREFIX +
-                    safeProfileId(profileId);
-
-            if (preferences.getBoolean(key, false)) {
+            if (preferences.getBoolean(
+                    "isolation_initialized",
+                    false)) {
                 return;
             }
 
@@ -116,26 +120,33 @@ public final class ProfileWebViewStorage {
                             context,
                             profileId);
 
+            boolean success = true;
+
             if (!target.exists() &&
                     legacy.exists()) {
 
-                copyDirectory(
-                        legacy,
-                        target);
+                try {
+                    copyDirectory(
+                            legacy,
+                            target);
+                } catch (Throwable error) {
+                    success = false;
+                    deleteRecursively(target);
+                }
             }
 
-            /*
-             * Mark successful migration even when there was no legacy
-             * directory. This prevents repeated filesystem scans.
-             */
-            preferences.edit()
-                    .putBoolean(key, true)
-                    .apply();
+            if (success) {
+                preferences.edit()
+                        .putBoolean(
+                                "isolation_initialized",
+                                true)
+                        .apply();
+            }
 
         } catch (Throwable ignored) {
             /*
-             * Do not let migration break startup. If it failed, retry on
-             * the next launch because the marker was not written.
+             * Do not let migration break startup. If it failed, retry on the
+             * next launch because the marker was not written.
              */
         }
     }
