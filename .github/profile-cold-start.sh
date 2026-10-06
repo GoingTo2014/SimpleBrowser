@@ -79,6 +79,55 @@ adb shell input text "RuntimeProfile"
 tap_text "SAVE"
 sleep 3
 
+echo "Created profile; now switching into the new profile before closing..."
+if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
+  echo "SimpleBrowser died immediately after profile creation"
+  adb logcat -d
+  exit 1
+fi
+
+tap_text "Browser settings"
+sleep 1
+tap_text "Profile 1"
+sleep 2
+tap_text "Switch"
+sleep 8
+
+echo "Verifying the new profile process before cold start..."
+if ! adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
+  echo "Profile process did not start after switching into the new profile"
+  adb logcat -d
+  exit 1
+fi
+
+echo "Cold-starting while the non-Main profile is active..."
+adb shell am force-stop "$PACKAGE"
+adb logcat -c
+sleep 2
+
+adb shell am start -W -n "$PACKAGE/.MainActivity"
+sleep 10
+
+if ! wait_for_package; then
+  echo "SimpleBrowser died after cold-starting into a non-Main profile"
+  adb logcat -d
+  exit 1
+fi
+
+echo "UI after cold-start with non-Main profile active:"
+dump_ui
+cat /tmp/window.xml || true
+
+FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|AndroidRuntime.*FATAL|Process: com\\.example\\.simplebrowser|chromium|libwebviewchromium' || true)"
+if [ -n "$FATAL_LOG" ]; then
+  echo "Crash/fatal evidence found during non-Main cold start:"
+  echo "$FATAL_LOG"
+  adb logcat -d
+  exit 1
+fi
+
+echo "NON-MAIN PROFILE COLD-START TEST PASSED"
+
 echo "Created profile; checking process and active UI..."
 if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
   echo "SimpleBrowser died immediately after profile creation"
