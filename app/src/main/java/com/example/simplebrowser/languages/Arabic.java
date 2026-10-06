@@ -164,5 +164,102 @@ public final class Arabic extends LanguagePack {
         put("permissions.website_request", "يطلب موقع ويب الوصول إلى:");
         put("permissions.camera", "الكاميرا");
         put("permissions.microphone", "الميكروفون");
+
+        put("settings.update_auto_desc", "التحقق تلقائيًا من إصدارات Simple Browser الجديدة عند بدء التطبيق وعند فتح الإعدادات > عام.");
+        put("settings.update_verification_failed", "تعذر التحقق من التحديث.");
+        put("settings.update_opening_installer", "تم تنزيل التحديث. جارٍ فتح المثبّت...");
+        put("settings.update_allow_install", "اسمح لـ Simple Browser بتثبيت التحديثات ثم عد إلى Simple Browser.");
+        put("settings.update_installer_error", "تعذر فتح مثبّت Android.");
+        put("settings.update_github_http_error", "أعاد GitHub رمز HTTP %s.");
+        put("settings.update_download_http_error", "فشل تنزيل التحديث برمز HTTP %s.");
+        put("settings.update_hash_mismatch", "فشل التحقق من التحديث: لا تتطابق بصمة APK مع إصدار GitHub.");
+        put("settings.update_package_mismatch", "فشل التحقق من التحديث: اسم الحزمة غير متطابق.");
+        put("settings.update_certificate_missing", "فشل التحقق من التحديث: شهادة التوقيع مفقودة.");
+        put("settings.update_certificate_mismatch", "فشل التحقق من التحديث: شهادة التوقيع لا تطابق التطبيق المثبّت.");
+        put("settings.update_prepare_failed", "تعذر إعداد التحديث الذي تم تنزيله.");
+        put("settings.update_connection_error", "تعذر الاتصال بـ GitHub.");
+        put("settings.restore_tabs_desc", "إعادة فتح علامات التبويب العادية عند بدء Simple Browser.");
+        put("settings.complete_url", "استخدم عنوان URL كاملًا مثل https://example.com/");
+        put("settings.search_insert", "استخدم %s مكان نص البحث.");
+        put("settings.logs_desc", "التنقل وأخطاء التحميل ووحدة تحكم JavaScript وتشخيصات المتصفح. تبقى السجلات في الذاكرة وتحتفظ بأحدث الإدخالات.");
+        put("settings.user_agent_desc", "اختر كيفية تعرّف مواقع الويب على هذا المتصفح.");
+        put("settings.custom_user_agent_desc", "أدخل User-Agent كاملًا.");
+        put("settings.webview_debug_desc", "السماح لأدوات مطوري Chrome بفحص WebView في Simple Browser.");
+        put("settings.webview_cache_desc", "مسح موارد مواقع الويب المخزنة مؤقتًا من جميع علامات التبويب المفتوحة.");
+        put("settings.current_webview_desc", "عرض عنوان URL وUser-Agent لعلامة التبويب النشطة.");
+        put("settings.browser_color_desc", "يغيّر شريط الأدوات وعلامات التبويب والقائمة وكل واجهة الإعدادات المضمنة.");
+        put("settings.language_desc", "اختر لغة المتصفح.");
+        put("settings.log_filter", "تصفية السجلات");
+        put("settings.log_entries", "إدخالات");
+        put("settings.blank_page", "صفحة فارغة");
+        put("settings.default_page", "الصفحة الافتراضية");
+        put("settings.custom", "مخصص");
+
+        put("history.incognito_desc", "لا يتم حفظ سجل التصفح في وضع التصفح المتخفي.");
+        put("history.empty_private", "لا يتم عرض أي شيء هنا أثناء التصفح الخاص.");
+        put("history.empty", "لم يتم العثور على إدخالات في السجل.");
+        put("history.cleared", "تم مسح السجل");
+
+        put("downloads.incognito_desc", "لا يتم حفظ سجل التنزيلات في وضع التصفح المتخفي.");
+        put("downloads.status_unavailable", "الحالة غير متاحة");
+        put("downloads.record_unavailable", "سجل التنزيل غير متاح");
+        put("downloads.completed", "اكتمل");
+        put("downloads.failed", "فشل");
+        put("downloads.downloading", "جارٍ التنزيل");
+        put("downloads.history_cleared", "تم مسح سجل التنزيلات");
+        put("downloads.not_ready", "التنزيل غير جاهز");
+        put("downloads.no_app", "لا يوجد تطبيق يمكنه فتح هذا التنزيل");
+        put("downloads.unknown_type", "نوع غير معروف");
+        put("downloads.search", "البحث في التنزيلات");
+        put("downloads.download", "تنزيل");
+
+        put("cookies.incognito_data", "بيانات ملفات تعريف الارتباط مؤقتة في وضع التصفح المتخفي.");
+        put("cookies.incognito_empty", "لا يمكن إدارة ملفات تعريف الارتباط من وضع التصفح المتخفي.");
+        put("cookies.discovery", "تم اكتشاف مواقع الويب التي تستخدم ملفات تعريف الارتباط بناءً على المواقع التي تمت زيارتها وعلامات التبويب المفتوحة.");
+        put("cookies.empty", "لا توجد ملفات تعريف ارتباط معروفة حاليًا.");
+        put("cookies.edit_title", "تعديل ملف تعريف الارتباط: ");
+        put("cookies.change_failed", "تعذر تغيير ملف تعريف الارتباط");
+        put("cookies.delete_failed", "تعذر حذف ملف تعريف الارتباط");
+        put("cookies.some_delete_failed", "تعذر حذف بعض ملفات تعريف ارتباط الموقع");
+
+        put("common.copied", "تم النسخ");
+        put("common.no_share_app", "لا يوجد تطبيق لمشاركة هذا");
+        put("common.download_started", "بدأ التنزيل: ");
+        put("common.download_failed", "تعذر بدء التنزيل");
+        put("common.stop_loading", "إيقاف التحميل");
+        put("common.unknown", "غير معروف");
+        put("common.queued", "في الانتظار");
+        put("common.paused", "متوقف مؤقتًا");
+        put("common.waiting", "جارٍ الانتظار");
+        put("common.tab_overview", "نظرة عامة على علامات التبويب");
+
+        put("settings.browser_settings", "إعدادات المتصفح");
+        put("settings.webview_cache_cleared", "تم مسح ذاكرة WebView المؤقتة");
+        put("settings.browsing_data_cleared", "تم مسح بيانات التصفح");
+
+        put("bookmarks.invalid", "يمكن حفظ صفحات الويب فقط في الإشارات المرجعية.");
+
+        put("passwords.add", "إضافة كلمة مرور");
+        put("passwords.save", "حفظ");
+        put("passwords.clear", "مسح");
+        put("passwords.edit", "تعديل");
+        put("passwords.revealed", "كلمة المرور: ");
+        put("passwords.error", "تعذر قراءة قاعدة بيانات كلمات المرور المشفرة.");
+        put("passwords.save_failed", "تعذر حفظ كلمة المرور.");
+        put("passwords.api_limit", "لا يمكن لـ Android 4.4 عرض شاشة تأكيد بيانات الاعتماد للنظام.");
+        put("passwords.export_title", "تصدير كلمات المرور");
+        put("passwords.export_password", "كلمة مرور التصدير (6 أحرف أو أكثر)");
+        put("passwords.import_title", "استيراد كلمات المرور");
+        put("passwords.exported", "تم تصدير نسخة احتياطية مشفرة.");
+        put("passwords.imported", "تم استيراد كلمات المرور:");
+        put("passwords.export_failed", "تعذر تصدير النسخة الاحتياطية المشفرة.");
+        put("passwords.import_failed", "تعذر استيراد النسخة الاحتياطية المشفرة.");
+
+        put("profiles.guest_confirm", "بدء ملف ضيف جديد؟ جميع البيانات مؤقتة وسيتم حذفها عند الخروج.");
+        put("profiles.delete_confirm", "حذف هذا الملف الشخصي وجميع بيانات المتصفح الخاصة به؟");
+        put("profiles.name", "اسم الملف الشخصي");
+        put("profiles.choose_picture", "اختيار صورة الملف الشخصي");
+        put("profiles.cannot_save", "تعذر حفظ الملف الشخصي.");
+
     }
 }
