@@ -457,5 +457,11 @@ public final class German extends LanguagePack {
         put("tab.guest_tabs", "Gast-Tabs");
         put("guest.enter", "Gastmodus öffnen");
         put("guest.exit", "Gastmodus beenden");
-    }
+    }        put("app.name", "Simple Browser");
+        put("settings.update_title", "Update verfügbar");
+        put("settings.update_later", "Später");
+        put("settings.update_now", "Jetzt aktualisieren");
+        put("common.close", "Schließen");
+        put("common.close_tab", "Tab schließen");
+
 }
