@@ -34,6 +34,12 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
+        if (activity.handleProfileActionUrl(
+                tab,
+                url)) {
+            return true;
+        }
+
         String settingsSection =
                 BrowserPage.getSettingsSection(url);
 
