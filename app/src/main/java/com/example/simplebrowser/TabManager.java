@@ -1027,7 +1027,9 @@ public class TabManager {
         }
 
         int accent =
-                tab.isIncognito
+                tab.isGuest
+                        ? Color.WHITE
+                        : tab.isIncognito
                         ? Color.rgb(
                                 48,
                                 49,
@@ -1083,6 +1085,9 @@ public class TabManager {
 
         int accent =
                 current != null &&
+                        current.isGuest
+                        ? Color.WHITE
+                        : current != null &&
                         current.isIncognito
                         ? Color.rgb(
                                 48,
@@ -1096,6 +1101,9 @@ public class TabManager {
 
         int tabBarBackground =
                 current != null &&
+                        current.isGuest
+                        ? Color.WHITE
+                        : current != null &&
                         current.isIncognito
                         ? Color.rgb(
                                 30, 30, 32)
