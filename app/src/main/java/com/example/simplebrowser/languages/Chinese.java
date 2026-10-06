@@ -358,5 +358,4 @@ put("common.cancel", "取消");
         put("profiles.choose_picture", "选择配置文件图片");
         put("profiles.cannot_save", "无法保存配置文件。");
     }
-    }
 }
