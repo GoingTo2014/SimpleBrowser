@@ -444,5 +444,6 @@ public final class Arabic extends LanguagePack {
         put("demo.dialog", "حوار");
         put("demo.dialog_text", "عنصر حوار افتراضي");
         put("Bookmark", "إشارة مرجعية");
+        put("privacy.clear_storage", "مسح تخزين مواقع الويب");
     }
 }
