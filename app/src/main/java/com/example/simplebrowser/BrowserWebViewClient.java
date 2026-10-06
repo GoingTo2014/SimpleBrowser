@@ -478,11 +478,15 @@ public class BrowserWebViewClient
                 "document.addEventListener('click',function(event){" +
                 "try{" +
                 "var target=event.target;" +
-                "var tag=target&&String(target.tagName||'').toLowerCase();" +
-                "var type=target&&String(target.type||'').toLowerCase();" +
-                "var role=target&&target.getAttribute?String(target.getAttribute('role')||'').toLowerCase():'';" +
-                "if(tag!=='button'&&role!=='button'&&!(tag==='input'&&(type==='submit'||type==='button')))return;" +
-                "capture(target.form||document);" +
+                "var button=null;" +
+                "for(var n=0;target&&n<8;n++,target=target.parentNode){" +
+                "var tag=String(target.tagName||'').toLowerCase();" +
+                "var type=String(target.type||'').toLowerCase();" +
+                "var role=target.getAttribute?String(target.getAttribute('role')||'').toLowerCase():'';" +
+                "if(tag==='button'||role==='button'||(tag==='input'&&(type==='submit'||type==='button'))){button=target;break;}" +
+                "}" +
+                "if(!button)return;" +
+                "capture(button.form||document);" +
                 "}catch(e){}" +
                 "},true);" +
 
