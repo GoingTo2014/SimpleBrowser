@@ -2090,7 +2090,5 @@ public class SettingsPage {
                                     })
                             .show());
         }
-
-        }
     }
 }
