@@ -112,12 +112,18 @@ jobs:
               target_commit="$GITHUB_SHA"
             fi
 
+            {
+              echo "## What's new in $RELEASE_VERSION"
+              echo
+              cat .github/RELEASE_NOTES.md
+            } > "$RUNNER_TEMP/release-notes.md"
+
             gh release create "$tag" "$asset" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$target_commit" \
               --title "SimpleBrowser $RELEASE_VERSION" \
               --prerelease \
-              --notes "$(printf '## What\\x27s new in %s\\n\\n' "$RELEASE_VERSION"; cat .github/RELEASE_NOTES.md)"
+              --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
 
           latest_tag="simplebrowser-latest"
