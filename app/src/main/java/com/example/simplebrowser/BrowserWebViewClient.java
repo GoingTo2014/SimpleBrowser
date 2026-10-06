@@ -40,6 +40,23 @@ public class BrowserWebViewClient
             return true;
         }
 
+        if (url != null &&
+                url.startsWith(
+                        "simplebrowser://password-site/")) {
+
+            String encoded =
+                    url.substring(
+                            "simplebrowser://password-site/"
+                                    .length());
+
+            activity.showPasswordSite(
+                    tab,
+                    android.net.Uri.decode(
+                            encoded));
+
+            return true;
+        }
+
         String settingsSection =
                 BrowserPage.getSettingsSection(url);
 
@@ -382,6 +399,17 @@ public class BrowserWebViewClient
             tab.sslError = false;
         }
 
+        if (url != null &&
+                !BrowserPage.isInternalUrl(url) &&
+                !tab.errorPage &&
+                !tab.isIncognito &&
+                !tab.isGuest) {
+
+            activity.restoreWebStorage(
+                    tab,
+                    url);
+        }
+
         activity.pageStarted(
                 tab,
                 tab.errorPage
@@ -413,9 +441,12 @@ public class BrowserWebViewClient
             tab.url = url;
             tab.loading = false;
 
-            activity.recordVisit(
-                    tab,
-                    url);
+            if (!tab.isIncognito &&
+                    !tab.isGuest) {
+                activity.recordVisit(
+                        tab,
+                        url);
+            }
 
             if (tab.favicon != null &&
                     !tab.favicon.isRecycled() &&
@@ -428,12 +459,14 @@ public class BrowserWebViewClient
             }
 
             if (!tab.isIncognito &&
+                    !tab.isGuest &&
                     activity.getCookieStore() != null) {
                 activity.getCookieStore()
                         .recordUrl(url);
             }
 
             if (!tab.isIncognito &&
+                    !tab.isGuest &&
                     activity.getTabManager() != null) {
                 activity.getTabManager()
                         .savePreview(tab);
