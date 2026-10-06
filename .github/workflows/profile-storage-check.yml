@@ -26,4 +26,9 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Build debug APK
+        env:
+          SIMPLEBROWSER_KEYSTORE_FILE: ${{ runner.temp }}/unused-debug-signing.jks
+          SIMPLEBROWSER_STORE_PASSWORD: unused
+          SIMPLEBROWSER_KEY_ALIAS: unused
+          SIMPLEBROWSER_KEY_PASSWORD: unused
         run: gradle assembleDebug --no-daemon
