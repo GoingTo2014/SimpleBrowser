@@ -317,4 +317,46 @@ public final class Spanish extends LanguagePack {
         put("demo.dialog", "Diálogo");
         put("demo.dialog_text", "Elemento de diálogo predeterminado");
     }
+        put("common.cancel", "Cancelar");
+        put("common.save", "Guardar");
+        put("bookmarks.title", "Marcadores");
+        put("bookmarks.desc", "Páginas que has guardado en Simple Browser.");
+        put("bookmarks.search", "Buscar marcadores");
+        put("bookmarks.empty", "No se encontraron marcadores.");
+        put("bookmarks.open", "Abrir");
+        put("bookmarks.confirm_delete", "¿Eliminar este marcador?");
+        put("bookmarks.invalid", "Solo se pueden guardar páginas web en los marcadores.");
+        put("bookmarks.added", "Marcador añadido.");
+        put("passwords.title", "Gestor de contraseñas");
+        put("passwords.security_desc", "Las contraseñas están cifradas en este dispositivo. Cuando Android lo admite, se requiere el bloqueo del dispositivo antes de abrir este gestor.");
+        put("passwords.add", "Añadir contraseña");
+        put("passwords.site", "Sitio web");
+        put("passwords.username", "Usuario");
+        put("passwords.password", "Contraseña");
+        put("passwords.note", "Nota");
+        put("passwords.save", "Guardar");
+        put("passwords.clear", "Limpiar");
+        put("passwords.edit", "Editar");
+        put("passwords.reveal", "Mostrar");
+        put("passwords.revealed", "Contraseña: ");
+        put("passwords.confirm_delete", "¿Eliminar esta contraseña guardada?");
+        put("passwords.empty", "No hay contraseñas guardadas.");
+        put("passwords.error", "No se pudo leer la base de datos cifrada de contraseñas.");
+        put("passwords.save_failed", "No se pudo guardar la contraseña.");
+        put("passwords.unlock_title", "Desbloquear gestor de contraseñas");
+        put("passwords.unlock_desc", "Confirma el PIN, contraseña, patrón u otro bloqueo seguro de tu dispositivo.");
+        put("passwords.api_limit", "Android 4.4 no puede mostrar la pantalla del sistema para confirmar las credenciales. El gestor se abrirá cuando el dispositivo ya esté desbloqueado.");
+        put("profiles.title", "Perfiles");
+        put("profiles.desc", "Crea hasta %d perfiles permanentes. Cada perfil tiene su propia configuración, historial, marcadores, cookies, pestañas, historial de descargas y contraseñas.");
+        put("profiles.create", "Crear perfil");
+        put("profiles.guest", "Perfil de invitado");
+        put("profiles.current", "Perfil actual");
+        put("profiles.switch", "Cambiar");
+        put("profiles.edit", "Editar");
+        put("profiles.guest_confirm", "¿Iniciar un nuevo perfil de invitado? Todo lo que haya en él es temporal y se borrará al salir.");
+        put("profiles.delete_confirm", "¿Eliminar este perfil y todos sus datos del navegador?");
+        put("profiles.name", "Nombre del perfil");
+        put("profiles.choose_picture", "Elegir foto de perfil");
+        put("profiles.cannot_save", "No se pudo guardar el perfil.");
+
 }
