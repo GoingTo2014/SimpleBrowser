@@ -444,5 +444,6 @@ public final class Russian extends LanguagePack {
         put("demo.dialog", "Диалог");
         put("demo.dialog_text", "Стандартный элемент диалога");
         put("Bookmark", "Закладка");
+        put("privacy.clear_storage", "Очистить хранилище сайтов");
     }
 }
