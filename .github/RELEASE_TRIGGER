@@ -20,3 +20,4 @@ Final review: full-screen tabs, profile Web Storage isolation, privacy confirmat
 Final review: tab overview, profile storage isolation, password capture, privacy confirmations, advanced controls, shared WebView stores, and complete translations.
 Fix duplicate BrowserSettings cache setter after final compile review.
 Final compile trigger after storage/password/privacy/menu/translation fixes.
+Final trigger: full-screen tabs, profile storage isolation, password capture, privacy confirmation, advanced controls, security reset, and complete translations.
