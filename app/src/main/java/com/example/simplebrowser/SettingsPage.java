@@ -274,7 +274,7 @@ public class SettingsPage {
                 ColorUtils.ensureContrast(
                         ColorUtils.darken(
                                 accentColor,
-                                0.22f),
+                                0.10f),
                         cardBackground,
                         3.0d);
 
