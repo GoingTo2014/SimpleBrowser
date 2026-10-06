@@ -357,7 +357,6 @@ put("common.cancel", "取消");
         put("profiles.name", "配置文件名称");
         put("profiles.choose_picture", "选择配置文件图片");
         put("profiles.cannot_save", "无法保存配置文件。");
-    }
         put("Bookmark", "书签");
         put("passwords.import", "导入");
         put("passwords.export", "导出");
@@ -376,5 +375,7 @@ put("common.cancel", "取消");
         put("passwords.imported", "已导入密码：");
         put("passwords.export_failed", "无法导出加密的密码备份。");
         put("passwords.import_failed", "无法导入加密的密码备份。");
+
+    }
 
 }
