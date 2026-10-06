@@ -444,5 +444,6 @@ public final class German extends LanguagePack {
         put("demo.dialog", "Dialog");
         put("demo.dialog_text", "Standarddialogelement");
         put("Bookmark", "Lesezeichen");
+        put("privacy.clear_storage", "Website-Speicher löschen");
     }
 }
