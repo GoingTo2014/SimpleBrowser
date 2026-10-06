@@ -236,12 +236,12 @@ public final class BookmarksPage {
         if (value == null) {
             return "''";
         }
+
         return "'" +
                 value.replace("\\", "\\\\")
                         .replace("'", "\\'")
-                        .replace("", "\r")
-                        .replace("
-", "\n") +
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n") +
                 "'";
     }
 
