@@ -1086,12 +1086,6 @@ public class SettingsPage {
                         "third_party_cookies",
                         settings.isThirdPartyCookiesEnabled()) +
 
-                settingRow(
-                        "Safe Browsing",
-                        "Use WebView Safe Browsing when supported by Android/WebView (API 26+).",
-                        "safe_browsing",
-                        settings.isSafeBrowsingEnabled()) +
-
                 "<div class='row'>" +
                 "<button onclick=\"Android.clearData()\">" +
                 "Clear browsing data" +
