@@ -1080,9 +1080,21 @@ public class SettingsPage {
 
                 "<div class='card'>" +
 
+                settingRow(
+                        "Third-party cookies",
+                        "Allow third-party websites to store cookies",
+                        "third_party_cookies",
+                        settings.isThirdPartyCookiesEnabled()) +
+
                 "<div class='row'>" +
                 "<button onclick=\"Android.clearData()\">" +
                 "Clear browsing data" +
+                "</button>" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<button onclick=\"Android.clearWebStorage()\">" +
+                "Clear website storage" +
                 "</button>" +
                 "</div>" +
 
@@ -1277,6 +1289,58 @@ public class SettingsPage {
                 ">Cache only</option>" +
                 "</select>" +
                 "</div>" +
+
+                settingRow(
+                        "JavaScript automatic windows",
+                        "Allow JavaScript to open windows without a user gesture.",
+                        "js_open_windows",
+                        settings.isJavaScriptCanOpenWindowsAutomatically()) +
+
+                settingRow(
+                        "Load in overview mode",
+                        "Initially zoom wide pages out to fit the screen.",
+                        "overview_mode",
+                        settings.isLoadWithOverviewMode()) +
+
+                "<div class='row'>" +
+                "<div class='title'>Text zoom</div>" +
+                "<div class='description'>Change website text size from 50% to 200%.</div>" +
+                "<input type='range' min='50' max='200' step='10' value='" +
+                settings.getTextZoom() +
+                "' oninput=\"this.nextSibling.textContent=this.value+'%'\" onchange=\"Android.setIntSetting('text_zoom',parseInt(this.value,10))\">" +
+                "<span style='margin-left:8px'>" +
+                settings.getTextZoom() +
+                "%</span>" +
+                "</div>" +
+
+                "<div class='row'>" +
+                "<div class='title'>Minimum font size</div>" +
+                "<div class='description'>Raise the smallest text size websites can request.</div>" +
+                "<input type='range' min='1' max='24' step='1' value='" +
+                settings.getMinimumFontSize() +
+                "' oninput=\"this.nextSibling.textContent=this.value+'px'\" onchange=\"Android.setIntSetting('minimum_font_size',parseInt(this.value,10))\">" +
+                "<span style='margin-left:8px'>" +
+                settings.getMinimumFontSize() +
+                "px</span>" +
+                "</div>" +
+
+                settingRow(
+                        "Web SQL storage",
+                        "Allow legacy websites to use the Web SQL database API.",
+                        "web_sql",
+                        settings.isWebSqlEnabled()) +
+
+                settingRow(
+                        "Safe Browsing",
+                        "Use WebView Safe Browsing when supported by Android/WebView (API 26+).",
+                        "safe_browsing",
+                        settings.isSafeBrowsingEnabled()) +
+
+                settingRow(
+                        "Hardware acceleration",
+                        "Use hardware rendering for web pages; disabling it can help diagnose graphics problems.",
+                        "hardware_acceleration",
+                        settings.isHardwareAccelerationEnabled()) +
 
                 "<div class='row switchrow'>" +
                 "<div>" +
@@ -1895,58 +1959,138 @@ public class SettingsPage {
         public void clearData() {
 
             activity.runOnUiThread(
-                    () -> {
-
-                        for (BrowserTab current :
-                                activity
-                                        .getTabManager()
-                                        .getTabs()) {
-
-                            current.webView
-                                    .clearCache(true);
-
-                            current.webView
-                                    .clearHistory();
-                        }
-
-                        activity.clearBrowserHistory();
-                        activity.clearDownloadHistory();
-
-                        CookieStore.clearRuntimeCookies(
-                                () -> {
-                                    activity.clearCookieIndex();
-
-                                    Toast.makeText(
+                    () -> new android.app.AlertDialog.Builder(
+                            activity)
+                            .setTitle(
+                                    Localization.translate(
                                             activity,
-                                            Localization.translate(
-                                                    activity,
-                                                    "Browsing data cleared"),
-                                            Toast.LENGTH_SHORT)
-                                            .show();
-                                });
-                    });
+                                            "privacy.clear_data_title"))
+                            .setMessage(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.clear_data_message"))
+                            .setNegativeButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.cancel"),
+                                    null)
+                            .setPositiveButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.clear"),
+                                    (dialog, which) -> {
+                                        for (BrowserTab current :
+                                                activity.getTabManager()
+                                                        .getTabs()) {
+                                            current.webView
+                                                    .clearCache(true);
+                                            current.webView
+                                                    .clearHistory();
+                                        }
+
+                                        activity.clearBrowserHistory();
+                                        activity.clearDownloadHistory();
+
+                                        CookieStore.clearRuntimeCookies(
+                                                () -> {
+                                                    activity.clearRuntimeWebStorage();
+                                                    activity.clearCookieIndex();
+
+                                                    Toast.makeText(
+                                                            activity,
+                                                            Localization.translate(
+                                                                    activity,
+                                                                    "Browsing data cleared"),
+                                                            Toast.LENGTH_SHORT)
+                                                            .show();
+                                                });
+                                    })
+                            .show());
+        }
+
+        @JavascriptInterface
+        public void clearWebStorage() {
+
+            activity.runOnUiThread(
+                    () -> new android.app.AlertDialog.Builder(
+                            activity)
+                            .setTitle(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.clear_storage_title"))
+                            .setMessage(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.clear_storage_message"))
+                            .setNegativeButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.cancel"),
+                                    null)
+                            .setPositiveButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.clear"),
+                                    (dialog, which) -> {
+                                        activity.clearRuntimeWebStorage();
+
+                                        if (activity.getWebStorageStore() != null) {
+                                            activity.getWebStorageStore()
+                                                    .clear();
+                                        }
+
+                                        Toast.makeText(
+                                                activity,
+                                                Localization.translate(
+                                                        activity,
+                                                        "privacy.website_storage_cleared"),
+                                                Toast.LENGTH_SHORT)
+                                                .show();
+                                    })
+                            .show());
         }
 
         @JavascriptInterface
         public void resetSettings() {
 
             activity.runOnUiThread(
-                    () -> {
+                    () -> new android.app.AlertDialog.Builder(
+                            activity)
+                            .setTitle(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.reset_title"))
+                            .setMessage(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.reset_message"))
+                            .setNegativeButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.cancel"),
+                                    null)
+                            .setPositiveButton(
+                                    Localization.translate(
+                                            activity,
+                                            "settings.reset"),
+                                    (dialog, which) -> {
+                                        settings.reset();
 
-                        settings.reset();
+                                        WebView.setWebContentsDebuggingEnabled(
+                                                settings.isWebViewDebuggingEnabled());
 
-                        WebView.setWebContentsDebuggingEnabled(
-                                settings.isWebViewDebuggingEnabled());
+                                        activity.applyWebsiteSettings();
+                                        activity.applyBrowserAppearance();
 
-                        activity.applyWebsiteSettings();
-                        activity.applyBrowserAppearance();
+                                        if (tab.settingsPage) {
+                                            show(
+                                                    tab,
+                                                    tab.settingsSection);
+                                        }
+                                    })
+                            .show());
+        }
 
-                        if (tab.settingsPage) {
-                            show(
-                                    tab,
-                                    tab.settingsSection);
-                        }
-                    });
         }
     }
 }
