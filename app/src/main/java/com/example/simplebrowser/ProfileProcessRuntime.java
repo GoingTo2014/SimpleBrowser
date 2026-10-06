@@ -404,7 +404,8 @@ public final class ProfileProcessRuntime {
                             output.toByteArray(),
                             "UTF-8")
                     .replace(
-                            " ",
+                            String.valueOf(
+                                    (char) 0),
                             "")
                     .trim();
 
