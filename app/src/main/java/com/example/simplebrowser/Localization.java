@@ -10,6 +10,9 @@ import com.example.simplebrowser.languages.LanguagePack;
 import com.example.simplebrowser.languages.French;
 import com.example.simplebrowser.languages.Portuguese;
 import com.example.simplebrowser.languages.Spanish;
+import com.example.simplebrowser.languages.Russian;
+import com.example.simplebrowser.languages.German;
+import com.example.simplebrowser.languages.Arabic;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +34,9 @@ public final class Localization {
     public static final String JAPANESE = "ja";
     public static final String CHINESE = "zh";
     public static final String HINDI = "hi";
+    public static final String RUSSIAN = "ru";
+    public static final String GERMAN = "de";
+    public static final String ARABIC = "ar";
 
     private static final Map<String, LanguagePack> PACKS =
             new LinkedHashMap<>();
@@ -46,6 +52,9 @@ public final class Localization {
         register(new Japanese());
         register(new Chinese());
         register(new Hindi());
+        register(new Russian());
+        register(new German());
+        register(new Arabic());
 
         LanguagePack english =
                 PACKS.get(ENGLISH);
@@ -268,6 +277,12 @@ public final class Localization {
             key = "settings.chinese";
         } else if (HINDI.equals(id)) {
             key = "settings.hindi";
+        } else if (RUSSIAN.equals(id)) {
+            key = "settings.russian";
+        } else if (GERMAN.equals(id)) {
+            key = "settings.german";
+        } else if (ARABIC.equals(id)) {
+            key = "settings.arabic";
         } else {
             key = "settings.system_default";
         }
