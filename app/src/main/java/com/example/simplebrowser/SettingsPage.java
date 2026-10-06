@@ -271,12 +271,7 @@ public class SettingsPage {
                 ColorUtils.toHex(accentBorder);
 
         int buttonBackground =
-                ColorUtils.ensureContrast(
-                        ColorUtils.darken(
-                                accentColor,
-                                0.10f),
-                        cardBackground,
-                        3.0d);
+                accentColor;
 
         int buttonText =
                 ColorUtils.getReadableTextColor(
@@ -621,7 +616,24 @@ public class SettingsPage {
                 "}" +
                 ".mobile-back{" +
                 "display:block;" +
-                "margin:0 0 12px;" +
+                "width:52px;" +
+                "height:52px;" +
+                "min-height:52px;" +
+                "padding:0;" +
+                "margin:0 0 8px;" +
+                "background:transparent;" +
+                "background-color:transparent;" +
+                "border:0;" +
+                "box-shadow:none;" +
+                "color:" +
+                accentTextHex +
+                ";" +
+                "font-size:34px;" +
+                "line-height:52px;" +
+                "text-align:left;" +
+                "}" +
+                ".mobile-back{" +
+                "display:none;" +
                 "}" +
                 ".subtitle{" +
                 "margin-bottom:16px;" +
@@ -1106,6 +1118,18 @@ public class SettingsPage {
                         "Allow audio and video to start without a user gesture",
                         "media_autoplay",
                         settings.isMediaAutoplayEnabled()) +
+
+                settingRow(
+                        "Camera",
+                        "Allow websites to request camera access",
+                        "camera",
+                        settings.isCameraEnabled()) +
+
+                settingRow(
+                        "Microphone",
+                        "Allow websites to request microphone access",
+                        "microphone",
+                        settings.isMicrophoneEnabled()) +
 
                 "</div>" +
                 "</div>" +
