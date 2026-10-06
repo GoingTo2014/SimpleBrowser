@@ -26,3 +26,5 @@ Deep profile process identity, registry, and slot lifecycle hardening.
 Verified profile cold-start on Android API 29 emulator.
 
 Final profile cold-start and one-tap emulator verification passed.
+
+Exact non-Main cold-start regression test.
