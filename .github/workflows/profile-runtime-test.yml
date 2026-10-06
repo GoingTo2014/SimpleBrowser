@@ -64,7 +64,7 @@ jobs:
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: true
           script: |
-            set -euo pipefail
+            set -eu
 
             package="com.example.simplebrowser"
             apk="app/build/outputs/apk/release/app-release.apk"
@@ -105,16 +105,15 @@ jobs:
             }
 
             tap_text() {
-              local target="$1"
+              target="$1"
               dump_ui
-              local center
               center="$(find_center "$target")" || {
                 echo "Could not find UI text: $target"
                 cat /tmp/window.xml || true
                 exit 1
               }
-              read -r x y <<< "$center"
-              adb shell input tap "$x" "$y"
+              set -- $center
+              adb shell input tap "$1" "$2"
             }
 
             adb shell am start -n "$package/.MainActivity" >/tmp/start1.txt
