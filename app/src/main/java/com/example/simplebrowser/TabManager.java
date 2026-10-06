@@ -1732,14 +1732,33 @@ public class TabManager {
                 !browserSettings
                         .isMediaAutoplayEnabled());
 
-        webSettings.setCacheMode(
-                tab.isIncognito
-                        ? WebSettings.LOAD_NO_CACHE
-                        : WebSettings.LOAD_DEFAULT);
+        int cacheMode =
+                WebSettings.LOAD_DEFAULT;
+
+        if ("no_cache".equals(
+                browserSettings.getCacheMode())) {
+            cacheMode =
+                    WebSettings.LOAD_NO_CACHE;
+        } else if ("cache_only".equals(
+                browserSettings.getCacheMode())) {
+            cacheMode =
+                    WebSettings.LOAD_CACHE_ONLY;
+        }
 
         if (tab.isIncognito) {
+            cacheMode =
+                    WebSettings.LOAD_NO_CACHE;
+        }
 
-            webSettings.setSaveFormData(false);
+        webSettings.setCacheMode(cacheMode);
+
+        webSettings.setSaveFormData(
+                tab.isIncognito
+                        ? false
+                        : browserSettings
+                                .isSaveFormDataEnabled());
+
+        if (tab.isIncognito) {
             webSettings.setSavePassword(false);
         }
 
@@ -1749,6 +1768,30 @@ public class TabManager {
 
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
+
+        if (android.os.Build.VERSION.SDK_INT >= 16) {
+            webSettings.setAllowFileAccessFromFileURLs(
+                    browserSettings
+                            .isFileAccessFromFileUrlsEnabled());
+            webSettings.setAllowUniversalAccessFromFileURLs(
+                    browserSettings
+                            .isUniversalAccessFromFileUrlsEnabled());
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
+            webSettings.setMixedContentMode(
+                    browserSettings.isMixedContentEnabled()
+                            ? WebSettings
+                                    .MIXED_CONTENT_ALWAYS_ALLOW
+                            : WebSettings
+                                    .MIXED_CONTENT_NEVER_ALLOW);
+
+            CookieManager.getInstance()
+                    .setAcceptThirdPartyCookies(
+                            tab.webView,
+                            browserSettings
+                                    .isThirdPartyCookiesEnabled());
+        }
 
         if (browserSettings.isDesktopMode()) {
 
