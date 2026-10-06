@@ -6,12 +6,19 @@
 - Saved tab favicons into restored tab state so they survive closing and reopening Simple Browser.
 - Updated the three-dot menu to show the current profile with its initial and name at the top; removed the separate Profiles menu button.
 - Changed three-dot menu buttons to use the exact selected theme color.
-- Softened the darker button treatment used inside built-in pages.
+- Changed built-in settings/profile buttons to use the selected theme color instead of an extra darkened background.
+- Enlarged the small-screen Settings back arrow, removed its background, and kept it hidden on larger screens.
 - Redesigned the Password Manager to show websites with favicons first, then the saved credentials for a selected website.
-- Removed manual password creation from the Password Manager. Passwords are offered for saving after a submitted password form.
+- Removed manual password creation from the Password Manager. Passwords are offered for saving after submitted forms, including dynamically created and button-driven forms.
 - Added encrypted password Import and Export using a separate passphrase-protected portable backup format.
 - Kept the vault encrypted at rest with Android Keystore-wrapped keys.
 - Removed the repeated Settings branding/version header from non-General sections; the branding remains in General only.
 - Replaced the small-screen Settings menu button label with a simple return arrow.
 - Expanded the untranslated-string audit; only the existing intentional test string remains missing from non-English packs.
+- Fixed profile cookie isolation by preserving snapshots before the process-global WebView cookie jar is cleared and preventing onPause from overwriting them after a switch.
+- Added website camera and microphone permission controls with Android permission prompts where WebView supports them.
+- Expanded Advanced settings with cache mode, form-data saving, third-party cookies, mixed content, file-URL access, and universal file-URL access.
+- Improved Advanced logs with filtering, entry counts, copy, and a larger in-memory log buffer.
+- Added Russian, German, and Arabic language packs, including Arabic right-to-left Settings layout.
+- Renamed Main to Profile 1 and made the main profile name editable.
 - Kept Android 4.4 / API 19 compatibility and no third-party runtime dependencies.
