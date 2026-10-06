@@ -261,8 +261,25 @@ public final class ProfilesPage {
             String label,
             int ignoredButtonColor) {
 
+        /*
+         * Use same-origin HTTPS for profile actions so Android WebView
+         * reports the navigation consistently through its normal callbacks.
+         */
+        String actionUrl = url;
+
+        if (url != null &&
+                url.startsWith(
+                        "simplebrowser://profile/")) {
+
+            actionUrl =
+                    "https://browser.local/profiles/action/" +
+                    url.substring(
+                            "simplebrowser://profile/"
+                                    .length());
+        }
+
         return "<a class='button' href='" +
-                attribute(url) +
+                attribute(actionUrl) +
                 "'>" +
                 escape(label) +
                 "</a>";
