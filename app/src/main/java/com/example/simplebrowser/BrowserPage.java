@@ -38,6 +38,9 @@ public final class BrowserPage {
     public static final String PASSWORDS =
             "browser://passwords";
 
+    private static final String PASSWORD_REVEAL_PREFIX =
+            PASSWORDS + "/reveal/";
+
     public static final String PROFILES =
             "browser://profiles";
 
@@ -57,6 +60,42 @@ public final class BrowserPage {
         return SETTINGS +
                 "/" +
                 section;
+    }
+
+    public static String passwordRevealUrl(
+            long id) {
+
+        return PASSWORD_REVEAL_PREFIX +
+                id;
+    }
+
+    public static long getPasswordRevealId(
+            String url) {
+
+        if (url == null) {
+            return -1L;
+        }
+
+        String route =
+                toPublicRoute(url);
+
+        if (route == null ||
+                !route.startsWith(
+                        PASSWORD_REVEAL_PREFIX)) {
+            return -1L;
+        }
+
+        try {
+            long id =
+                    Long.parseLong(
+                            route.substring(
+                                    PASSWORD_REVEAL_PREFIX.length()));
+
+            return id > 0L ? id : -1L;
+
+        } catch (Throwable ignored) {
+            return -1L;
+        }
     }
 
     public static String getSettingsSection(
@@ -194,6 +233,27 @@ public final class BrowserPage {
                 lower,
                 "/passwords")) {
             return PASSWORDS;
+        }
+
+        String passwordRevealLocalPrefix =
+                localPrefix + "/passwords/reveal/";
+
+        if (lower.startsWith(
+                passwordRevealLocalPrefix)) {
+
+            String id =
+                    value.substring(
+                            passwordRevealLocalPrefix.length());
+
+            try {
+                long parsed =
+                        Long.parseLong(id);
+
+                if (parsed > 0L) {
+                    return passwordRevealUrl(parsed);
+                }
+            } catch (Throwable ignored) {
+            }
         }
 
         if (matchesLocalPage(
@@ -369,6 +429,24 @@ public final class BrowserPage {
         if (lower.equals(
                 PASSWORDS)) {
             return PASSWORDS;
+        }
+
+        if (lower.startsWith(
+                PASSWORD_REVEAL_PREFIX)) {
+
+            String id =
+                    value.substring(
+                            PASSWORD_REVEAL_PREFIX.length());
+
+            try {
+                long parsed =
+                        Long.parseLong(id);
+
+                if (parsed > 0L) {
+                    return passwordRevealUrl(parsed);
+                }
+            } catch (Throwable ignored) {
+            }
         }
 
         if (lower.equals(
