@@ -246,7 +246,7 @@ public class TabOverviewDialog {
     private View createTabCard(
             final BrowserTab tab,
             final Dialog dialog,
-            final ViewGroup list,
+            final GridLayout list,
             final ScrollView scroll) {
 
         final LinearLayout wrapper =
@@ -514,7 +514,7 @@ public class TabOverviewDialog {
     private boolean handleCardTouch(
             BrowserTab tab,
             View wrapper,
-            LinearLayout list,
+            GridLayout list,
             ScrollView scroll,
             Dialog dialog,
             MotionEvent event) {
@@ -650,7 +650,7 @@ public class TabOverviewDialog {
     }
 
     private int findDropIndex(
-            ViewGroup list,
+            GridLayout list,
             View dragged,
             float rawY) {
 
