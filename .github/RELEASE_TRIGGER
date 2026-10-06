@@ -22,3 +22,5 @@ Scope ProfileActions bridge to Profiles page only.
 Deep cross-process profile identity and registry hardening.
 
 Deep profile process identity, registry, and slot lifecycle hardening.
+
+Verified profile cold-start on Android API 29 emulator.
