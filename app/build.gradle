@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 
-def buildVersionName = new SimpleDateFormat('yyyy.MM.dd.HHmm', Locale.US).format(new Date())
+def buildVersionName = System.getenv('SIMPLEBROWSER_VERSION_NAME') ?: new SimpleDateFormat('yyyy.MM.dd.HHmm', Locale.US).format(new Date())
 def buildVersionCode = (System.currentTimeMillis() / 10000L).intValue()
 
 android {
