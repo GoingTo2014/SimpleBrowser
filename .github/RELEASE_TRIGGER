@@ -16,3 +16,5 @@ Profile action navigation fallback verification build.
 Fix profile fallback compilation and final release build.
 
 Profile lifecycle, WebView reuse, and first-tap switch hardening.
+
+Scope ProfileActions bridge to Profiles page only.
