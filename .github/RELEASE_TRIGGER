@@ -24,3 +24,4 @@ Final trigger: full-screen tabs, profile storage isolation, password capture, pr
 Final release trigger after password capture and storage hardening.
 Trigger profile Web Storage persistence release.
 Release build after profile-storage, guest-mode, tab-grid, and password-manager fixes
+Fix compile errors from browser session/tab overview integration
