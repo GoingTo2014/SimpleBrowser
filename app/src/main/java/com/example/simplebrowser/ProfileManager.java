@@ -324,24 +324,24 @@ public final class ProfileManager {
 
             if (profile.id.equals(profileId)) {
 
-                String cleanName =
+                String updatedName =
                         name == null
                                 ? profile.name
                                 : name.trim();
 
-                if (cleanName.isEmpty()) {
-                    cleanName = "Profile";
+                if (updatedName.isEmpty()) {
+                    updatedName = "Profile";
                 }
 
-                if (cleanName.length() > 40) {
-                    cleanName =
-                            cleanName.substring(0, 40);
+                if (updatedName.length() > 40) {
+                    updatedName =
+                            updatedName.substring(0, 40);
                 }
 
                 profile =
                         new Profile(
                                 profile.id,
-                                cleanName);
+                                updatedName);
 
                 found = true;
             }
