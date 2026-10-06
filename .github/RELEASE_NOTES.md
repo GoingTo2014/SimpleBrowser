@@ -1,10 +1,16 @@
-- Added persistent browser profiles with up to 8 total profiles, editable names, optional profile pictures, separate settings/history/bookmarks/cookies/tabs/download history, and password storage.
-- Added a Guest Profile that uses a temporary profile ID and wipes its browser data when the guest session is left or the activity is closed.
-- Added profile-scoped bookmarks with search, open, add, and delete actions.
-- Added an encrypted password manager using Android Keystore-wrapped AES/HMAC keys.
-- Added device-credential protection for the password manager on Android versions that support the system credential confirmation API.
-- Changed automatic updates so an available update asks for confirmation before downloading/installing.
-- Fixed the automatic-updates toggle so its label updates immediately.
-- Updated settings and browser-menu buttons to use a darker, contrasting background instead of disappearing when the selected accent is white.
-- Added localized strings for the new profile, bookmark, password-manager, and update UI in all bundled languages.
-- Kept Android 4.4 / API 19 compatibility and avoided third-party runtime dependencies.
+- Fixed profile switching, editing, and deletion using reliable internal navigation actions.
+- Removed profile pictures for now; profiles display the first letter of their name instead.
+- Added a toolbar bookmark icon that fills when the current site is bookmarked and toggles the bookmark on click.
+- Redesigned the Bookmarks page and added saved favicons to bookmark entries.
+- Saved tab favicons into restored tab state so they survive closing and reopening Simple Browser.
+- Updated the three-dot menu to show the current profile with its initial and name at the top; removed the separate Profiles menu button.
+- Changed three-dot menu buttons to use the exact selected theme color.
+- Softened the darker button treatment used inside built-in pages.
+- Redesigned the Password Manager to show websites with favicons first, then the saved credentials for a selected website.
+- Removed manual password creation from the Password Manager. Passwords are offered for saving after a submitted password form.
+- Added encrypted password Import and Export using a separate passphrase-protected portable backup format.
+- Kept the vault encrypted at rest with Android Keystore-wrapped keys.
+- Removed the repeated Settings branding/version header from non-General sections; the branding remains in General only.
+- Replaced the small-screen Settings menu button label with a simple return arrow.
+- Expanded the untranslated-string audit; only the existing intentional test string remains missing from non-English packs.
+- Kept Android 4.4 / API 19 compatibility and no third-party runtime dependencies.
