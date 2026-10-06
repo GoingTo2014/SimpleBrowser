@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/profile-runtime-test.yml"
       - ".github/profile-cold-start.sh"
+      - ".github/RELEASE_TRIGGER"
   workflow_dispatch:
 
 permissions:
