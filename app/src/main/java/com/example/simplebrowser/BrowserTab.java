@@ -28,6 +28,9 @@ public class BrowserTab {
     public boolean historyPage = false;
     public boolean downloadsPage = false;
     public boolean cookiesPage = false;
+    public boolean bookmarksPage = false;
+    public boolean passwordsPage = false;
+    public boolean profilesPage = false;
     public boolean isIncognito = false;
 
     /*
