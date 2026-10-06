@@ -264,11 +264,13 @@ public final class ProfilesPage {
                 escapeJavaScript(
                         profileId);
 
-        return "<button class='button' type='button' onclick=\"ProfileActions.switchProfile('" +
+        return "<a class='button' href='https://browser.local/profiles/action/switch/" +
+                attribute(profileId) +
+                "' onclick=\"if(window.ProfileActions){ProfileActions.switchProfile('" +
                 safeId +
-                "');\">" +
+                "');return false;}\">" +
                 escape(label) +
-                "</button>";
+                "</a>";
     }
 
     private String escapeJavaScript(
