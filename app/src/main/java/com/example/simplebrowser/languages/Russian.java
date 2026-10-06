@@ -445,5 +445,13 @@ public final class Russian extends LanguagePack {
         put("demo.dialog_text", "Стандартный элемент диалога");
         put("Bookmark", "Закладка");
         put("privacy.clear_storage", "Очистить хранилище сайтов");
+        put("Settings", "Настройки");
+        put("settings.wide_viewport", "Широкий viewport");
+        put("settings.wide_viewport_desc", "Использовать viewport, настроенный сайтом, чтобы адаптивные страницы могли выбирать свой макет.");
+        put("settings.offline_mode", "Офлайн-режим");
+        put("settings.offline_mode_desc", "Блокировать сетевые загрузки в WebView. Кэшированные страницы всё ещё можно отображать.");
+        put("privacy.clear_security_title", "Очистить решения безопасности?");
+        put("privacy.clear_security_message", "Будут очищены решения по SSL-сертификатам, сохранённые разрешения местоположения и решения по клиентским сертификатам. Пароли не удаляются.");
+        put("privacy.security_decisions_cleared", "Решения безопасности очищены");
     }
 }
