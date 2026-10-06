@@ -26,3 +26,10 @@
 - Added a Privacy & Security control for clearing website storage, plus confirmation dialogs before clearing browsing data or restoring defaults.
 - Removed General, Websites, Appearance, and Privacy & Security shortcut buttons from the three-dot menu; Settings is now the first action after the current-profile header.
 - Made the tab overview dialog fill the available screen.
+
+- Made the tab overview fill the available screen.
+- Added profile-scoped localStorage capture/restore, clears shared Web Storage/Web SQL and WebView cache when switching profiles, and clears legacy WebView form/HTTP-auth storage to prevent cross-profile leakage.
+- Added a Privacy & Security action for clearing website storage and confirmation prompts before destructive browsing-data/default-setting actions.
+- Removed the General, Websites, Appearance, and Privacy & Security shortcuts from the three-dot menu; Settings is now first after the current profile header.
+- Expanded Advanced with JavaScript window control, overview mode, text zoom, minimum font size, Web SQL control, hardware acceleration, cache controls, filtering/copying logs, and Safe Browsing under Privacy & Security.
+- Fixed password-save detection by attaching the password bridge before page loads and monitoring form submits, submit buttons, role buttons, and Enter-key submissions.
