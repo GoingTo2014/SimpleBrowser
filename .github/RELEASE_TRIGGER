@@ -12,3 +12,4 @@ Final behavior review: respect JavaScript setting.
 Final profile-count and Guest Profile visibility fixes.
 Profile cookies, media permissions, advanced settings, logs and new languages review.
 Fix password bridge syntax after build review.
+Fix new-profile naming default and final localization review.
