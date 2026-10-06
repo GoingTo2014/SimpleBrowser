@@ -192,7 +192,6 @@ public class MainActivity extends Activity {
 
         cookieStore =
                 new CookieStore(this);
-        cookieStore.restoreCookies();
 
         cookiesPage =
                 new CookiesPage(
@@ -206,6 +205,19 @@ public class MainActivity extends Activity {
         setupButtons();
         applyResponsiveToolbar();
         applyBrowserAppearance();
+
+        cookieStore.restoreCookies(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        finishStartup();
+                    }
+                });
+    private void finishStartup() {
+
+        if (isFinishing()) {
+            return;
+        }
 
         String launchUrl =
                 getLaunchUrl();
@@ -1629,27 +1641,73 @@ public class MainActivity extends Activity {
     }
 
     private void performProfileSwitch(String targetProfileId) {
-        String current = ProfileManager.getActiveProfileId(this);
-        if (targetProfileId == null || current.equals(targetProfileId)) return;
-        if (!ProfileManager.isGuest(targetProfileId) &&
-                profileManager.getProfile(this, targetProfileId) == null) return;
 
-        profileSwitching = true;
-        saveTabs();
-        if (cookieStore != null) cookieStore.snapshotCookies();
-        CookieStore.clearRuntimeCookies();
+        String current =
+                ProfileManager.getActiveProfileId(this);
 
-        if (browserHistory != null) browserHistory.close();
-        if (downloadHistory != null) downloadHistory.close();
-        if (bookmarkStore != null) bookmarkStore.close();
-        if (passwordStore != null) passwordStore.close();
-
-        if (ProfileManager.isGuest(current)) {
-            ProfileManager.deleteProfileData(this, current);
+        if (targetProfileId == null ||
+                current.equals(targetProfileId)) {
+            return;
         }
 
-        ProfileManager.setActiveProfileId(this, targetProfileId);
-        recreate();
+        if (!ProfileManager.isGuest(targetProfileId) &&
+                profileManager.getProfile(
+                        this,
+                        targetProfileId) == null) {
+            return;
+        }
+
+        profileSwitching = true;
+
+        saveTabs();
+
+        if (cookieStore != null) {
+            /*
+             * Capture the active profile before the global WebView jar is
+             * cleared. onPause() is deliberately prevented from taking a
+             * second snapshot while this switch is in progress.
+             */
+            cookieStore.recordUrls(
+                    getOpenWebUrls());
+            cookieStore.snapshotCookies();
+        }
+
+        if (browserHistory != null) {
+            browserHistory.close();
+        }
+
+        if (downloadHistory != null) {
+            downloadHistory.close();
+        }
+
+        if (bookmarkStore != null) {
+            bookmarkStore.close();
+        }
+
+        if (passwordStore != null) {
+            passwordStore.close();
+        }
+
+        final boolean deleteGuest =
+                ProfileManager.isGuest(current);
+
+        CookieStore.clearRuntimeCookies(
+                new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (deleteGuest) {
+                            ProfileManager.deleteProfileData(
+                                    MainActivity.this,
+                                    current);
+                        }
+
+                        ProfileManager.setActiveProfileId(
+                                MainActivity.this,
+                                targetProfileId);
+                        recreate();
+                    }
+                });
     }
 
     public void showProfileEditor(
@@ -4294,7 +4352,9 @@ public class MainActivity extends Activity {
         }
 
         if (cookieStore != null) {
-            cookieStore.snapshotCookies();
+            if (!profileSwitching) {
+                cookieStore.snapshotCookies();
+            }
             cookieStore.stopSync();
         }
 
