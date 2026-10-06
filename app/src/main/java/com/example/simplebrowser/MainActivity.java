@@ -1229,121 +1229,220 @@ public class MainActivity extends Activity {
         recreate();
     }
 
-    public void showProfileEditor(BrowserTab tab, String profileId) {
-        ProfileManager.Profile profile = profileId == null
-                ? null : profileManager.getProfile(this, profileId);
-        pendingProfileEditorTab = tab;
-        pendingProfileEditorId = profileId;
-        pendingProfileEditorName = profile == null
-                ? "Profile " + Math.max(1, profileManager.getPersistentProfileCount(this))
-                : profile.name;
-        pendingProfileEditorPfp = profile == null ? "" : profile.pfpBase64;
-        showProfileEditorDialog();
-    }
+    public void showProfileEditor(
+            BrowserTab tab,
+            String profileId) {
 
-    private void showProfileEditorDialog() {
-        final LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(dp(20), dp(8), dp(20), 0);
+        ProfileManager.Profile profile =
+                profileId == null
+                        ? null
+                        : profileManager.getProfile(
+                                this,
+                                profileId);
 
-        final ImageView preview = new ImageView(this);
-        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        LinearLayout.LayoutParams imageParams =
-                new LinearLayout.LayoutParams(dp(88), dp(88));
-        imageParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-        layout.addView(preview, imageParams);
+        if (profileId != null &&
+                profile == null) {
+            return;
+        }
 
-        final EditText name = new EditText(this);
+        final EditText name =
+                new EditText(this);
+
         name.setSingleLine(true);
-        name.setText(pendingProfileEditorName);
-        name.setHint(Localization.translate(this, "profiles.name"));
-        layout.addView(name, new LinearLayout.LayoutParams(-1, dp(52)));
+        name.setHint(
+                Localization.translate(
+                        this,
+                        "profiles.name"));
 
-        renderProfilePreview(preview, pendingProfileEditorName, pendingProfileEditorPfp);
+        name.setText(
+                profile == null
+                        ? "Profile " +
+                                Math.max(
+                                        1,
+                                        profileManager
+                                                .getPersistentProfileCount(
+                                                        this))
+                        : profile.name);
 
-        Button choose = new Button(this);
-        choose.setAllCaps(false);
-        choose.setText(Localization.translate(this, "profiles.choose_picture"));
-        layout.addView(choose, new LinearLayout.LayoutParams(-1, dp(46)));
+        final AlertDialog dialog =
+                new AlertDialog.Builder(this)
+                        .setTitle(
+                                profileId == null
+                                        ? Localization.translate(
+                                                this,
+                                                "profiles.create")
+                                        : Localization.translate(
+                                                this,
+                                                "profiles.edit"))
+                        .setView(name)
+                        .setNegativeButton(
+                                Localization.translate(
+                                        this,
+                                        "common.cancel"),
+                                null)
+                        .setPositiveButton(
+                                Localization.translate(
+                                        this,
+                                        "common.save"),
+                                null)
+                        .create();
 
-        final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(pendingProfileEditorId == null
-                        ? Localization.translate(this, "profiles.create")
-                        : Localization.translate(this, "profiles.edit"))
-                .setView(layout)
-                .setNegativeButton(Localization.translate(this, "common.cancel"), null)
-                .setPositiveButton(Localization.translate(this, "common.save"), null)
-                .create();
+        dialog.setOnShowListener(
+                ignored -> {
+                    Button save =
+                            dialog.getButton(
+                                    AlertDialog.BUTTON_POSITIVE);
 
-        choose.setOnClickListener(v -> {
-            pendingProfileEditorName = name.getText().toString();
-            dialog.dismiss();
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("image/*");
-            try {
-                startActivityForResult(Intent.createChooser(intent,
-                        Localization.translate(this, "profiles.choose_picture")),
-                        PROFILE_IMAGE_REQUEST);
-            } catch (Exception ignored) {
-            }
-        });
+                    save.setOnClickListener(
+                            v -> {
 
-        dialog.setOnShowListener(ignored -> {
-            Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            save.setOnClickListener(v -> {
-                String cleanName = name.getText().toString().trim();
-                if (cleanName.isEmpty()) cleanName = "Profile";
-                boolean ok;
-                if (pendingProfileEditorId == null) {
-                    ok = profileManager.createProfile(this, cleanName,
-                            pendingProfileEditorPfp) != null;
-                } else {
-                    ok = profileManager.updateProfile(this, pendingProfileEditorId,
-                            cleanName, pendingProfileEditorPfp);
-                }
-                if (!ok) {
-                    showPasswordManagerError(Localization.translate(this, "profiles.cannot_save"));
-                    return;
-                }
-                dialog.dismiss();
-                if (pendingProfileEditorTab != null &&
-                        pendingProfileEditorTab.profilesPage) {
-                    profilesPage.show(pendingProfileEditorTab);
-                    tabManager.selectTab(pendingProfileEditorTab);
-                }
-            });
-        });
+                                String cleanName =
+                                        name.getText()
+                                                .toString()
+                                                .trim();
+
+                                if (cleanName.isEmpty()) {
+                                    cleanName = "Profile";
+                                }
+
+                                boolean ok;
+
+                                if (profileId == null) {
+                                    ok =
+                                            profileManager
+                                                    .createProfile(
+                                                            this,
+                                                            cleanName)
+                                                    != null;
+                                } else {
+                                    ok =
+                                            profileManager
+                                                    .updateProfile(
+                                                            this,
+                                                            profileId,
+                                                            cleanName);
+                                }
+
+                                if (!ok) {
+                                    showPasswordManagerError(
+                                            Localization.translate(
+                                                    this,
+                                                    "profiles.cannot_save"));
+                                    return;
+                                }
+
+                                dialog.dismiss();
+
+                                if (tab != null &&
+                                        tab.profilesPage) {
+                                    profilesPage.show(tab);
+                                    tabManager.selectTab(tab);
+                                }
+                            });
+                });
 
         dialog.show();
     }
 
-    private void renderProfilePreview(ImageView image, String name, String pfp) {
-        Bitmap bitmap = ProfileManager.decodeBitmap(pfp);
-        if (bitmap != null) {
-            image.setImageBitmap(bitmap);
-            return;
+    public boolean handleProfileActionUrl(
+            BrowserTab tab,
+            String url) {
+
+        if (url == null ||
+                !url.startsWith(
+                        "simplebrowser://profile/")) {
+            return false;
         }
-        int size = 96;
-        Bitmap generated = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        android.graphics.Canvas canvas = new android.graphics.Canvas(generated);
-        int background = ColorUtils.darken(getAccentColor(), 0.20f);
-        canvas.drawColor(background);
-        android.graphics.Paint paint = new android.graphics.Paint(
-                android.graphics.Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(ColorUtils.getReadableTextColor(background));
-        paint.setTextSize(34f);
-        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
-        String initials = "?";
-        if (name != null && !name.trim().isEmpty()) {
-            String[] parts = name.trim().split("\\s+");
-            initials = String.valueOf(Character.toUpperCase(parts[0].charAt(0)));
-            if (parts.length > 1) {
-                initials += Character.toUpperCase(parts[parts.length - 1].charAt(0));
+
+        String remainder =
+                url.substring(
+                        "simplebrowser://profile/"
+                                .length());
+
+        int slash =
+                remainder.indexOf('/');
+
+        String action =
+                slash < 0
+                        ? remainder
+                        : remainder.substring(
+                                0,
+                                slash);
+
+        String profileId =
+                slash < 0
+                        ? ""
+                        : remainder.substring(
+                                slash + 1);
+
+        if ("create".equals(action)) {
+            showProfileEditor(tab, null);
+            return true;
+        }
+
+        if ("guest".equals(action)) {
+            enterGuestProfile(tab);
+            return true;
+        }
+
+        if ("switch".equals(action)) {
+            switchProfile(profileId);
+            return true;
+        }
+
+        if ("edit".equals(action)) {
+            showProfileEditor(
+                    tab,
+                    profileId);
+            return true;
+        }
+
+        if ("delete".equals(action)) {
+
+            ProfileManager.Profile profile =
+                    profileManager.getProfile(
+                            this,
+                            profileId);
+
+            if (profile == null ||
+                    profile.isMain()) {
+                return true;
             }
+
+            new AlertDialog.Builder(this)
+                    .setTitle(
+                            Localization.translate(
+                                    this,
+                                    "profiles.delete_confirm"))
+                    .setMessage(profile.name)
+                    .setNegativeButton(
+                            Localization.translate(
+                                    this,
+                                    "common.cancel"),
+                            null)
+                    .setPositiveButton(
+                            Localization.translate(
+                                    this,
+                                    "common.delete"),
+                            (dialog, which) -> {
+
+                                if (profileManager.deleteProfile(
+                                        this,
+                                        profileId) &&
+                                        tab != null) {
+
+                                    profilesPage.show(
+                                            tab);
+                                    tabManager.selectTab(
+                                            tab);
+                                }
+                            })
+                    .show();
+
+            return true;
         }
-        canvas.drawText(initials, size / 2f, 60f, paint);
-        image.setImageBitmap(generated);
+
+        return true;
     }
 
     public void openUrlOrSearch(
