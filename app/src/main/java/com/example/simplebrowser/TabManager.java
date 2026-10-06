@@ -342,8 +342,22 @@ public class TabManager {
                 webSettings,
                 activity.getBrowserSettings());
 
+        tab.webView.addJavascriptInterface(
+                new PasswordCaptureBridge(
+                        activity,
+                        tab),
+                "PasswordCapture");
+
+        tab.webView.addJavascriptInterface(
+                new StorageCaptureBridge(
+                        activity),
+                "StorageCapture");
+
         tab.webView.setLayerType(
-                WebView.LAYER_TYPE_HARDWARE,
+                activity.getBrowserSettings()
+                        .isHardwareAccelerationEnabled()
+                        ? WebView.LAYER_TYPE_HARDWARE
+                        : WebView.LAYER_TYPE_SOFTWARE,
                 null);
 
         tab.webView.setWebViewClient(
@@ -1695,6 +1709,40 @@ public class TabManager {
             webSettings.setJavaScriptEnabled(
                     browserSettings
                             .isJavaScriptEnabled());
+
+            webSettings.setJavaScriptCanOpenWindowsAutomatically(
+                    browserSettings
+                            .isJavaScriptCanOpenWindowsAutomatically());
+
+            webSettings.setLoadWithOverviewMode(
+                    browserSettings
+                            .isLoadWithOverviewMode());
+
+            webSettings.setTextZoom(
+                    browserSettings
+                            .getTextZoom());
+
+            webSettings.setMinimumFontSize(
+                    browserSettings
+                            .getMinimumFontSize());
+
+            try {
+                webSettings.setDatabaseEnabled(
+                        tab.isIncognito
+                                ? false
+                                : browserSettings
+                                        .isWebSqlEnabled());
+            } catch (Throwable ignored) {
+            }
+
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                try {
+                    webSettings.setSafeBrowsingEnabled(
+                            browserSettings
+                                    .isSafeBrowsingEnabled());
+                } catch (Throwable ignored) {
+                }
+            }
         }
 
         webSettings.setDomStorageEnabled(
