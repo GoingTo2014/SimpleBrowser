@@ -120,6 +120,15 @@ public final class ProfileManager {
                 profileId.trim();
     }
 
+    public static synchronized String getProcessProfileId() {
+        return processProfileId;
+    }
+
+    public static synchronized boolean isDedicatedProfileProcess() {
+        return processProfileId != null &&
+                !processProfileId.trim().isEmpty();
+    }
+
     private static AtomicFile activeProfileFile(
             Context context) {
 
