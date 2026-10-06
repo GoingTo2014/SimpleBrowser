@@ -550,7 +550,8 @@ public final class ProfileManager {
                 "browser_history.db",
                 "download_history.db",
                 "bookmarks.db",
-                "passwords.db"
+                "passwords.db",
+                "web_storage.db"
         };
 
         for (String database :
