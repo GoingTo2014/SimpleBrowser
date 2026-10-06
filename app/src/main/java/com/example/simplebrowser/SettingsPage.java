@@ -2008,6 +2008,12 @@ public class SettingsPage {
                                         CookieStore.clearRuntimeCookies(
                                                 () -> {
                                                     activity.clearRuntimeWebStorage();
+
+                                                    if (activity.getWebStorageStore() != null) {
+                                                        activity.getWebStorageStore()
+                                                                .clear();
+                                                    }
+
                                                     activity.clearCookieIndex();
 
                                                     Toast.makeText(
