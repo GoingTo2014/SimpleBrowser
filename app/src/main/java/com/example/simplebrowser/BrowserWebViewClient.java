@@ -146,8 +146,9 @@ public class BrowserWebViewClient
 
         if (settingsSection != null) {
 
-            tab.favicon = null;
-            activity.updateTabIcon(tab, null);
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.SETTINGS_PAGE);
 
             if (!tab.settingsPage) {
                 activity.restoreSettingsPage(
@@ -176,6 +177,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "New Tab");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.HOME);
 
         } else if (BrowserPage.HISTORY.equals(route)) {
 
@@ -190,6 +194,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "History");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.TABS);
 
         } else if (BrowserPage.DOWNLOADS.equals(route)) {
 
@@ -205,6 +212,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "Downloads");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.FILE);
 
         } else if (BrowserPage.COOKIES.equals(route)) {
 
@@ -220,6 +230,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "Cookies");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.SECURE);
 
         } else if (BrowserPage.DEMO.equals(route)) {
 
@@ -235,6 +248,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "HTML Demo");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.LOCAL_FILE);
 
         } else if (BrowserPage.ERROR.equals(route)) {
 
@@ -253,6 +269,9 @@ public class BrowserWebViewClient
                     Localization.translate(
                             activity,
                             "Page unavailable");
+            activity.setBrowserPageIcon(
+                    tab,
+                    BrowserIconDrawable.DANGER);
 
         } else {
 
