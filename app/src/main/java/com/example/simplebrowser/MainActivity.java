@@ -1117,6 +1117,7 @@ public class MainActivity extends Activity {
         removeInternalPageState(tab);
         bookmarksPage.show(tab, query);
         tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.BOOKMARKS);
     }
 
     public void addCurrentPageBookmark() {
@@ -1141,6 +1142,7 @@ public class MainActivity extends Activity {
         removeInternalPageState(tab);
         profilesPage.show(tab);
         tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.PROFILES);
     }
 
     public void showPasswordManager(BrowserTab tab) {
@@ -1178,6 +1180,7 @@ public class MainActivity extends Activity {
     private void showPasswordManagerPage(BrowserTab tab) {
         passwordsPage.show(tab);
         tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.PASSWORDS);
     }
 
     public void showPasswordManagerError(String message) {
@@ -2610,18 +2613,6 @@ public class MainActivity extends Activity {
 
                 setUrlText(BrowserPage.PROFILES);
 
-            } else if (tab.bookmarksPage) {
-
-                setUrlText(BrowserPage.BOOKMARKS);
-
-            } else if (tab.passwordsPage) {
-
-                setUrlText(BrowserPage.PASSWORDS);
-
-            } else if (tab.profilesPage) {
-
-                setUrlText(BrowserPage.PROFILES);
-
             } else if (tab.errorPage) {
 
                 setUrlText(tab.url);
@@ -2673,6 +2664,18 @@ public class MainActivity extends Activity {
 
                 setUrlText(
                         BrowserPage.DEMO);
+
+            } else if (tab.bookmarksPage) {
+
+                setUrlText(BrowserPage.BOOKMARKS);
+
+            } else if (tab.passwordsPage) {
+
+                setUrlText(BrowserPage.PASSWORDS);
+
+            } else if (tab.profilesPage) {
+
+                setUrlText(BrowserPage.PROFILES);
 
             } else if (tab.errorPage) {
 
@@ -3577,7 +3580,12 @@ public class MainActivity extends Activity {
             saveTabs();
         }
 
+        if (!awaitingPasswordAuthentication) {
+            passwordManagerAuthenticated = false;
+        }
+
         if (cookieStore != null) {
+            cookieStore.snapshotCookies();
             cookieStore.stopSync();
         }
 
