@@ -2,14 +2,18 @@ package com.example.simplebrowser;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Profile-scoped shadow storage for Web Storage's localStorage API.
@@ -18,6 +22,12 @@ import java.util.Locale;
  * data area. This store preserves each profile's localStorage separately so
  * the browser can clear the shared WebView storage on profile switches and
  * restore the selected profile afterwards.
+ *
+ * A small mirrored copy is kept in the profile-scoped browser settings
+ * preferences as well as SQLite. This is intentional: a profile switch can
+ * close/reopen WebView and SQLite objects while Android's WebStorage is being
+ * cleared, so the snapshot must have a second persistent path that cannot be
+ * affected by WebView's global storage cleanup.
  */
 public final class WebStorageStore
         extends SQLiteOpenHelper {
@@ -29,6 +39,11 @@ public final class WebStorageStore
 
     private static final String TABLE =
             "local_storage";
+
+    private static final String BACKUP_PREFIX =
+            "__simplebrowser_webstorage__";
+
+    private final SharedPreferences backupPreferences;
 
     public WebStorageStore(Context context) {
         this(
@@ -48,6 +63,13 @@ public final class WebStorageStore
                         profileId),
                 null,
                 DATABASE_VERSION);
+
+        backupPreferences =
+                context.getSharedPreferences(
+                        ProfileManager.scopedPrefsName(
+                                "browser_settings",
+                                profileId),
+                        Context.MODE_PRIVATE);
     }
 
     @Override
@@ -75,6 +97,33 @@ public final class WebStorageStore
             SQLiteDatabase db,
             int oldVersion,
             int newVersion) {
+    }
+
+    private String backupKey(String origin) {
+        return BACKUP_PREFIX + origin;
+    }
+
+    private String readBackup(String origin) {
+        try {
+            return backupPreferences.getString(
+                    backupKey(origin),
+                    null);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private void writeBackup(
+            String origin,
+            String data) {
+        try {
+            backupPreferences.edit()
+                    .putString(
+                            backupKey(origin),
+                            data)
+                    .apply();
+        } catch (Throwable ignored) {
+        }
     }
 
     public synchronized void put(
@@ -109,13 +158,21 @@ public final class WebStorageStore
                 "updated",
                 System.currentTimeMillis());
 
-        getWritableDatabase()
-                .insertWithOnConflict(
-                        TABLE,
-                        null,
-                        values,
-                        SQLiteDatabase
-                                .CONFLICT_REPLACE);
+        try {
+            getWritableDatabase()
+                    .insertWithOnConflict(
+                            TABLE,
+                            null,
+                            values,
+                            SQLiteDatabase
+                                    .CONFLICT_REPLACE);
+        } catch (Throwable ignored) {
+            // The preferences mirror below is the recovery path.
+        }
+
+        writeBackup(
+                cleanOrigin,
+                value);
     }
 
     public synchronized String get(
@@ -128,37 +185,45 @@ public final class WebStorageStore
             return "{}";
         }
 
-        Cursor cursor =
-                getReadableDatabase()
-                        .query(
-                                TABLE,
-                                new String[] {
-                                        "data"
-                                },
-                                "origin = ?",
-                                new String[] {
-                                        cleanOrigin
-                                },
-                                null,
-                                null,
-                                null);
-
         try {
-            if (!cursor.moveToFirst()) {
-                return "{}";
+            Cursor cursor =
+                    getReadableDatabase()
+                            .query(
+                                    TABLE,
+                                    new String[] {
+                                            "data"
+                                    },
+                                    "origin = ?",
+                                    new String[] {
+                                            cleanOrigin
+                                    },
+                                    null,
+                                    null,
+                                    null);
+
+            try {
+                if (cursor.moveToFirst()) {
+                    String data =
+                            cursor.getString(0);
+
+                    if (data != null &&
+                            !data.trim().isEmpty()) {
+                        return data;
+                    }
+                }
+            } finally {
+                cursor.close();
             }
-
-            String data =
-                    cursor.getString(0);
-
-            return data == null ||
-                    data.trim().isEmpty()
-                    ? "{}"
-                    : data;
-
-        } finally {
-            cursor.close();
+        } catch (Throwable ignored) {
         }
+
+        String backup =
+                readBackup(cleanOrigin);
+
+        return backup == null ||
+                backup.trim().isEmpty()
+                ? "{}"
+                : backup;
     }
 
     public synchronized boolean has(
@@ -171,55 +236,89 @@ public final class WebStorageStore
             return false;
         }
 
-        Cursor cursor =
-                getReadableDatabase()
-                        .query(
-                                TABLE,
-                                new String[] {
-                                        "origin"
-                                },
-                                "origin = ?",
-                                new String[] {
-                                        cleanOrigin
-                                },
-                                null,
-                                null,
-                                null);
-
         try {
-            return cursor.moveToFirst();
-        } finally {
-            cursor.close();
+            Cursor cursor =
+                    getReadableDatabase()
+                            .query(
+                                    TABLE,
+                                    new String[] {
+                                            "origin"
+                                    },
+                                    "origin = ?",
+                                    new String[] {
+                                            cleanOrigin
+                                    },
+                                    null,
+                                    null,
+                                    null);
+
+            try {
+                if (cursor.moveToFirst()) {
+                    return true;
+                }
+            } finally {
+                cursor.close();
+            }
+        } catch (Throwable ignored) {
         }
+
+        return readBackup(cleanOrigin) != null;
     }
 
     public synchronized List<String>
             getOrigins() {
 
-        ArrayList<String> result =
-                new ArrayList<>();
-
-        Cursor cursor =
-                getReadableDatabase()
-                        .query(
-                                TABLE,
-                                new String[] {
-                                        "origin"
-                                },
-                                null,
-                                null,
-                                null,
-                                null,
-                                "origin COLLATE NOCASE ASC");
+        Set<String> origins =
+                new HashSet<>();
 
         try {
-            while (cursor.moveToNext()) {
-                result.add(
-                        cursor.getString(0));
+            Cursor cursor =
+                    getReadableDatabase()
+                            .query(
+                                    TABLE,
+                                    new String[] {
+                                            "origin"
+                                    },
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    "origin COLLATE NOCASE ASC");
+
+            try {
+                while (cursor.moveToNext()) {
+                    origins.add(cursor.getString(0));
+                }
+            } finally {
+                cursor.close();
             }
-        } finally {
-            cursor.close();
+        } catch (Throwable ignored) {
         }
+
+        try {
+            Map<String, ?> values =
+                    backupPreferences.getAll();
+
+            for (String key : values.keySet()) {
+                if (key.startsWith(BACKUP_PREFIX)) {
+                    String origin =
+                            key.substring(
+                                    BACKUP_PREFIX.length());
+
+                    if (normalizeOrigin(origin) != null) {
+                        origins.add(origin);
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+
+        ArrayList<String> result =
+                new ArrayList<>(origins);
+
+        java.util.Collections.sort(
+                result,
+                String.CASE_INSENSITIVE_ORDER);
 
         return result;
     }
@@ -234,22 +333,51 @@ public final class WebStorageStore
             return;
         }
 
-        getWritableDatabase()
-                .delete(
-                        TABLE,
-                        "origin = ?",
-                        new String[] {
-                                cleanOrigin
-                        });
+        try {
+            getWritableDatabase()
+                    .delete(
+                            TABLE,
+                            "origin = ?",
+                            new String[] {
+                                    cleanOrigin
+                            });
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            backupPreferences.edit()
+                    .remove(
+                            backupKey(cleanOrigin))
+                    .apply();
+        } catch (Throwable ignored) {
+        }
     }
 
     public synchronized void clear() {
 
-        getWritableDatabase()
-                .delete(
-                        TABLE,
-                        null,
-                        null);
+        try {
+            getWritableDatabase()
+                    .delete(
+                            TABLE,
+                            null,
+                            null);
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            SharedPreferences.Editor editor =
+                    backupPreferences.edit();
+
+            for (String key :
+                    backupPreferences.getAll().keySet()) {
+                if (key.startsWith(BACKUP_PREFIX)) {
+                    editor.remove(key);
+                }
+            }
+
+            editor.apply();
+        } catch (Throwable ignored) {
+        }
     }
 
     public static String normalizeOrigin(
