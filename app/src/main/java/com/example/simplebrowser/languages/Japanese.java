@@ -358,4 +358,23 @@ put("common.cancel", "キャンセル");
         put("profiles.choose_picture", "プロフィール画像を選択");
         put("profiles.cannot_save", "プロフィールを保存できませんでした。");
     }
+        put("Bookmark", "ブックマーク");
+        put("passwords.import", "インポート");
+        put("passwords.export", "エクスポート");
+        put("passwords.all_sites", "すべてのWebサイト");
+        put("passwords.saved_one", "保存済みパスワード");
+        put("passwords.saved_many", "保存済みパスワード");
+        put("passwords.no_entries", "このWebサイトには保存されたパスワードがありません。");
+        put("passwords.export_title", "パスワードをエクスポート");
+        put("passwords.export_password", "エクスポート用パスワード（6文字以上）");
+        put("passwords.import_title", "パスワードをインポート");
+        put("passwords.save_prompt_title", "パスワードを保存しますか？");
+        put("passwords.save_prompt", "Simple Browserで送信されたパスワードが検出されました。パスワードマネージャーに保存しますか？");
+        put("passwords.not_now", "今は保存しない");
+        put("passwords.save_password", "パスワードを保存");
+        put("passwords.exported", "暗号化されたパスワードのバックアップをエクスポートしました。");
+        put("passwords.imported", "インポートしたパスワード：");
+        put("passwords.export_failed", "暗号化されたパスワードのバックアップをエクスポートできませんでした。");
+        put("passwords.import_failed", "暗号化されたパスワードのバックアップをインポートできませんでした。");
+
 }
