@@ -118,6 +118,17 @@ public class MainActivity extends Activity {
                 new ProfileManager(this);
 
         /*
+         * Persistent non-main profiles have dedicated Android processes on
+         * Android 9+. Redirect before touching any WebView API so the default
+         * process is permanently reserved for Main's WebView data directory.
+         */
+        if (Build.VERSION.SDK_INT >= 28 &&
+                getClass().equals(MainActivity.class) &&
+                redirectToActiveProfileProcess()) {
+            return;
+        }
+
+        /*
          * Select the correct Chromium data directory before any WebView API
          * is initialized. On API 19-27 this also recovers an interrupted
          * legacy profile-directory swap.
@@ -237,6 +248,81 @@ public class MainActivity extends Activity {
                         finishStartup();
                     }
                 });
+    }
+
+    private boolean redirectToActiveProfileProcess() {
+
+        String activeProfileId =
+                ProfileManager.getActiveProfileId(this);
+
+        if (ProfileManager.MAIN_ID.equals(
+                activeProfileId) ||
+                ProfileManager.isGuest(
+                        activeProfileId)) {
+            return false;
+        }
+
+        Class<? extends MainActivity>
+                target =
+                getProfileProcessActivity(
+                        activeProfileId);
+
+        if (target == null) {
+            return false;
+        }
+
+        try {
+            Intent forward =
+                    getIntent() == null
+                            ? new Intent()
+                            : new Intent(getIntent());
+
+            forward.setClass(
+                    this,
+                    target);
+
+            forward.addFlags(
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+            startActivity(forward);
+            overridePendingTransition(0, 0);
+            finish();
+            return true;
+
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private Class<? extends MainActivity>
+            getProfileProcessActivity(
+                    String profileId) {
+
+        int slot =
+                ProfileManager.getProcessSlot(
+                        this,
+                        profileId);
+
+        switch (slot) {
+            case 1:
+                return ProfileProcess1Activity.class;
+            case 2:
+                return ProfileProcess2Activity.class;
+            case 3:
+                return ProfileProcess3Activity.class;
+            case 4:
+                return ProfileProcess4Activity.class;
+            case 5:
+                return ProfileProcess5Activity.class;
+            case 6:
+                return ProfileProcess6Activity.class;
+            case 7:
+                return ProfileProcess7Activity.class;
+            case 8:
+                return ProfileProcess8Activity.class;
+            default:
+                return null;
+        }
     }
 
     private void finishStartup() {
@@ -1956,7 +2042,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void performProfileSwitch(String targetProfileId) {
+    private void performProfileSwitch(
+            String targetProfileId) {
 
         String current =
                 ProfileManager.getActiveProfileId(this);
@@ -1973,16 +2060,88 @@ public class MainActivity extends Activity {
             return;
         }
 
+        /*
+         * Android 9+ can give every persistent profile its own real WebView
+         * data directory in a dedicated process. Start that process first,
+         * then remove the old Activity from the task. The old browser process
+         * is allowed to finish normally instead of being force-killed.
+         */
+        if (Build.VERSION.SDK_INT >= 28 &&
+                !ProfileManager.isGuest(targetProfileId)) {
+
+            profileSwitching = true;
+
+            saveTabs();
+
+            if (cookieStore != null) {
+                cookieStore.discoverFromHistory(
+                        browserHistory);
+                cookieStore.recordUrls(
+                        getOpenWebUrls());
+                cookieStore.snapshotCookies();
+            }
+
+            Class<? extends MainActivity>
+                    targetActivity =
+                    getProfileProcessActivity(
+                            targetProfileId);
+
+            if (targetActivity == null) {
+                profileSwitching = false;
+                return;
+            }
+
+            ProfileManager.setActiveProfileId(
+                    this,
+                    targetProfileId);
+
+            try {
+                Intent intent =
+                        new Intent(
+                                this,
+                                targetActivity);
+
+                intent.addFlags(
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+
+                /*
+                 * Do not finishAffinity() and do not killProcess(). Finishing
+                 * this Activity leaves the newly-started target Activity as
+                 * the task's visible root while its own process owns the
+                 * target profile's WebView directory.
+                 */
+                finish();
+
+            } catch (Throwable error) {
+
+                ProfileManager.setActiveProfileId(
+                        this,
+                        current);
+
+                profileSwitching = false;
+
+                android.widget.Toast.makeText(
+                        this,
+                        "Could not switch profiles.",
+                        android.widget.Toast.LENGTH_LONG)
+                        .show();
+            }
+
+            return;
+        }
+
+        /*
+         * Android 4.4-8.1 has one process-global WebView data directory.
+         * Keep the legacy serialized filesystem swap for those devices.
+         */
         profileSwitching = true;
 
         saveTabs();
 
         if (cookieStore != null) {
-            /*
-             * Capture the active profile before the global WebView jar is
-             * cleared. onPause() is deliberately prevented from taking a
-             * second snapshot while this switch is in progress.
-             */
             cookieStore.discoverFromHistory(
                     browserHistory);
             cookieStore.recordUrls(
@@ -2016,11 +2175,6 @@ public class MainActivity extends Activity {
             passwordStore.close();
         }
 
-        /*
-         * Do not call WebStorage.deleteAllData(), clear the WebView database,
-         * or clear the global cookie jar here. Those objects contain the
-         * actual persistent site data that the new profile mechanism preserves.
-         */
         if (tabManager != null) {
             tabManager.destroyAllTabsForProfileSwitch();
         }
@@ -2051,11 +2205,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-        /*
-         * Chromium's files are swapped only after this process is gone.
-         * Show a tiny helper-process activity first so the browser task stays
-         * visible instead of disappearing while the process is replaced.
-         */
         boolean helperStarted = false;
 
         try {
