@@ -360,6 +360,11 @@ public class TabManager {
                         tab),
                 "StorageCapture");
 
+        tab.webView.addJavascriptInterface(
+                new ProfileActionBridge(
+                        activity),
+                "ProfileActions");
+
         tab.webView.setWebViewClient(
                 new BrowserWebViewClient(
                         activity,
