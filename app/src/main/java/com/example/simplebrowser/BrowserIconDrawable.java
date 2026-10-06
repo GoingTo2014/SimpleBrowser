@@ -24,6 +24,7 @@ public final class BrowserIconDrawable extends Drawable {
     public static final int TABS = 11;
     public static final int ADD = 12;
     public static final int CLOSE = 13;
+    public static final int DANGER = 14;
 
     private final int type;
 
@@ -152,6 +153,10 @@ public final class BrowserIconDrawable extends Drawable {
 
             case CLOSE:
                 drawClose(canvas);
+                break;
+
+            case DANGER:
+                drawDanger(canvas);
                 break;
         }
 
@@ -606,6 +611,41 @@ public final class BrowserIconDrawable extends Drawable {
                         17.3f, 24f),
                 1.2f,
                 1.2f,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.STROKE);
+    }
+
+    private void drawDanger(
+            Canvas canvas) {
+
+        Path triangle =
+                new Path();
+
+        triangle.moveTo(16f, 5f);
+        triangle.lineTo(27f, 26f);
+        triangle.lineTo(5f, 26f);
+        triangle.close();
+
+        canvas.drawPath(
+                triangle,
+                paint);
+
+        paint.setStyle(
+                Paint.Style.FILL);
+
+        canvas.drawRoundRect(
+                new RectF(
+                        14.8f, 11f,
+                        17.2f, 19f),
+                1.2f,
+                1.2f,
+                paint);
+
+        canvas.drawCircle(
+                16f, 22.5f,
+                1.3f,
                 paint);
 
         paint.setStyle(
