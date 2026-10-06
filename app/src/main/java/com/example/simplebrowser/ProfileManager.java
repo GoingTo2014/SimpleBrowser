@@ -24,6 +24,8 @@ public final class ProfileManager {
     private static final String KEY_PROFILES = "profiles";
     private static final String KEY_ACTIVE = "active_profile";
     private static final String KEY_MAIN_NAME = "main_name";
+    private static final String KEY_PROCESS_SLOTS =
+            "profile_process_slots";
 
     private static String guestSessionId;
 
@@ -108,6 +110,127 @@ public final class ProfileManager {
 
         return profileId != null &&
                 profileId.startsWith("guest_");
+    }
+
+    /**
+     * Gives each persistent profile a stable Android process slot.
+     * Main uses the application's default process (slot 0). User-created
+     * profiles occupy slots 1..MAX_PROFILES and retain their slot even when
+     * other profiles are deleted.
+     */
+    public static synchronized int getProcessSlot(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty() ||
+                MAIN_ID.equals(profileId) ||
+                isGuest(profileId)) {
+            return 0;
+        }
+
+        ensureInitialized(context);
+
+        SharedPreferences preferences =
+                preferences(context);
+
+        String json =
+                preferences.getString(
+                        KEY_PROCESS_SLOTS,
+                        "{}");
+
+        try {
+            JSONObject slots =
+                    new JSONObject(json);
+
+            int existing =
+                    slots.optInt(
+                            profileId,
+                            0);
+
+            if (existing >= 1 &&
+                    existing <= MAX_PROFILES) {
+                return existing;
+            }
+
+            boolean[] used =
+                    new boolean[MAX_PROFILES + 1];
+
+            java.util.Iterator<String> keys =
+                    slots.keys();
+
+            while (keys.hasNext()) {
+                String key = keys.next();
+                int slot =
+                        slots.optInt(key, 0);
+
+                if (slot >= 1 &&
+                        slot <= MAX_PROFILES) {
+                    used[slot] = true;
+                }
+            }
+
+            for (int slot = 1;
+                    slot <= MAX_PROFILES;
+                    slot++) {
+
+                if (!used[slot]) {
+                    slots.put(
+                            profileId,
+                            slot);
+
+                    preferences.edit()
+                            .putString(
+                                    KEY_PROCESS_SLOTS,
+                                    slots.toString())
+                            .commit();
+
+                    return slot;
+                }
+            }
+
+        } catch (Throwable ignored) {
+            /*
+             * Fall through to a deterministic emergency slot. The normal
+             * allocation path above is used for all valid profile sets.
+             */
+        }
+
+        return 1;
+    }
+
+    public static synchronized void releaseProcessSlot(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                MAIN_ID.equals(profileId) ||
+                isGuest(profileId)) {
+            return;
+        }
+
+        try {
+            SharedPreferences preferences =
+                    preferences(context);
+
+            JSONObject slots =
+                    new JSONObject(
+                            preferences.getString(
+                                    KEY_PROCESS_SLOTS,
+                                    "{}"));
+
+            slots.remove(profileId);
+
+            preferences.edit()
+                    .putString(
+                            KEY_PROCESS_SLOTS,
+                            slots.toString())
+                    .commit();
+
+        } catch (Throwable ignored) {
+        }
     }
 
     public List<Profile> getProfiles() {
@@ -475,6 +598,10 @@ public final class ProfileManager {
                 .apply();
 
         deleteProfileData(
+                context,
+                profileId);
+
+        releaseProcessSlot(
                 context,
                 profileId);
 
