@@ -30,3 +30,4 @@ Final profile cold-start and one-tap emulator verification passed.
 Exact non-Main cold-start regression test.
 Normal close and force-stop non-Main profile cold-start regression.
 WebView-free startup router and dedicated-process validation.
+Exercise ProfileRouterActivity in cold-start regression.
