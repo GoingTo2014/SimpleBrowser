@@ -122,9 +122,10 @@ public final class ProfileProcessRuntime {
         } catch (Throwable ignored) {
         }
 
-        delete(
-                context,
-                slot);
+        /*
+         * Leave the lease file until the old process is actually gone.
+         * isSlotOccupied() will retire it on the next allocation attempt.
+         */
     }
 
     private static int findMappedSlot(
@@ -403,7 +404,7 @@ public final class ProfileProcessRuntime {
                             output.toByteArray(),
                             "UTF-8")
                     .replace(
-                            "\u0000",
+                            " ",
                             "")
                     .trim();
 
