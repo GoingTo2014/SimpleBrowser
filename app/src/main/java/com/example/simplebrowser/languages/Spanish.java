@@ -430,6 +430,14 @@ put("common.cancel", "Cancelar");
         put("common.deny", "Denegar");
         put("strings.test.example", "Ejemplo de strings");
         put("privacy.clear_storage", "Borrar almacenamiento de sitios");
+        put("Settings", "Configuración");
+        put("settings.wide_viewport", "Vista amplia");
+        put("settings.wide_viewport_desc", "Usar la vista configurada por el sitio para que las páginas adaptables puedan elegir su diseño.");
+        put("settings.offline_mode", "Modo sin conexión");
+        put("settings.offline_mode_desc", "Bloquear las cargas de red en WebView. Las páginas en caché todavía pueden mostrarse.");
+        put("privacy.clear_security_title", "¿Borrar decisiones de seguridad?");
+        put("privacy.clear_security_message", "Esto borra las decisiones sobre certificados SSL, los permisos de ubicación guardados y las decisiones sobre certificados de cliente. No elimina las contraseñas.");
+        put("privacy.security_decisions_cleared", "Decisiones de seguridad borradas");
     }
 
 }
