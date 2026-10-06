@@ -32,6 +32,10 @@ public abstract class ProfileProcessActivity
         ProfileManager.setProcessProfileId(
                 profileId);
 
+        ProfileProcessRuntime.markStarted(
+                this,
+                profileId);
+
         super.onCreate(
                 savedInstanceState);
     }
