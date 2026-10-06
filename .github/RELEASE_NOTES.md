@@ -1,4 +1,5 @@
 - Fixed profile switching, editing, and deletion using reliable internal navigation actions.
+- The limit is now 8 user-created profiles in addition to Main, and the active Guest Profile is shown in the profile list.
 - Removed profile pictures for now; profiles display the first letter of their name instead.
 - Added a toolbar bookmark icon that fills when the current site is bookmarked and toggles the bookmark on click.
 - Redesigned the Bookmarks page and added saved favicons to bookmark entries.
