@@ -63,25 +63,13 @@ public class BrowserWebViewClient
             return true;
         }
 
-        if (url != null &&
-                url.startsWith(
-                        "simplebrowser://password-reveal/")) {
+        long passwordRevealId =
+                BrowserPage.getPasswordRevealId(url);
 
-            String encoded =
-                    url.substring(
-                            "simplebrowser://password-reveal/"
-                                    .length());
-
-            try {
-                long id = Long.parseLong(
-                        android.net.Uri.decode(encoded));
-
-                activity.showPasswordEntry(
-                        tab,
-                        id);
-            } catch (Throwable ignored) {
-            }
-
+        if (passwordRevealId > 0L) {
+            activity.showPasswordEntry(
+                    tab,
+                    passwordRevealId);
             return true;
         }
 
