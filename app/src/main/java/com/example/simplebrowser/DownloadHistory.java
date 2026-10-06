@@ -31,9 +31,20 @@ public class DownloadHistory
     }
 
     public DownloadHistory(Context context) {
+        this(
+                context,
+                ProfileManager.getActiveProfileId(context));
+    }
+
+    public DownloadHistory(
+            Context context,
+            String profileId) {
+
         super(
                 context,
-                DATABASE_NAME,
+                ProfileManager.scopedDatabaseName(
+                        DATABASE_NAME,
+                        profileId),
                 null,
                 DATABASE_VERSION);
     }
