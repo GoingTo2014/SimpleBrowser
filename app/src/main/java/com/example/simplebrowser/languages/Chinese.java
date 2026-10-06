@@ -430,6 +430,14 @@ put("common.cancel", "取消");
         put("common.deny", "拒绝");
         put("strings.test.example", "字符串示例");
         put("privacy.clear_storage", "清除网站存储");
+        put("Settings", "设置");
+        put("settings.wide_viewport", "宽视口");
+        put("settings.wide_viewport_desc", "使用网站配置的视口，让响应式页面选择合适的布局。");
+        put("settings.offline_mode", "离线模式");
+        put("settings.offline_mode_desc", "阻止 WebView 加载网络内容。缓存页面仍可显示。");
+        put("privacy.clear_security_title", "清除安全决定？");
+        put("privacy.clear_security_message", "这会清除 SSL 证书决定、已保存的位置权限和客户端证书决定，但不会删除密码。");
+        put("privacy.security_decisions_cleared", "安全决定已清除");
     }
 
 }
