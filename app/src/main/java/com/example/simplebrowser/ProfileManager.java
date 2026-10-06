@@ -235,7 +235,8 @@ public final class ProfileManager {
         List<Profile> profiles =
                 getProfiles(context);
 
-        if (profiles.size() >= MAX_PROFILES) {
+        // MAX_PROFILES counts user-created profiles; Main is separate.
+        if (profiles.size() - 1 >= MAX_PROFILES) {
             return null;
         }
 
