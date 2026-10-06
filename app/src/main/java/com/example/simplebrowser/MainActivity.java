@@ -5398,6 +5398,7 @@ public class MainActivity extends Activity {
 
             pendingPasswordTab = null;
             pendingPasswordSite = null;
+            pendingPasswordRevealId = -1L;
             return;
         }
 
