@@ -737,6 +737,16 @@ public final class CookieStore {
                         KEY_SNAPSHOT,
                         "");
 
+        if (json == null ||
+                json.trim().isEmpty()) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
         clearRuntimeCookies(
                 new Runnable() {
                     @Override
