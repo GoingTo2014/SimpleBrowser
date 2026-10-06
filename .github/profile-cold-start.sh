@@ -76,7 +76,7 @@ sleep 2
 tap_text "Create profile"
 sleep 1
 adb shell input text "RuntimeProfile"
-tap_text "Save"
+tap_text "SAVE"
 sleep 3
 
 echo "Created profile; checking process and active UI..."
