@@ -441,7 +441,13 @@ put("common.cancel", "Annuler");
         put("privacy.clear_security", "Effacer les décisions de sécurité");
         put("tab.guest_tabs", "Onglets invité");
         put("guest.enter", "Entrer en mode invité");
-        put("guest.exit", "Quitter le mode invité");
+        put("guest.exit", "Quitter le mode invité");        put("app.name", "Simple Browser");
+        put("settings.update_title", "Mise à jour disponible");
+        put("settings.update_later", "Plus tard");
+        put("settings.update_now", "Mettre à jour");
+        put("common.close", "Fermer");
+        put("common.close_tab", "Fermer l'onglet");
+
     }
 
 }
