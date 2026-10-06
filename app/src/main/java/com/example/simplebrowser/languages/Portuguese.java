@@ -429,6 +429,7 @@ put("common.cancel", "Cancelar");
         put("common.allow", "Permitir");
         put("common.deny", "Negar");
         put("strings.test.example", "Exemplo de strings");
+        put("privacy.clear_storage", "Limpar armazenamento de sites");
     }
 
 }
