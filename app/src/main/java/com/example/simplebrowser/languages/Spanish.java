@@ -357,7 +357,6 @@ put("common.cancel", "Cancelar");
         put("profiles.name", "Nombre del perfil");
         put("profiles.choose_picture", "Elegir foto de perfil");
         put("profiles.cannot_save", "No se pudo guardar el perfil.");
-    }
         put("Bookmark", "Marcador");
         put("passwords.import", "Importar");
         put("passwords.export", "Exportar");
@@ -376,5 +375,7 @@ put("common.cancel", "Cancelar");
         put("passwords.imported", "Contraseñas importadas:");
         put("passwords.export_failed", "No se pudo exportar la copia de seguridad cifrada.");
         put("passwords.import_failed", "No se pudo importar la copia de seguridad cifrada.");
+
+    }
 
 }
