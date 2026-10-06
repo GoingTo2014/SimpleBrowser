@@ -110,6 +110,13 @@
 
         </activity>
 
+        <activity
+            android:name=".ProfileSwitchActivity"
+            android:process=":profileswitch"
+            android:theme="@style/BrowserTheme"
+            android:exported="false"
+            android:noHistory="false" />
+
         <service
             android:name=".ProfileSwitchService"
             android:process=":profileswitch"
