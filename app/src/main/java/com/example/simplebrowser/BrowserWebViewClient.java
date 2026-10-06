@@ -475,6 +475,28 @@ public class BrowserWebViewClient
                 "capture(event.target);" +
                 "},true);" +
 
+                "try{" +
+                "var originalSubmit=HTMLFormElement.prototype.submit;" +
+                "HTMLFormElement.prototype.submit=function(){" +
+                "capture(this);" +
+                "return originalSubmit.apply(this,arguments);" +
+                "};" +
+                "}catch(e){}" +
+
+                "document.addEventListener('touchend',function(event){" +
+                "try{" +
+                "var target=event.target;" +
+                "var button=null;" +
+                "for(var n=0;target&&n<8;n++,target=target.parentNode){" +
+                "var tag=String(target.tagName||'').toLowerCase();" +
+                "var type=String(target.type||'').toLowerCase();" +
+                "var role=target.getAttribute?String(target.getAttribute('role')||'').toLowerCase():'';" +
+                "if(tag==='button'||role==='button'||(tag==='input'&&(type==='submit'||type==='button'))){button=target;break;}" +
+                "}" +
+                "if(button)capture(button.form||null);" +
+                "}catch(e){}" +
+                "},true);" +
+
                 "document.addEventListener('click',function(event){" +
                 "try{" +
                 "var target=event.target;" +
