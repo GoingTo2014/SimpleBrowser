@@ -194,6 +194,28 @@ public class BrowserWebViewClient
             String url,
             Bitmap favicon) {
 
+        /*
+         * A few WebView builds have been observed to skip the override
+         * callback for a navigation they consider internal. Profile actions
+         * must still work on the first tap, so handle the route here too.
+         */
+        if (activity.handleProfileActionUrl(
+                tab,
+                url)) {
+
+            try {
+                if (view != null) {
+                    view.stopLoading();
+                }
+            } catch (Throwable ignored) {
+            }
+
+            tab.loading = false;
+            activity.updateReloadButton(tab);
+            activity.updateNavigationButtonsForTabs();
+            return;
+        }
+
         String route =
                 BrowserPage.toPublicRoute(url);
 
