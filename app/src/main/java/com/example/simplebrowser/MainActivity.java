@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
     private boolean awaitingPasswordAuthentication;
     private boolean profileSwitching;
     private BrowserTab pendingPasswordTab;
+    private long pendingPasswordRevealId = -1L;
     private BrowserTab pendingPasswordFileTab;
     private String pendingPasswordExport;
     private static final int PASSWORD_EXPORT_REQUEST = 3101;
@@ -1989,13 +1990,24 @@ public class MainActivity extends Activity {
 
         /*
          * Chromium's files are swapped only after this process is gone.
-         * Keep the task record alive while the helper immediately relaunches
-         * MainActivity after the swap, instead of explicitly closing the task.
+         * Show a tiny helper-process activity first so the browser task stays
+         * visible instead of disappearing while the process is replaced.
          */
-        overridePendingTransition(0, 0);
+        try {
+            startActivity(
+                    new Intent(
+                            MainActivity.this,
+                            ProfileSwitchActivity.class));
+            overridePendingTransition(0, 0);
+        } catch (Throwable ignored) {
+        }
 
-        android.os.Process.killProcess(
-                android.os.Process.myPid());
+        new android.os.Handler(
+                Looper.getMainLooper())
+                .postDelayed(
+                        () -> android.os.Process.killProcess(
+                                android.os.Process.myPid()),
+                        350L);
     }
 
     private void flushWebViewDataBeforeProcessExit() {
@@ -5284,8 +5296,18 @@ public class MainActivity extends Activity {
                 passwordManagerAuthenticated = true;
 
                 if (pendingPasswordTab != null) {
-                    showPasswordManagerPage(
-                            pendingPasswordTab);
+                    if (pendingPasswordRevealId > 0L) {
+                        long revealId =
+                                pendingPasswordRevealId;
+                        pendingPasswordRevealId = -1L;
+
+                        showPasswordEntry(
+                                pendingPasswordTab,
+                                revealId);
+                    } else {
+                        showPasswordManagerPage(
+                                pendingPasswordTab);
+                    }
                 }
             }
 
