@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -32,7 +31,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
@@ -71,7 +69,6 @@ public class MainActivity extends Activity {
     private UpdateManager updateManager;
 
     private static final int PASSWORD_AUTH_REQUEST = 2001;
-    private static final int PROFILE_IMAGE_REQUEST = 2002;
 
     private boolean passwordManagerAuthenticated;
     private boolean awaitingPasswordAuthentication;
@@ -80,7 +77,6 @@ public class MainActivity extends Activity {
     private BrowserTab pendingProfileEditorTab;
     private String pendingProfileEditorId;
     private String pendingProfileEditorName;
-    private String pendingProfileEditorPfp;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -3677,60 +3673,6 @@ public class MainActivity extends Activity {
             }
 
             pendingPasswordTab = null;
-            return;
-        }
-
-        if (requestCode ==
-                PROFILE_IMAGE_REQUEST) {
-
-            BrowserTab tab =
-                    pendingProfileEditorTab;
-
-            String id =
-                    pendingProfileEditorId;
-
-            if (resultCode ==
-                    RESULT_OK &&
-                    data != null &&
-                    data.getData() != null) {
-
-                InputStream input = null;
-
-                try {
-                    input =
-                            getContentResolver()
-                                    .openInputStream(
-                                            data.getData());
-
-                    Bitmap bitmap =
-                            BitmapFactory
-                                    .decodeStream(input);
-
-                    pendingProfileEditorPfp =
-                            ProfileManager
-                                    .encodeBitmap(bitmap);
-
-                    if (bitmap != null) {
-                        bitmap.recycle();
-                    }
-
-                } catch (Throwable ignored) {
-
-                } finally {
-
-                    if (input != null) {
-                        try {
-                            input.close();
-                        } catch (Exception ignored) {
-                        }
-                    }
-                }
-
-                if (tab != null) {
-                    showProfileEditorDialog();
-                }
-            }
-
             return;
         }
 
