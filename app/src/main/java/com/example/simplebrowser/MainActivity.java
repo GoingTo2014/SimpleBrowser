@@ -839,8 +839,15 @@ public class MainActivity extends Activity {
                         this,
                         text));
         button.setAllCaps(false);
-        button.setTextColor(readable);
-        button.setBackgroundColor(accent);
+        int buttonColor =
+                ColorUtils.ensureContrast(
+                        ColorUtils.darken(accent, 0.22f),
+                        Color.WHITE,
+                        3.0d);
+        button.setTextColor(
+                ColorUtils.getReadableTextColor(
+                        buttonColor));
+        button.setBackgroundColor(buttonColor);
         button.setGravity(
                 android.view.Gravity.RIGHT |
                 android.view.Gravity.CENTER_VERTICAL);
