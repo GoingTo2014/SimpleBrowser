@@ -224,7 +224,7 @@ public final class BookmarksPage {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace(""", "&quot;");
+                .replace("\"", "&quot;");
     }
 
     private String attribute(String value) {
@@ -237,8 +237,8 @@ public final class BookmarksPage {
             return "''";
         }
         return "'" +
-                value.replace("\", "\\")
-                        .replace("'", "\'")
+                value.replace("\\", "\\\\")
+                        .replace("'", "\\'")
                         .replace("", "\r")
                         .replace("
 ", "\n") +
