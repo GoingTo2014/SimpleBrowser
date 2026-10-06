@@ -2582,9 +2582,12 @@ public class MainActivity extends Activity {
             return;
         }
 
-        webStorageStore.put(
-                origin,
-                data);
+        try {
+            webStorageStore.put(
+                    origin,
+                    data);
+        } catch (Throwable ignored) {
+        }
     }
 
     public void restoreWebStorage(
