@@ -2457,6 +2457,75 @@ public class MainActivity extends Activity {
         return updateManager;
     }
 
+    public void promptForAutomaticUpdate(
+            UpdateManager.UpdateInfo update) {
+
+        if (update == null ||
+                isFinishing()) {
+            return;
+        }
+
+        final String version =
+                update.version == null
+                        ? ""
+                        : update.version;
+
+        String notes =
+                update.notes == null
+                        ? ""
+                        : update.notes.trim();
+
+        if (notes.length() > 1400) {
+            notes =
+                    notes.substring(0, 1400) +
+                    "...";
+        }
+
+        StringBuilder message =
+                new StringBuilder();
+
+        message.append(
+                Localization.translate(
+                        this,
+                        "settings.update_available"));
+        message.append(": ");
+        message.append(version);
+
+        if (!notes.isEmpty()) {
+            message.append("\n\n");
+            message.append(notes);
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "settings.update_title"))
+                .setMessage(
+                        message.toString())
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "settings.update_later"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "settings.update_now"),
+                        (dialog, which) -> {
+
+                            BrowserTab tab =
+                                    getActiveTab();
+
+                            updateManager
+                                    .downloadAndInstall(
+                                            update,
+                                            tab,
+                                            false);
+                        })
+                .show();
+    }
+
     public void checkForUpdatesFromSettings(
             BrowserTab tab) {
 
