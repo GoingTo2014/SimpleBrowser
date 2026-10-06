@@ -64,7 +64,33 @@ public final class ProfileManager {
                     .putString(KEY_PROFILES, "[]")
                     .putString(KEY_ACTIVE, MAIN_ID)
                     .putString(KEY_MAIN_NAME, "Profile 1")
-                    .apply();
+                    .commit();
+        }
+
+        /*
+         * Keep a durable empty registry for fresh installations. Existing
+         * installations are migrated lazily by getProfiles().
+         */
+        if (readStateFile(
+                context,
+                PROFILE_REGISTRY_FILE) == null) {
+            writeStateFile(
+                    context,
+                    PROFILE_REGISTRY_FILE,
+                    preferences.getString(
+                            KEY_PROFILES,
+                            "[]"));
+        }
+
+        if (readStateFile(
+                context,
+                PROCESS_SLOTS_FILE) == null) {
+            writeStateFile(
+                    context,
+                    PROCESS_SLOTS_FILE,
+                    preferences.getString(
+                            KEY_PROCESS_SLOTS,
+                            "{}"));
         }
     }
 
@@ -515,11 +541,21 @@ public final class ProfileManager {
             SharedPreferences preferences =
                     preferences(context);
 
+            String json =
+                    readStateFile(
+                            context,
+                            PROCESS_SLOTS_FILE);
+
+            if (json == null ||
+                    json.trim().isEmpty()) {
+                json =
+                        preferences.getString(
+                                KEY_PROCESS_SLOTS,
+                                "{}");
+            }
+
             JSONObject slots =
-                    new JSONObject(
-                            preferences.getString(
-                                    KEY_PROCESS_SLOTS,
-                                    "{}"));
+                    new JSONObject(json);
 
             slots.remove(profileId);
 
@@ -929,10 +965,18 @@ public final class ProfileManager {
             return false;
         }
 
+        String updatedProfiles =
+                array.toString();
+
+        writeStateFile(
+                context,
+                PROFILE_REGISTRY_FILE,
+                updatedProfiles);
+
         preferences(context).edit()
                 .putString(
                         KEY_PROFILES,
-                        array.toString())
+                        updatedProfiles)
                 .apply();
 
         deleteProfileData(
