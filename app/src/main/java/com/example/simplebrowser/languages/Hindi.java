@@ -429,6 +429,7 @@ put("common.cancel", "रद्द करें");
         put("common.allow", "अनुमति दें");
         put("common.deny", "अस्वीकार करें");
         put("strings.test.example", "स्ट्रिंग उदाहरण");
+        put("privacy.clear_storage", "वेबसाइट स्टोरेज साफ़ करें");
     }
 
 }
