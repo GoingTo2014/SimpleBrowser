@@ -36,6 +36,12 @@ public final class ProfileManager {
     private static final String ACTIVE_STATE_FILE =
             "profile_active.state";
 
+    private static final String PROFILE_REGISTRY_FILE =
+            "profile_registry.state";
+
+    private static final String PROCESS_SLOTS_FILE =
+            "profile_process_slots.state";
+
     private static String guestSessionId;
     private static String processProfileId;
 
@@ -191,6 +197,109 @@ public final class ProfileManager {
         }
     }
 
+    private static String readStateFile(
+            Context context,
+            String fileName) {
+
+        if (context == null ||
+                fileName == null ||
+                fileName.trim().isEmpty()) {
+            return null;
+        }
+
+        java.io.FileInputStream input = null;
+
+        try {
+            input =
+                    new AtomicFile(
+                            new java.io.File(
+                                    context.getFilesDir(),
+                                    fileName))
+                            .openRead();
+
+            java.io.ByteArrayOutputStream output =
+                    new java.io.ByteArrayOutputStream();
+
+            byte[] buffer =
+                    new byte[4096];
+
+            int count;
+
+            while ((count =
+                    input.read(buffer)) != -1) {
+                output.write(
+                        buffer,
+                        0,
+                        count);
+            }
+
+            String value =
+                    new String(
+                            output.toByteArray(),
+                            "UTF-8")
+                            .trim();
+
+            return value.isEmpty()
+                    ? null
+                    : value;
+
+        } catch (Throwable ignored) {
+            return null;
+
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
+    private static void writeStateFile(
+            Context context,
+            String fileName,
+            String value) {
+
+        if (context == null ||
+                fileName == null ||
+                fileName.trim().isEmpty() ||
+                value == null) {
+            return;
+        }
+
+        AtomicFile file =
+                new AtomicFile(
+                        new java.io.File(
+                                context.getFilesDir(),
+                                fileName));
+
+        java.io.FileOutputStream output = null;
+
+        try {
+            output =
+                    file.startWrite();
+
+            output.write(
+                    value.getBytes("UTF-8"));
+
+            output.flush();
+            output.getFD().sync();
+
+            file.finishWrite(output);
+            output = null;
+
+        } catch (Throwable ignored) {
+
+            if (output != null) {
+                try {
+                    file.failWrite(output);
+                } catch (Throwable ignoredAgain) {
+                }
+            }
+        }
+    }
+
     private static void writeActiveProfileFile(
             Context context,
             String profileId) {
@@ -305,9 +414,23 @@ public final class ProfileManager {
                 preferences(context);
 
         String json =
-                preferences.getString(
-                        KEY_PROCESS_SLOTS,
-                        "{}");
+                readStateFile(
+                        context,
+                        PROCESS_SLOTS_FILE);
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+
+            json =
+                    preferences.getString(
+                            KEY_PROCESS_SLOTS,
+                            "{}");
+
+            writeStateFile(
+                    context,
+                    PROCESS_SLOTS_FILE,
+                    json);
+        }
 
         try {
             JSONObject slots =
@@ -349,10 +472,18 @@ public final class ProfileManager {
                             profileId,
                             slot);
 
+                    String updated =
+                            slots.toString();
+
+                    writeStateFile(
+                            context,
+                            PROCESS_SLOTS_FILE,
+                            updated);
+
                     preferences.edit()
                             .putString(
                                     KEY_PROCESS_SLOTS,
-                                    slots.toString())
+                                    updated)
                             .commit();
 
                     return slot;
@@ -392,10 +523,18 @@ public final class ProfileManager {
 
             slots.remove(profileId);
 
+            String updated =
+                    slots.toString();
+
+            writeStateFile(
+                    context,
+                    PROCESS_SLOTS_FILE,
+                    updated);
+
             preferences.edit()
                     .putString(
                             KEY_PROCESS_SLOTS,
-                            slots.toString())
+                            updated)
                     .commit();
 
         } catch (Throwable ignored) {
@@ -424,10 +563,24 @@ public final class ProfileManager {
         ensureInitialized(context);
 
         String json =
-                preferences(context)
-                        .getString(
-                                KEY_PROFILES,
-                                "[]");
+                readStateFile(
+                        context,
+                        PROFILE_REGISTRY_FILE);
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+
+            json =
+                    preferences(context)
+                            .getString(
+                                    KEY_PROFILES,
+                                    "[]");
+
+            writeStateFile(
+                    context,
+                    PROFILE_REGISTRY_FILE,
+                    json);
+        }
 
         try {
             JSONArray array =
@@ -651,10 +804,18 @@ public final class ProfileManager {
             return false;
         }
 
+        String updatedProfiles =
+                array.toString();
+
+        writeStateFile(
+                context,
+                PROFILE_REGISTRY_FILE,
+                updatedProfiles);
+
         preferences(context).edit()
                 .putString(
                         KEY_PROFILES,
-                        array.toString())
+                        updatedProfiles)
                 .apply();
 
         return true;
@@ -709,10 +870,18 @@ public final class ProfileManager {
         } catch (Exception ignored) {
         }
 
+        String updatedProfiles =
+                array.toString();
+
+        writeStateFile(
+                context,
+                PROFILE_REGISTRY_FILE,
+                updatedProfiles);
+
         preferences(context).edit()
                 .putString(
                         KEY_PROFILES,
-                        array.toString())
+                        updatedProfiles)
                 .apply();
     }
 
