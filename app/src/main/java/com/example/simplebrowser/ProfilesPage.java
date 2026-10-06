@@ -1,8 +1,5 @@
 package com.example.simplebrowser;
 
-import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
-
 import java.util.List;
 
 /**
@@ -43,10 +40,6 @@ public final class ProfilesPage {
                         activity,
                         "Profiles");
 
-        tab.webView.removeJavascriptInterface("ProfilesPage");
-        tab.webView.getSettings().setJavaScriptEnabled(true);
-        tab.webView.addJavascriptInterface(new Bridge(tab), "ProfilesPage");
-
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.PROFILES,
@@ -66,7 +59,6 @@ public final class ProfilesPage {
             BrowserTab tab) {
 
         if (tab != null) {
-            tab.webView.removeJavascriptInterface("ProfilesPage");
             tab.profilesPage = false;
         }
     }
@@ -75,8 +67,7 @@ public final class ProfilesPage {
 
         int accent =
                 ColorUtils.parseColor(
-                        activity.getBrowserSettings()
-                                .getAccentColor(),
+                        activity.getBrowserSettings().getAccentColor(),
                         android.graphics.Color.WHITE);
 
         int content =
@@ -96,20 +87,18 @@ public final class ProfilesPage {
 
         int secondary =
                 ColorUtils.ensureContrast(
-                        android.graphics.Color.rgb(
-                                90, 90, 90),
+                        android.graphics.Color.rgb(90, 90, 90),
                         card,
                         4.5d);
 
         int button =
                 ColorUtils.ensureContrast(
-                        ColorUtils.darken(accent, 0.20f),
+                        ColorUtils.darken(accent, 0.12f),
                         card,
                         3.0d);
 
         String currentId =
-                ProfileManager.getActiveProfileId(
-                        activity);
+                ProfileManager.getActiveProfileId(activity);
 
         StringBuilder html =
                 new StringBuilder();
@@ -123,81 +112,57 @@ public final class ProfilesPage {
         html.append(";font-family:sans-serif}body{padding:16px;max-width:900px;margin:auto}");
         html.append("h1{margin:0 0 4px;font-size:26px}.desc{color:");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";font-size:13px;margin-bottom:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}");
+        html.append(";font-size:13px;margin-bottom:12px}.actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}");
+        html.append(".grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}");
         html.append(".card{background:");
         html.append(ColorUtils.toHex(card));
         html.append(";border:1px solid ");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";border-radius:8px;padding:12px}.avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin-bottom:9px;border:1px solid ");
-        html.append(ColorUtils.toHex(secondary));
-        html.append("}.initials{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:");
+        html.append(";border-radius:8px;padding:14px}.avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:");
         html.append(ColorUtils.toHex(button));
         html.append(";color:");
         html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
-        html.append(";font-weight:bold;margin-bottom:9px}.name{font-weight:bold}.current{font-size:12px;color:");
+        html.append(";font-weight:bold;font-size:21px;margin-bottom:9px}.name{font-weight:bold;font-size:16px}.current{font-size:12px;color:");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";margin-top:2px}.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}");
-        html.append("button{border:1px solid ");
+        html.append(";margin-top:3px}.actions button{border:1px solid ");
         html.append(ColorUtils.toHex(button));
         html.append(";background:");
         html.append(ColorUtils.toHex(button));
         html.append(";color:");
         html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
-        html.append(";border-radius:5px;padding:9px 12px;font-weight:bold}");
+        html.append(";border-radius:5px;padding:9px 12px;font-weight:bold;text-decoration:none}");
         html.append("@media(max-width:600px){body{padding:10px}.grid{grid-template-columns:1fr}}");
         html.append("</style></head><body>");
 
         html.append("<h1>");
         html.append(escape(t("profiles.title")));
-        html.append("</h1>");
-
-        html.append("<div class='desc'>");
-        html.append(escape(
-                String.format(
-                        java.util.Locale.US,
-                        t("profiles.desc"),
-                        ProfileManager.MAX_PROFILES)));
+        html.append("</h1><div class='desc'>");
+        html.append(escape(String.format(
+                java.util.Locale.US,
+                t("profiles.desc"),
+                ProfileManager.MAX_PROFILES)));
         html.append("</div>");
 
-        html.append("<div class='actions'>");
-        html.append("<button onclick='createProfile()'>");
+        html.append("<div class='actions'><a class='actions button' href='simplebrowser://profile/create'>");
         html.append(escape(t("profiles.create")));
-        html.append("</button>");
-        html.append("<button onclick='createGuest()'>");
+        html.append("</a><a class='actions button' href='simplebrowser://profile/guest'>");
         html.append(escape(t("profiles.guest")));
-        html.append("</button>");
-        html.append("</div>");
+        html.append("</a></div>");
 
         List<ProfileManager.Profile> list =
                 profiles.getProfiles(activity);
 
         html.append("<div class='grid'>");
 
-        for (ProfileManager.Profile profile :
-                list) {
+        for (ProfileManager.Profile profile : list) {
 
             boolean current =
                     profile.id.equals(currentId);
 
             html.append("<div class='card'>");
-
-            if (profile.pfpBase64 != null &&
-                    !profile.pfpBase64.isEmpty()) {
-
-                html.append("<img class='avatar' src='data:image/jpeg;base64,");
-                html.append(
-                        attribute(profile.pfpBase64));
-                html.append("'>");
-
-            } else {
-
-                html.append("<div class='initials'>");
-                html.append(
-                        escape(
-                                initials(profile.name)));
-                html.append("</div>");
-            }
-
+            html.append("<div class='avatar'>");
+            html.append(escape(initial(profile.name)));
+            html.append("</div>");
             html.append("<div class='name'>");
             html.append(escape(profile.name));
             html.append("</div>");
@@ -211,55 +176,64 @@ public final class ProfilesPage {
             html.append("<div class='actions'>");
 
             if (!current) {
-                html.append("<button onclick='switchProfile(");
-                html.append(jsAttribute(profile.id));
-                html.append(")'>");
+                html.append("<a class='button' href='simplebrowser://profile/switch/");
+                html.append(attribute(profile.id));
+                html.append("'>");
                 html.append(escape(t("profiles.switch")));
-                html.append("</button>");
+                html.append("</a>");
             }
 
             if (!profile.isMain()) {
-                html.append("<button onclick='editProfile(");
-                html.append(jsAttribute(profile.id));
-                html.append(")'>");
+                html.append("<a class='button' href='simplebrowser://profile/edit/");
+                html.append(attribute(profile.id));
+                html.append("'>");
                 html.append(escape(t("profiles.edit")));
-                html.append("</button>");
-
+                html.append("</a>");
                 if (!current) {
-                    html.append("<button onclick='deleteProfile(");
-                    html.append(jsAttribute(profile.id));
-                    html.append(")'>");
+                    html.append("<a class='button' href='simplebrowser://profile/delete/");
+                    html.append(attribute(profile.id));
+                    html.append("'>");
                     html.append(escape(t("common.delete")));
-                    html.append("</button>");
+                    html.append("</a>");
                 }
             }
 
             html.append("</div></div>");
         }
 
-        html.append("</div>");
-        html.append("<script>");
-        html.append("function createProfile(){ProfilesPage.createProfile()}");
-        html.append("function createGuest(){if(confirm(");
-        html.append(js(t("profiles.guest_confirm")));
-        html.append(")){ProfilesPage.createGuest()}}");
-        html.append("function switchProfile(id){ProfilesPage.switchProfile(id)}");
-        html.append("function editProfile(id){ProfilesPage.editProfile(id)}");
-        html.append("function deleteProfile(id){if(confirm(");
-        html.append(js(t("profiles.delete_confirm")));
-        html.append(")){ProfilesPage.deleteProfile(id)}}");
-        html.append("</script></body></html>");
+        html.append("</div></body></html>");
 
         return Localization.translateHtml(
                 activity,
                 html.toString());
     }
 
-    private String initials(String name) {
-        if (name == null ||
-                name.trim().isEmpty()) {
-            return "?";
-        }
+    private String initial(String name) {
+        if (name == null || name.trim().isEmpty()) return "?";
+        return String.valueOf(
+                Character.toUpperCase(
+                        name.trim().charAt(0)));
+    }
+
+    private String escape(String value) {
+        if (value == null) return "";
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace(""", "&quot;");
+    }
+
+    private String attribute(String value) {
+        return escape(value)
+                .replace("'", "&#39;");
+    }
+
+    private String t(String key) {
+        return Localization.translate(activity, key);
+    }
+
+}
 
         String[] parts =
                 name.trim().split("\\s+");
