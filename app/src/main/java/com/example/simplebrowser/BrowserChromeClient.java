@@ -5,6 +5,8 @@ import android.webkit.ConsoleMessage;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.ValueCallback;
+import android.net.Uri;
 
 public class BrowserChromeClient
         extends WebChromeClient {
@@ -97,6 +99,60 @@ public class BrowserChromeClient
         }
 
         return true;
+    }
+
+    @android.annotation.TargetApi(21)
+    @Override
+    public boolean onShowFileChooser(
+            WebView webView,
+            ValueCallback<Uri[]> filePathCallback,
+            FileChooserParams fileChooserParams) {
+
+        String[] acceptTypes =
+                fileChooserParams == null
+                        ? null
+                        : fileChooserParams.getAcceptTypes();
+
+        boolean allowMultiple =
+                fileChooserParams != null &&
+                fileChooserParams.getMode() ==
+                        FileChooserParams.MODE_OPEN_MULTIPLE;
+
+        return activity.openWebFileChooser(
+                filePathCallback,
+                acceptTypes,
+                allowMultiple);
+    }
+
+    /*
+     * Android 4.4-4.4W WebView uses these legacy callbacks instead of
+     * onShowFileChooser().
+     */
+    public void openFileChooser(
+            ValueCallback<Uri> uploadMsg,
+            String acceptType,
+            String capture) {
+
+        activity.openLegacyFileChooser(
+                uploadMsg,
+                acceptType);
+    }
+
+    public void openFileChooser(
+            ValueCallback<Uri> uploadMsg) {
+
+        activity.openLegacyFileChooser(
+                uploadMsg,
+                "*/*");
+    }
+
+    public void openFileChooser(
+            ValueCallback<Uri> uploadMsg,
+            String acceptType) {
+
+        activity.openLegacyFileChooser(
+                uploadMsg,
+                acceptType);
     }
 
     @android.annotation.TargetApi(21)
