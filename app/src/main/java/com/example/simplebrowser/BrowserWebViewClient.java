@@ -399,19 +399,15 @@ public class BrowserWebViewClient
         if (!BrowserPage.isInternalUrl(url) &&
                 !tab.errorPage) {
 
-            view.removeJavascriptInterface(
-                    "PasswordCapture");
-
             if (activity.getBrowserSettings()
                     .isJavaScriptEnabled()) {
 
-                view.addJavascriptInterface(
-                        new PasswordCaptureBridge(
-                                activity,
-                                tab),
-                        "PasswordCapture");
-
                 injectPasswordSubmitWatcher(view);
+                injectWebStorageWatcher(view);
+
+                activity.restoreWebStorage(
+                        tab,
+                        url);
             }
 
             tab.url = url;
@@ -464,42 +460,92 @@ public class BrowserWebViewClient
                 "try{" +
                 "if(window.__simpleBrowserPasswordWatcher)return;" +
                 "window.__simpleBrowserPasswordWatcher=true;" +
-                "document.addEventListener('submit',function(event){" +
+
+                "function capture(form){" +
                 "try{" +
-                "var form=event.target;" +
-                "var p=form&&form.querySelector?form.querySelector('input[type=password]'):null;" +
+                "var root=form||document;" +
+                "var p=root.querySelector?root.querySelector('input[type=password]'):null;" +
                 "if(!p||!p.value)return;" +
-                "var u=form&&form.querySelector?form.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]'):null;" +
-                "var user=u?u.value:'';" +
-                "PasswordCapture.submitted(location.href,user,p.value);" +
+                "var u=root.querySelector?root.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]'):null;" +
+                "PasswordCapture.submitted(location.href,u?u.value:'',p.value);" +
                 "}catch(e){}" +
+                "}" +
+
+                "document.addEventListener('submit',function(event){" +
+                "capture(event.target);" +
                 "},true);" +
+
                 "document.addEventListener('click',function(event){" +
                 "try{" +
                 "var target=event.target;" +
                 "var tag=target&&String(target.tagName||'').toLowerCase();" +
                 "var type=target&&String(target.type||'').toLowerCase();" +
-                "if(tag!=='button'&&!(tag==='input'&&(type==='submit'||type==='button')))return;" +
-                "var form=target.form;" +
-                "if(!form)return;" +
-                "setTimeout(function(){" +
-                "try{" +
-                "var p=form.querySelector('input[type=password]');" +
-                "if(!p||!p.value)return;" +
-                "var u=form.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]');" +
-                "PasswordCapture.submitted(location.href,u?u.value:'',p.value);" +
-                "}catch(e){}" +
-                "},150);" +
+                "var role=target&&target.getAttribute?String(target.getAttribute('role')||'').toLowerCase():'';" +
+                "if(tag!=='button'&&role!=='button'&&!(tag==='input'&&(type==='submit'||type==='button')))return;" +
+                "capture(target.form||null);" +
                 "}catch(e){}" +
                 "},true);" +
+
+                "document.addEventListener('keydown',function(event){" +
+                "try{" +
+                "if(event.keyCode!==13)return;" +
+                "var target=event.target;" +
+                "capture(target&&target.form?target.form:null);" +
+                "}catch(e){}" +
+                "},true);" +
+
                 "}catch(e){}" +
                 "})();";
 
         try {
-            view.loadUrl(
-                    "javascript:" +
-                    script);
+            view.evaluateJavascript(
+                    script,
+                    null);
         } catch (Throwable ignored) {
+            try {
+                view.loadUrl(
+                        "javascript:" +
+                        script);
+            } catch (Throwable ignoredAgain) {
+            }
+        }
+    }
+
+    private void injectWebStorageWatcher(
+            WebView view) {
+
+        String script =
+                "(function(){" +
+                "try{" +
+                "if(window.__simpleBrowserStorageWatcher)return;" +
+                "window.__simpleBrowserStorageWatcher=true;" +
+                "function capture(){" +
+                "try{" +
+                "var o={};" +
+                "for(var i=0;i<localStorage.length;i++){" +
+                "var k=localStorage.key(i);" +
+                "o[k]=localStorage.getItem(k);" +
+                "}" +
+                "var origin=location.protocol+'//'+location.host;" +
+                "StorageCapture.save(origin,JSON.stringify(o));" +
+                "}catch(e){}" +
+                "}" +
+                "capture();" +
+                "setInterval(capture,2000);" +
+                "}catch(e){}" +
+                "})();";
+
+        try {
+            view.evaluateJavascript(
+                    script,
+                    null);
+        } catch (Throwable ignored) {
+            try {
+                view.loadUrl(
+                        "javascript:" +
+                        script);
+            } catch (Throwable ignoredAgain) {
+            }
         }
     }
 
