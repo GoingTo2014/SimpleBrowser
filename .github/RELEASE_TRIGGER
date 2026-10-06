@@ -2,3 +2,4 @@ SimpleBrowser release trigger for profiles, bookmarks, password manager and upda
 Final profile storage isolation release trigger.
 Stable release trigger for the current main build.
 Profile switch persistence fix release trigger.
+Tab persistence, password navigation and file chooser fixes.
