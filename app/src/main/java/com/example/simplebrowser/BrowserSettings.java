@@ -11,9 +11,20 @@ public class BrowserSettings {
     private final SharedPreferences preferences;
 
     public BrowserSettings(Context context) {
+        this(
+                context,
+                ProfileManager.getActiveProfileId(context));
+    }
+
+    public BrowserSettings(
+            Context context,
+            String profileId) {
+
         preferences =
                 context.getSharedPreferences(
-                        PREFS,
+                        ProfileManager.scopedPrefsName(
+                                PREFS,
+                                profileId),
                         Context.MODE_PRIVATE);
 
         /*
