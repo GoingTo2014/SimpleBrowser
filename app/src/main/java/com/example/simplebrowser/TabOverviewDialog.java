@@ -196,29 +196,11 @@ public class TabOverviewDialog {
 
         if (dialog.getWindow() != null) {
 
-            int width =
-                    Math.min(
-                            dp(560),
-                            (int) (
-                                    activity
-                                            .getResources()
-                                            .getDisplayMetrics()
-                                            .widthPixels *
-                                    0.94f));
-
-            int height =
-                    Math.min(
-                            dp(680),
-                            (int) (
-                                    activity
-                                            .getResources()
-                                            .getDisplayMetrics()
-                                            .heightPixels *
-                                    0.90f));
-
             dialog.getWindow().setLayout(
-                    width,
-                    height);
+                    android.view.ViewGroup
+                            .LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup
+                            .LayoutParams.MATCH_PARENT);
 
             dialog.getWindow()
                     .setBackgroundDrawable(
