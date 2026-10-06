@@ -117,12 +117,7 @@ jobs:
               --target "$target_commit" \
               --title "SimpleBrowser $RELEASE_VERSION" \
               --prerelease \
-              --notes "## What's new
-
-          - Rounded tab cards in the tabs overview.
-          - Small-screen Settings now uses a vertical full-width section selector with connected rounded corners.
-          - Cookies page optimized for smaller screens, including stacked cookie actions and full-width site deletion controls.
-          - Reload button moved next to Forward in the toolbar."
+              --notes "$(printf '## What\\x27s new in %s\\n\\n' "$RELEASE_VERSION"; cat .github/RELEASE_NOTES.md)"
           fi
 
           latest_tag="simplebrowser-latest"
