@@ -44,6 +44,9 @@ public final class BrowserPage {
     public static final String PROFILES =
             "browser://profiles";
 
+    public static final String PROFILE_ACTION_PREFIX =
+            PROFILES + "/action/";
+
     private static final String WEBVIEW_BASE =
             "https://browser.local";
 
@@ -262,6 +265,17 @@ public final class BrowserPage {
             return PROFILES;
         }
 
+        String profilesActionLocalPrefix =
+                localPrefix + "/profiles/action/";
+
+        if (lower.startsWith(
+                profilesActionLocalPrefix)) {
+            return PROFILES +
+                    "/action/" +
+                    value.substring(
+                            profilesActionLocalPrefix.length());
+        }
+
         return null;
     }
 
@@ -452,6 +466,13 @@ public final class BrowserPage {
         if (lower.equals(
                 PROFILES)) {
             return PROFILES;
+        }
+
+        if (lower.startsWith(
+                PROFILE_ACTION_PREFIX)) {
+            return PROFILE_ACTION_PREFIX +
+                    value.substring(
+                            PROFILE_ACTION_PREFIX.length());
         }
 
         if (lower.equals(
