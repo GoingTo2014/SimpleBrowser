@@ -1166,6 +1166,15 @@ public class TabManager {
             } else if (tab.cookiesPage) {
                 url = BrowserPage.COOKIES;
 
+            } else if (tab.bookmarksPage) {
+                url = BrowserPage.BOOKMARKS;
+
+            } else if (tab.passwordsPage) {
+                url = BrowserPage.PASSWORDS;
+
+            } else if (tab.profilesPage) {
+                url = BrowserPage.PROFILES;
+
             } else if (tab.errorPage) {
                 url = tab.url;
 
