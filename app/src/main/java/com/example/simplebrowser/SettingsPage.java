@@ -270,6 +270,24 @@ public class SettingsPage {
         String accentBorderHex =
                 ColorUtils.toHex(accentBorder);
 
+        int buttonBackground =
+                ColorUtils.ensureContrast(
+                        ColorUtils.darken(
+                                accentColor,
+                                0.22f),
+                        cardBackground,
+                        3.0d);
+
+        int buttonText =
+                ColorUtils.getReadableTextColor(
+                        buttonBackground);
+
+        String buttonBackgroundHex =
+                ColorUtils.toHex(buttonBackground);
+
+        String buttonTextHex =
+                ColorUtils.toHex(buttonText);
+
         String secondaryTextHex =
                 ColorUtils.toHex(secondaryText);
 
@@ -494,16 +512,16 @@ public class SettingsPage {
                 "padding:10px 14px;" +
                 "min-height:38px;" +
                 "background:" +
-                accent +
+                buttonBackgroundHex +
                 ";" +
                 "background-color:" +
-                accent +
+                buttonBackgroundHex +
                 ";" +
                 "color:" +
-                accentTextHex +
+                buttonTextHex +
                 ";" +
                 "border:1px solid " +
-                accent +
+                buttonBackgroundHex +
                 ";" +
                 "border-radius:5px;" +
                 "max-width:100%;" +
@@ -547,8 +565,8 @@ public class SettingsPage {
                 ".update-warning-icon{display:none;font-size:16px;line-height:1;}" +
                 ".update-status.warning .update-warning-icon{display:inline-block;color:#E0A000;}" +
                 ".update-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}" +
-                ".update-buttons button{margin:0;background:" + accent + ";background-color:" + accent + ";color:" + accentTextHex + ";border:1px solid " + accent + ";}" +
-                ".update-auto-button{width:100%;margin-top:8px;background:" + accent + ";background-color:" + accent + ";color:" + accentTextHex + ";border:1px solid " + accent + ";}" +
+                ".update-buttons button{margin:0;background:" + buttonBackgroundHex + ";background-color:" + buttonBackgroundHex + ";color:" + buttonTextHex + ";border:1px solid " + buttonBackgroundHex + ";}" +
+                ".update-auto-button{width:100%;margin-top:8px;background:" + buttonBackgroundHex + ";background-color:" + buttonBackgroundHex + ";color:" + buttonTextHex + ";border:1px solid " + buttonBackgroundHex + ";}" +
 
                 "@media(max-width:600px){" +
                 ".layout{" +
