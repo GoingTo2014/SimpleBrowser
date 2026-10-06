@@ -1749,10 +1749,11 @@ public class MainActivity extends Activity {
                 profile == null
                         ? "Profile " +
                                 Math.max(
-                                        1,
+                                        2,
                                         profileManager
                                                 .getPersistentProfileCount(
-                                                        this))
+                                                        this) +
+                                                1)
                         : profile.name);
 
         final AlertDialog dialog =
