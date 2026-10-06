@@ -2,6 +2,7 @@ package com.example.simplebrowser;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.AtomicFile;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,7 +28,16 @@ public final class ProfileManager {
     private static final String KEY_PROCESS_SLOTS =
             "profile_process_slots";
 
+    /*
+     * SharedPreferences instances are cached independently in each Android
+     * process. Keep the active persistent profile in a tiny atomic file so
+     * process handoffs read the value that was actually written.
+     */
+    private static final String ACTIVE_STATE_FILE =
+            "profile_active.state";
+
     private static String guestSessionId;
+    private static String processProfileId;
 
     public ProfileManager(Context context) {
         ensureInitialized(context);
@@ -52,22 +62,164 @@ public final class ProfileManager {
         }
     }
 
-    public static String getActiveProfileId(Context context) {
+    public static synchronized String getActiveProfileId(
+            Context context) {
+
         ensureInitialized(context);
 
         if (guestSessionId != null) {
             return guestSessionId;
         }
 
-        String id =
-                preferences(context).getString(
-                        KEY_ACTIVE,
-                        MAIN_ID);
+        /*
+         * Dedicated profile processes bind themselves before MainActivity's
+         * onCreate(). Never consult another process's SharedPreferences cache
+         * for their identity.
+         */
+        if (processProfileId != null &&
+                !processProfileId.trim().isEmpty()) {
+            return processProfileId;
+        }
 
-        return id == null ||
-                id.trim().isEmpty()
-                ? MAIN_ID
-                : id.trim();
+        String id =
+                readActiveProfileFile(context);
+
+        if (id == null ||
+                id.trim().isEmpty()) {
+
+            id =
+                    preferences(context).getString(
+                            KEY_ACTIVE,
+                            MAIN_ID);
+
+            if (id == null ||
+                    id.trim().isEmpty()) {
+                id = MAIN_ID;
+            }
+
+            writeActiveProfileFile(
+                    context,
+                    id);
+        }
+
+        return id.trim();
+    }
+
+    public static synchronized void setProcessProfileId(
+            String profileId) {
+
+        if (profileId == null ||
+                profileId.trim().isEmpty() ||
+                MAIN_ID.equals(profileId) ||
+                isGuest(profileId)) {
+            processProfileId = null;
+            return;
+        }
+
+        processProfileId =
+                profileId.trim();
+    }
+
+    private static AtomicFile activeProfileFile(
+            Context context) {
+
+        return new AtomicFile(
+                new java.io.File(
+                        context.getFilesDir(),
+                        ACTIVE_STATE_FILE));
+    }
+
+    private static String readActiveProfileFile(
+            Context context) {
+
+        if (context == null) {
+            return null;
+        }
+
+        java.io.FileInputStream input = null;
+
+        try {
+            input =
+                    activeProfileFile(context)
+                            .openRead();
+
+            java.io.ByteArrayOutputStream output =
+                    new java.io.ByteArrayOutputStream();
+
+            byte[] buffer =
+                    new byte[128];
+
+            int count;
+
+            while ((count =
+                    input.read(buffer)) != -1) {
+                output.write(
+                        buffer,
+                        0,
+                        count);
+            }
+
+            String value =
+                    new String(
+                            output.toByteArray(),
+                            "UTF-8")
+                            .trim();
+
+            return value.isEmpty()
+                    ? null
+                    : value;
+
+        } catch (Throwable ignored) {
+            return null;
+
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
+    private static void writeActiveProfileFile(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return;
+        }
+
+        AtomicFile file =
+                activeProfileFile(context);
+
+        java.io.FileOutputStream output = null;
+
+        try {
+            output =
+                    file.startWrite();
+
+            output.write(
+                    profileId.trim()
+                            .getBytes("UTF-8"));
+
+            output.flush();
+            output.getFD().sync();
+
+            file.finishWrite(output);
+            output = null;
+
+        } catch (Throwable ignored) {
+
+            if (output != null) {
+                try {
+                    file.failWrite(output);
+                } catch (Throwable ignoredAgain) {
+                }
+            }
+        }
     }
 
     public static void setActiveProfileId(
@@ -87,6 +239,14 @@ public final class ProfileManager {
         }
 
         guestSessionId = null;
+
+        /*
+         * Keep the cross-process state in a file. The SharedPreferences value
+         * remains for compatibility, but is no longer the handoff authority.
+         */
+        writeActiveProfileFile(
+                context,
+                profileId);
 
         preferences(context).edit()
                 .putString(
