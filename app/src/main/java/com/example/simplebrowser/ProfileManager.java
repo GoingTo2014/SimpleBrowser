@@ -23,6 +23,7 @@ public final class ProfileManager {
     private static final String PREFS = "browser_profiles";
     private static final String KEY_PROFILES = "profiles";
     private static final String KEY_ACTIVE = "active_profile";
+    private static final String KEY_MAIN_NAME = "main_name";
 
     private static String guestSessionId;
 
@@ -44,6 +45,7 @@ public final class ProfileManager {
             preferences.edit()
                     .putString(KEY_PROFILES, "[]")
                     .putString(KEY_ACTIVE, MAIN_ID)
+                    .putString(KEY_MAIN_NAME, "Profile 1")
                     .apply();
         }
     }
@@ -119,7 +121,7 @@ public final class ProfileManager {
         Profile main =
                 new Profile(
                         MAIN_ID,
-                        "Main");
+                        getMainProfileName(context));
 
         result.add(main);
 
@@ -193,7 +195,7 @@ public final class ProfileManager {
 
             return new Profile(
                     MAIN_ID,
-                    "Main");
+                    getMainProfileName(context));
         }
 
         if (isGuest(profileId)) {
@@ -240,19 +242,9 @@ public final class ProfileManager {
             return null;
         }
 
-        String cleanName =
-                name == null
-                        ? ""
-                        : name.trim();
-
         if (cleanName.isEmpty()) {
             cleanName = "Profile " +
-                    (profiles.size());
-        }
-
-        if (cleanName.length() > 40) {
-            cleanName =
-                    cleanName.substring(0, 40);
+                    (profiles.size() + 1);
         }
 
         String id =
@@ -277,9 +269,33 @@ public final class ProfileManager {
             String name) {
 
         if (profileId == null ||
-                MAIN_ID.equals(profileId) ||
                 isGuest(profileId)) {
             return false;
+        }
+
+        String cleanName =
+                name == null
+                        ? ""
+                        : name.trim();
+
+        if (cleanName.isEmpty()) {
+            cleanName = MAIN_ID.equals(profileId)
+                    ? "Profile 1"
+                    : "Profile";
+        }
+
+        if (cleanName.length() > 40) {
+            cleanName =
+                    cleanName.substring(0, 40);
+        }
+
+        if (MAIN_ID.equals(profileId)) {
+            preferences(context).edit()
+                    .putString(
+                            KEY_MAIN_NAME,
+                            cleanName)
+                    .apply();
+            return true;
         }
 
         List<Profile> profiles =
@@ -340,6 +356,22 @@ public final class ProfileManager {
                 .apply();
 
         return true;
+    }
+
+    private String getMainProfileName(
+            Context context) {
+
+        String value =
+                preferences(context).getString(
+                        KEY_MAIN_NAME,
+                        "Profile 1");
+
+        if (value == null ||
+                value.trim().isEmpty()) {
+            return "Profile 1";
+        }
+
+        return value.trim();
     }
 
     private void saveProfile(
