@@ -436,6 +436,7 @@ public class MainActivity extends Activity {
 
                 tab.webView.stopLoading();
                 tab.loading = false;
+                tabManager.updateTabLoadingState(tab);
 
                 progressBar.setVisibility(
                         View.GONE);
@@ -1922,6 +1923,13 @@ public class MainActivity extends Activity {
                 tab,
                 BrowserPage.settingsUrl(
                         section));
+
+        if ("general".equals(tab.settingsSection) &&
+                updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
     }
 
     public void showSettingsSection(
@@ -2161,6 +2169,7 @@ public class MainActivity extends Activity {
                     View.VISIBLE);
         }
 
+        tabManager.updateTabLoadingState(tab);
         updateSecurity(tab);
         updateReloadButton(tab);
         updateNavigationButtons();
@@ -2210,6 +2219,7 @@ public class MainActivity extends Activity {
             progressBar.setProgress(100);
         }
 
+        tabManager.updateTabLoadingState(tab);
         updateSecurity(tab);
         updateReloadButton(tab);
         updateNavigationButtons();
@@ -2945,6 +2955,7 @@ public class MainActivity extends Activity {
 
         if (tab != null) {
             tab.loading = loading;
+            tabManager.updateTabLoadingState(tab);
         }
 
         progressBar.setVisibility(
