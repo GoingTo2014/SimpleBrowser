@@ -482,7 +482,7 @@ public class BrowserWebViewClient
                 "var type=target&&String(target.type||'').toLowerCase();" +
                 "var role=target&&target.getAttribute?String(target.getAttribute('role')||'').toLowerCase():'';" +
                 "if(tag!=='button'&&role!=='button'&&!(tag==='input'&&(type==='submit'||type==='button')))return;" +
-                "capture(target.form||null);" +
+                "capture(target.form||document);" +
                 "}catch(e){}" +
                 "},true);" +
 
