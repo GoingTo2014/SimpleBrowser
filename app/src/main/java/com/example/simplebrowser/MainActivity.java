@@ -898,12 +898,10 @@ public class MainActivity extends Activity {
         addMenuActionButton(
                 menu,
                 guest
-                        ? Localization.translate(
-                                this,
-                                "guest.exit")
+                        ? "guest.exit"
                         : incognito
-                        ? "Exit Incognito Mode"
-                        : "Enter Incognito Mode",
+                        ? "menu.exit_incognito"
+                        : "menu.enter_incognito",
                 () -> {
                     if (browserMenu != null) {
                         browserMenu.dismiss();
