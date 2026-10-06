@@ -152,7 +152,7 @@ public class TabOverviewDialog {
         done.setContentDescription(
                 Localization.translate(
                         activity,
-                        "Close"));
+                        "common.close"));
         done.setBackgroundColor(
                 Color.TRANSPARENT);
         done.setPadding(
@@ -378,7 +378,7 @@ public class TabOverviewDialog {
         close.setContentDescription(
                 Localization.translate(
                         activity,
-                        "Close tab"));
+                        "common.close_tab"));
         close.setBackgroundColor(
                 Color.TRANSPARENT);
         close.setPadding(
