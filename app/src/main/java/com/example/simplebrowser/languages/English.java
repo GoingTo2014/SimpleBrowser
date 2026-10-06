@@ -358,7 +358,6 @@ put("common.cancel", "Cancel");
         put("profiles.name", "Profile name");
         put("profiles.choose_picture", "Choose profile picture");
         put("profiles.cannot_save", "Could not save the profile.");
-    }
         put("Bookmark", "Bookmark");
         put("passwords.import", "Import");
         put("passwords.export", "Export");
@@ -377,5 +376,7 @@ put("common.cancel", "Cancel");
         put("passwords.imported", "Passwords imported:");
         put("passwords.export_failed", "Could not export the encrypted password backup.");
         put("passwords.import_failed", "Could not import the encrypted password backup.");
+
+    }
 
 }
