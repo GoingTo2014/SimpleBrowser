@@ -138,6 +138,7 @@ public final class PasswordsPage {
         html.append(";color:");
         html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
         html.append(";border-radius:5px;padding:9px 12px;font-weight:bold;text-decoration:none;display:inline-block}");
+        html.append("a.site{text-decoration:none;color:inherit}");
         html.append(".site{display:flex;align-items:center;gap:12px;background:");
         html.append(ColorUtils.toHex(card));
         html.append(";border:1px solid ");
@@ -185,9 +186,9 @@ public final class PasswordsPage {
         html.append(escape(t("passwords.export")));
         html.append("</button>");
         if (!selectedSite.trim().isEmpty()) {
-            html.append("<button onclick='showSites()'>");
+            html.append("<a class='button' href='simplebrowser://password-site/'>");
             html.append(escape(t("passwords.all_sites")));
-            html.append("</button>");
+            html.append("</a>");
         }
         html.append("</div>");
 
@@ -240,9 +241,10 @@ public final class PasswordsPage {
             for (PasswordStore.SiteGroup group :
                     groups) {
 
-                html.append("<div class='site' onclick='showSite(");
-                html.append(js(group.site));
-                html.append(")'>");
+                html.append("<a class='site' href='simplebrowser://password-site/");
+                html.append(attribute(
+                        android.net.Uri.encode(group.site)));
+                html.append("'>");
 
                 appendFavicon(
                         html,
