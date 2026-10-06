@@ -358,4 +358,23 @@ put("common.cancel", "Annuler");
         put("profiles.choose_picture", "Choisir une photo de profil");
         put("profiles.cannot_save", "Impossible d'enregistrer le profil.");
     }
+        put("Bookmark", "Favori");
+        put("passwords.import", "Importer");
+        put("passwords.export", "Exporter");
+        put("passwords.all_sites", "Tous les sites");
+        put("passwords.saved_one", "mot de passe enregistré");
+        put("passwords.saved_many", "mots de passe enregistrés");
+        put("passwords.no_entries", "Aucun mot de passe enregistré pour ce site.");
+        put("passwords.export_title", "Exporter les mots de passe");
+        put("passwords.export_password", "Mot de passe d’exportation (6 caractères ou plus)");
+        put("passwords.import_title", "Importer les mots de passe");
+        put("passwords.save_prompt_title", "Enregistrer le mot de passe ?");
+        put("passwords.save_prompt", "Simple Browser a détecté un mot de passe envoyé. Voulez-vous l’enregistrer dans le gestionnaire de mots de passe ?");
+        put("passwords.not_now", "Pas maintenant");
+        put("passwords.save_password", "Enregistrer");
+        put("passwords.exported", "Sauvegarde chiffrée des mots de passe exportée.");
+        put("passwords.imported", "Mots de passe importés :");
+        put("passwords.export_failed", "Impossible d’exporter la sauvegarde chiffrée.");
+        put("passwords.import_failed", "Impossible d’importer la sauvegarde chiffrée.");
+
 }
