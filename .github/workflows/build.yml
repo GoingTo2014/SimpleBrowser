@@ -2,6 +2,9 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/RELEASE_TRIGGER"
 
 permissions:
   contents: write
@@ -36,8 +39,24 @@ jobs:
           fi
           echo "$SIMPLEBROWSER_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/simplebrowser-release.jks"
 
+      - name: Choose version
+        id: release_version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          epoch="$(date -u +%s)"
+          version="$(date -u -d "@$epoch" +%Y.%m.%d.%H%M)"
+          while gh release view "$version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; do
+            epoch="$((epoch + 60))"
+            version="$(date -u -d "@$epoch" +%Y.%m.%d.%H%M)"
+          done
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Selected SimpleBrowser $version"
+
       - name: Build signed APK
         env:
+          SIMPLEBROWSER_VERSION_NAME: ${{ steps.release_version.outputs.version }}
           SIMPLEBROWSER_KEYSTORE_FILE: ${{ runner.temp }}/simplebrowser-release.jks
           SIMPLEBROWSER_STORE_PASSWORD: ${{ secrets.SIMPLEBROWSER_STORE_PASSWORD }}
           SIMPLEBROWSER_KEY_ALIAS: ${{ secrets.SIMPLEBROWSER_KEY_ALIAS }}
