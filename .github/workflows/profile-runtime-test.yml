@@ -66,10 +66,7 @@ jobs:
           script: |
             set -eu
 
-            package="com.example.simplebrowser"
-            apk="app/build/outputs/apk/release/app-release.apk"
-
-            adb install -r "$apk"
+            adb install -r "$GITHUB_WORKSPACE/app/build/outputs/apk/release/app-release.apk"
             adb shell pm clear "$package" >/dev/null
             adb logcat -c
 
@@ -116,10 +113,10 @@ jobs:
               adb shell input tap "$1" "$2"
             }
 
-            adb shell am start -n "$package/.MainActivity" >/tmp/start1.txt
+            adb shell am start -n "com.example.simplebrowser/.MainActivity" >/tmp/start1.txt
             sleep 6
 
-            if ! adb shell pidof "$package" >/dev/null; then
+            if ! adb shell pidof "com.example.simplebrowser" >/dev/null; then
               echo "SimpleBrowser died on initial launch"
               adb logcat -d
               exit 1
@@ -136,7 +133,7 @@ jobs:
             tap_text "Save"
             sleep 2
 
-            adb shell am force-stop "$package"
+            adb shell am force-stop "com.example.simplebrowser"
             adb shell am start -W -n "$package/.MainActivity" >/tmp/start2.txt || true
             sleep 8
 
