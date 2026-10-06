@@ -358,4 +358,23 @@ put("common.cancel", "रद्द करें");
         put("profiles.choose_picture", "प्रोफ़ाइल चित्र चुनें");
         put("profiles.cannot_save", "प्रोफ़ाइल सहेजी नहीं जा सकी।");
     }
+        put("Bookmark", "बुकमार्क");
+        put("passwords.import", "आयात करें");
+        put("passwords.export", "निर्यात करें");
+        put("passwords.all_sites", "सभी वेबसाइट");
+        put("passwords.saved_one", "सहेजा हुआ पासवर्ड");
+        put("passwords.saved_many", "सहेजे हुए पासवर्ड");
+        put("passwords.no_entries", "इस वेबसाइट के लिए कोई सहेजा हुआ पासवर्ड नहीं है।");
+        put("passwords.export_title", "पासवर्ड निर्यात करें");
+        put("passwords.export_password", "निर्यात पासवर्ड (6+ अक्षर)");
+        put("passwords.import_title", "पासवर्ड आयात करें");
+        put("passwords.save_prompt_title", "पासवर्ड सहेजें?");
+        put("passwords.save_prompt", "Simple Browser ने भेजा गया पासवर्ड पाया। क्या इसे पासवर्ड मैनेजर में सहेजना है?");
+        put("passwords.not_now", "अभी नहीं");
+        put("passwords.save_password", "पासवर्ड सहेजें");
+        put("passwords.exported", "एन्क्रिप्टेड पासवर्ड बैकअप निर्यात किया गया।");
+        put("passwords.imported", "आयात किए गए पासवर्ड:");
+        put("passwords.export_failed", "एन्क्रिप्टेड पासवर्ड बैकअप निर्यात नहीं किया जा सका।");
+        put("passwords.import_failed", "एन्क्रिप्टेड पासवर्ड बैकअप आयात नहीं किया जा सका।");
+
 }
