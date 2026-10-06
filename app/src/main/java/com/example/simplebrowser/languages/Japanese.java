@@ -316,8 +316,7 @@ public final class Japanese extends LanguagePack {
         put("demo.form_output", "フォーム出力");
         put("demo.dialog", "ダイアログ");
         put("demo.dialog_text", "標準のダイアログ要素");
-    }
-        put("common.cancel", "キャンセル");
+put("common.cancel", "キャンセル");
         put("common.save", "保存");
         put("bookmarks.title", "ブックマーク");
         put("bookmarks.desc", "Simple Browserで保存したページです。");
@@ -358,5 +357,6 @@ public final class Japanese extends LanguagePack {
         put("profiles.name", "プロフィール名");
         put("profiles.choose_picture", "プロフィール画像を選択");
         put("profiles.cannot_save", "プロフィールを保存できませんでした。");
-
+    }
+    }
 }
