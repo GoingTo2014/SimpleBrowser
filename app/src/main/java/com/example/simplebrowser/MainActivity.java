@@ -2056,6 +2056,8 @@ public class MainActivity extends Activity {
          * Show a tiny helper-process activity first so the browser task stays
          * visible instead of disappearing while the process is replaced.
          */
+        boolean helperStarted = false;
+
         try {
             Intent switchIntent =
                     new Intent(
@@ -2069,7 +2071,28 @@ public class MainActivity extends Activity {
 
             startActivity(switchIntent);
             overridePendingTransition(0, 0);
+            helperStarted = true;
+
         } catch (Throwable ignored) {
+        }
+
+        if (!helperStarted) {
+            ProfileSwitchService.cancelPendingSwitch(
+                    MainActivity.this);
+
+            ProfileManager.setActiveProfileId(
+                    MainActivity.this,
+                    current);
+
+            profileSwitching = false;
+
+            android.widget.Toast.makeText(
+                    MainActivity.this,
+                    "Could not switch profiles.",
+                    android.widget.Toast.LENGTH_LONG)
+                    .show();
+
+            return;
         }
 
         new android.os.Handler(
@@ -2077,7 +2100,7 @@ public class MainActivity extends Activity {
                 .postDelayed(
                         () -> android.os.Process.killProcess(
                                 android.os.Process.myPid()),
-                        150L);
+                        250L);
     }
 
     private void flushWebViewDataBeforeProcessExit() {
