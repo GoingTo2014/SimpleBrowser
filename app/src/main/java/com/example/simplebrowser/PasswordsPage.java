@@ -1,6 +1,7 @@
 package com.example.simplebrowser;
 
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import org.json.JSONObject;
 
@@ -44,6 +45,10 @@ public final class PasswordsPage {
                         activity,
                         "Password manager");
 
+        tab.webView.removeJavascriptInterface("PasswordsPage");
+        tab.webView.getSettings().setJavaScriptEnabled(true);
+        tab.webView.addJavascriptInterface(new Bridge(tab), "PasswordsPage");
+
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.PASSWORDS,
@@ -63,6 +68,7 @@ public final class PasswordsPage {
             BrowserTab tab) {
 
         if (tab != null) {
+            tab.webView.removeJavascriptInterface("PasswordsPage");
             tab.passwordsPage = false;
         }
     }
@@ -239,7 +245,7 @@ public final class PasswordsPage {
         }
 
         html.append("<script>");
-        html.append("function saveEntry(){Android.saveEntry(");
+        html.append("function saveEntry(){PasswordsPage.saveEntry(");
         html.append("parseInt(document.getElementById('entry-id').value||'0'),");
         html.append("document.getElementById('site').value,");
         html.append("document.getElementById('username').value,");
@@ -254,7 +260,7 @@ public final class PasswordsPage {
         html.append("document.getElementById('note').value='';}");
 
         html.append("function editEntry(id){");
-        html.append("var value=JSON.parse(Android.getEntry(id));");
+        html.append("var value=JSON.parse(PasswordsPage.getEntry(id));");
         html.append("document.getElementById('entry-id').value=value.id;");
         html.append("document.getElementById('site').value=value.site;");
         html.append("document.getElementById('username').value=value.username;");
@@ -263,7 +269,7 @@ public final class PasswordsPage {
         html.append("window.scrollTo(0,0);}");
 
         html.append("function revealPassword(id){");
-        html.append("var p=Android.getPassword(id);");
+        html.append("var p=PasswordsPage.getPassword(id);");
         html.append("alert(");
         html.append(js(t("passwords.revealed")));
         html.append("+p);}");
@@ -271,7 +277,7 @@ public final class PasswordsPage {
         html.append("function deleteEntry(id){");
         html.append("if(confirm(");
         html.append(js(t("passwords.confirm_delete")));
-        html.append(")){Android.deleteEntry(id)}}");
+        html.append(")){PasswordsPage.deleteEntry(id)}}");
 
         html.append("</script></body></html>");
 
