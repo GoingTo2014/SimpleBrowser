@@ -272,6 +272,14 @@ public class MainActivity extends Activity {
         }
 
         try {
+            /*
+             * This Activity may receive onPause()/onDestroy() immediately
+             * after handing the task to the profile process. Mark the
+             * handoff before launching so lifecycle persistence code never
+             * touches partially initialized browser state.
+             */
+            profileSwitching = true;
+
             Intent forward =
                     getIntent() == null
                             ? new Intent()
@@ -290,6 +298,7 @@ public class MainActivity extends Activity {
             return true;
 
         } catch (Throwable ignored) {
+            profileSwitching = false;
             return false;
         }
     }
@@ -5738,7 +5747,14 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
 
-        if (!profileSwitching) {
+        /*
+         * MainActivity can be paused while it is still in the lightweight
+         * profile-routing phase of onCreate(). Do not persist browser state
+         * until the actual browser objects exist.
+         */
+        if (!profileSwitching &&
+                browserSettings != null &&
+                tabManager != null) {
             saveTabs();
         }
 
@@ -5765,7 +5781,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
 
-        if (!profileSwitching) {
+        if (!profileSwitching &&
+                browserSettings != null &&
+                tabManager != null) {
             saveTabs();
         }
 
