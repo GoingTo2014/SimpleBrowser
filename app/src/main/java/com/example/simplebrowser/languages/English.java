@@ -359,5 +359,4 @@ put("common.cancel", "Cancel");
         put("profiles.choose_picture", "Choose profile picture");
         put("profiles.cannot_save", "Could not save the profile.");
     }
-    }
 }
