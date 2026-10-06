@@ -33,3 +33,10 @@
 - Removed the General, Websites, Appearance, and Privacy & Security shortcuts from the three-dot menu; Settings is now first after the current profile header.
 - Expanded Advanced with JavaScript window control, overview mode, text zoom, minimum font size, Web SQL control, hardware acceleration, cache controls, filtering/copying logs, and Safe Browsing under Privacy & Security.
 - Fixed password-save detection by attaching the password bridge before page loads and monitoring form submits, submit buttons, role buttons, and Enter-key submissions.
+- The tab overview now fills the entire screen.
+- Profile localStorage is shadowed per profile; profile switching snapshots all open web origins before clearing shared Web Storage/Web SQL, cache, and legacy WebView form/auth data.
+- Added a Privacy & Security website-storage clear action and confirmation dialogs for browsing-data clearing and default-setting restoration.
+- Simplified the three-dot menu so Settings is the first action and section shortcuts are removed.
+- Added more Advanced controls for JavaScript windows, overview mode, text zoom, minimum font size, Web SQL, and hardware acceleration.
+- Completed translation coverage for all current language-pack keys across English, Spanish, Portuguese, French, Japanese, Chinese, Hindi, Russian, German, and Arabic.
+- Moved the password bridge installation to WebView creation so it exists before the first page load; password capture now checks submits, form buttons, role buttons, and Enter-key submissions.
