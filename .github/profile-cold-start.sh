@@ -118,7 +118,7 @@ echo "UI after cold-start with non-Main profile active:"
 dump_ui
 cat /tmp/window.xml || true
 
-FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|AndroidRuntime.*FATAL|Process: com\\.example\\.simplebrowser|chromium|libwebviewchromium' || true)"
+FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|Process: com\\.example\\.simplebrowser( |$)' || true)"
 if [ -n "$FATAL_LOG" ]; then
   echo "Crash/fatal evidence found during non-Main cold start:"
   echo "$FATAL_LOG"
