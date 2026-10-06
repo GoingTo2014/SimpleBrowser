@@ -358,5 +358,4 @@ put("common.cancel", "Cancelar");
         put("profiles.choose_picture", "Escolher foto do perfil");
         put("profiles.cannot_save", "Não foi possível salvar o perfil.");
     }
-    }
 }
