@@ -32,6 +32,15 @@ public final class BrowserPage {
     public static final String DEMO =
             "browser://demo";
 
+    public static final String BOOKMARKS =
+            "browser://bookmarks";
+
+    public static final String PASSWORDS =
+            "browser://passwords";
+
+    public static final String PROFILES =
+            "browser://profiles";
+
     private static final String WEBVIEW_BASE =
             "https://browser.local";
 
@@ -175,6 +184,24 @@ public final class BrowserPage {
             return DEMO;
         }
 
+        if (matchesLocalPage(
+                lower,
+                "/bookmarks")) {
+            return BOOKMARKS;
+        }
+
+        if (matchesLocalPage(
+                lower,
+                "/passwords")) {
+            return PASSWORDS;
+        }
+
+        if (matchesLocalPage(
+                lower,
+                "/profiles")) {
+            return PROFILES;
+        }
+
         return null;
     }
 
@@ -214,6 +241,18 @@ public final class BrowserPage {
 
         if (DEMO.equalsIgnoreCase(tab.url)) {
             return DEMO;
+        }
+
+        if (BOOKMARKS.equalsIgnoreCase(tab.url)) {
+            return BOOKMARKS;
+        }
+
+        if (PASSWORDS.equalsIgnoreCase(tab.url)) {
+            return PASSWORDS;
+        }
+
+        if (PROFILES.equalsIgnoreCase(tab.url)) {
+            return PROFILES;
         }
 
         if (tab.errorPage) {
@@ -320,6 +359,21 @@ public final class BrowserPage {
         if (lower.equals(
                 DEMO)) {
             return DEMO;
+        }
+
+        if (lower.equals(
+                BOOKMARKS)) {
+            return BOOKMARKS;
+        }
+
+        if (lower.equals(
+                PASSWORDS)) {
+            return PASSWORDS;
+        }
+
+        if (lower.equals(
+                PROFILES)) {
+            return PROFILES;
         }
 
         if (lower.equals(
