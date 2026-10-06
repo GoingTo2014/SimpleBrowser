@@ -461,7 +461,7 @@ public class BrowserWebViewClient
                 "try{" +
                 "var p=this.querySelector('input[type=password]');" +
                 "if(!p||!p.value)return;" +
-                "var u=this.querySelector('input[name*=user i],input[type=email],input[name*=email i],input[autocomplete=username]');" +
+                "var u=this.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]');" +
                 "var user=u?u.value:'';" +
                 "PasswordCapture.submitted(location.href,user,p.value);" +
                 "}catch(e){}" +
