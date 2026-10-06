@@ -353,13 +353,6 @@ public class TabManager {
                         activity),
                 "StorageCapture");
 
-        tab.webView.setLayerType(
-                activity.getBrowserSettings()
-                        .isHardwareAccelerationEnabled()
-                        ? WebView.LAYER_TYPE_HARDWARE
-                        : WebView.LAYER_TYPE_SOFTWARE,
-                null);
-
         tab.webView.setWebViewClient(
                 new BrowserWebViewClient(
                         activity,
@@ -1825,6 +1818,13 @@ public class TabManager {
                     browserSettings
                             .isUniversalAccessFromFileUrlsEnabled());
         }
+
+        tab.webView.setLayerType(
+                browserSettings
+                        .isHardwareAccelerationEnabled()
+                        ? WebView.LAYER_TYPE_HARDWARE
+                        : WebView.LAYER_TYPE_SOFTWARE,
+                null);
 
         if (android.os.Build.VERSION.SDK_INT >= 21) {
             webSettings.setMixedContentMode(
