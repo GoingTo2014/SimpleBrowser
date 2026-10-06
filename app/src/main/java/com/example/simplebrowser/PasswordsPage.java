@@ -331,12 +331,12 @@ public final class PasswordsPage {
                 }
 
                 html.append("<div class='toolbar'>");
-                html.append("<button type='button' onclick='PasswordsPage.revealPassword(");
+                html.append("<a class='button' href='https://browser.local/passwords/reveal/");
                 html.append(entry.id);
-                html.append(")'>");
+                html.append("'>");
                 html.append(escape(
                         t("passwords.reveal")));
-                html.append("</button>");
+                html.append("</a>");
 
                 html.append("<button onclick='del(");
                 html.append(entry.id);
