@@ -28,3 +28,4 @@ Verified profile cold-start on Android API 29 emulator.
 Final profile cold-start and one-tap emulator verification passed.
 
 Exact non-Main cold-start regression test.
+Normal close and force-stop non-Main profile cold-start regression.
