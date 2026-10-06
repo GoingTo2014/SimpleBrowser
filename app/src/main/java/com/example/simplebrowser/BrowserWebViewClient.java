@@ -34,6 +34,29 @@ public class BrowserWebViewClient
             WebView view,
             String url) {
 
+        return handleNavigationUrl(
+                view,
+                url);
+    }
+
+    @android.annotation.TargetApi(21)
+    @Override
+    public boolean shouldOverrideUrlLoading(
+            WebView view,
+            WebResourceRequest request) {
+
+        return handleNavigationUrl(
+                view,
+                request == null ||
+                request.getUrl() == null
+                        ? null
+                        : request.getUrl().toString());
+    }
+
+    private boolean handleNavigationUrl(
+            WebView view,
+            String url) {
+
         if (activity.handleProfileActionUrl(
                 tab,
                 url)) {
