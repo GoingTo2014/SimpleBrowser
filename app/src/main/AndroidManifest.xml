@@ -117,6 +117,54 @@
             android:exported="false"
             android:noHistory="false" />
 
+        <activity
+            android:name=".ProfileProcess1Activity"
+            android:process=":profile1"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess2Activity"
+            android:process=":profile2"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess3Activity"
+            android:process=":profile3"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess4Activity"
+            android:process=":profile4"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess5Activity"
+            android:process=":profile5"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess6Activity"
+            android:process=":profile6"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess7Activity"
+            android:process=":profile7"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
+        <activity
+            android:name=".ProfileProcess8Activity"
+            android:process=":profile8"
+            android:theme="@style/BrowserTheme"
+            android:exported="false" />
+
         <service
             android:name=".ProfileSwitchService"
             android:process=":profileswitch"
