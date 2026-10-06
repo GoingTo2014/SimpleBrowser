@@ -186,7 +186,7 @@ public final class PasswordsPage {
         html.append(escape(t("passwords.export")));
         html.append("</button>");
         if (!selectedSite.trim().isEmpty()) {
-            html.append("<button type='button' onclick='PasswordsPage.openSite(\'\')'>");
+            html.append("<button type="button" onclick="PasswordsPage.openSite('')">");
             html.append(escape(t("passwords.all_sites")));
             html.append("</button>");
         }
