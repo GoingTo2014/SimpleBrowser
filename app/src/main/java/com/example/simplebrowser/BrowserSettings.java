@@ -361,7 +361,7 @@ public class BrowserSettings {
     public boolean isSaveFormDataEnabled() {
         return preferences.getBoolean(
                 "save_form_data",
-                true);
+                false);
     }
 
     public boolean isThirdPartyCookiesEnabled() {
