@@ -36,9 +36,20 @@ public class BrowserHistory
     }
 
     public BrowserHistory(Context context) {
+        this(
+                context,
+                ProfileManager.getActiveProfileId(context));
+    }
+
+    public BrowserHistory(
+            Context context,
+            String profileId) {
+
         super(
                 context,
-                DATABASE_NAME,
+                ProfileManager.scopedDatabaseName(
+                        DATABASE_NAME,
+                        profileId),
                 null,
                 DATABASE_VERSION);
     }
