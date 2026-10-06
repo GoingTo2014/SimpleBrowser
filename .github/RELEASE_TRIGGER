@@ -14,3 +14,4 @@ Profile cookies, media permissions, advanced settings, logs and new languages re
 Fix password bridge syntax after build review.
 Fix new-profile naming default and final localization review.
 Fix profile update variable shadowing after compiler review.
+Final documentation wording review completed.
