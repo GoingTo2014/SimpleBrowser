@@ -317,18 +317,6 @@ public class BrowserSettings {
                 true);
     }
 
-    public boolean isDoNotTrackEnabled() {
-        return preferences.getBoolean(
-                "do_not_track",
-                false);
-    }
-
-    public boolean isBlockThirdPartyStorage() {
-        return preferences.getBoolean(
-                "block_third_party_storage",
-                false);
-    }
-
     public void setInt(
             String name,
             int value) {
