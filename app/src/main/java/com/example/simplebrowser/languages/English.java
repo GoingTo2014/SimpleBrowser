@@ -447,7 +447,13 @@ put("common.cancel", "Cancel");
         put("privacy.clear_security", "Clear security decisions");
         put("tab.guest_tabs", "Guest tabs");
         put("guest.enter", "Enter Guest Mode");
-        put("guest.exit", "Exit Guest Mode");
+        put("guest.exit", "Exit Guest Mode");        put("app.name", "Simple Browser");
+        put("settings.update_title", "Update available");
+        put("settings.update_later", "Later");
+        put("settings.update_now", "Update now");
+        put("common.close", "Close");
+        put("common.close_tab", "Close tab");
+
     }
 
 }
