@@ -333,12 +333,12 @@ public final class PasswordsPage {
                 }
 
                 html.append("<div class='toolbar'>");
-                html.append("<button onclick='reveal(");
+                html.append("<a class='button' href='simplebrowser://password-reveal/");
                 html.append(entry.id);
-                html.append(")'>");
+                html.append("'>");
                 html.append(escape(
                         t("passwords.reveal")));
-                html.append("</button>");
+                html.append("</a>");
 
                 html.append("<button onclick='del(");
                 html.append(entry.id);
