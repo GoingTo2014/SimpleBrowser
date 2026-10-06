@@ -186,7 +186,7 @@ public final class PasswordsPage {
         html.append(escape(t("passwords.export")));
         html.append("</button>");
         if (!selectedSite.trim().isEmpty()) {
-            html.append("<button type='button' onclick='showSites()'>");
+            html.append("<button type='button' onclick='PasswordsPage.openSite(\'\')'>");
             html.append(escape(t("passwords.all_sites")));
             html.append("</button>");
         }
@@ -206,9 +206,7 @@ public final class PasswordsPage {
         html.append("function exportPasswords(){PasswordsPage.exportPasswords()}");
         html.append("function showSite(s){PasswordsPage.openSite(s)}");
         html.append("function showSites(){PasswordsPage.openSite('')}");
-        html.append("function reveal(id){var p=PasswordsPage.getPassword(id);alert(");
-        html.append(js(t("passwords.revealed")));
-        html.append("+p)}");
+        html.append("function reveal(id){PasswordsPage.revealPassword(id)}");
         html.append("function del(id){if(confirm(");
         html.append(js(t("passwords.confirm_delete")));
         html.append(")){PasswordsPage.deleteEntry(id)}}");
@@ -241,7 +239,7 @@ public final class PasswordsPage {
             for (PasswordStore.SiteGroup group :
                     groups) {
 
-                html.append("<div class='site' role='button' tabindex='0' onclick='showSite(");
+                html.append("<div class='site' role='button' tabindex='0' onclick='PasswordsPage.openSite(");
                 html.append(js(group.site));
                 html.append(")'>");
 
@@ -333,12 +331,12 @@ public final class PasswordsPage {
                 }
 
                 html.append("<div class='toolbar'>");
-                html.append("<a class='button' href='simplebrowser://password-reveal/");
+                html.append("<button type='button' onclick='PasswordsPage.revealPassword(");
                 html.append(entry.id);
-                html.append("'>");
+                html.append(")'>");
                 html.append(escape(
                         t("passwords.reveal")));
-                html.append("</a>");
+                html.append("</button>");
 
                 html.append("<button onclick='del(");
                 html.append(entry.id);
@@ -447,6 +445,14 @@ public final class PasswordsPage {
         public void openSite(String site) {
             activity.runOnUiThread(
                     () -> show(tab, site));
+        }
+
+        @JavascriptInterface
+        public void revealPassword(long id) {
+            activity.runOnUiThread(
+                    () -> activity.showPasswordEntry(
+                            tab,
+                            id));
         }
 
         @JavascriptInterface
