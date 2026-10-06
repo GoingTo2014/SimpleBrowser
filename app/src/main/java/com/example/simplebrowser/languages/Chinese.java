@@ -429,6 +429,7 @@ put("common.cancel", "取消");
         put("common.allow", "允许");
         put("common.deny", "拒绝");
         put("strings.test.example", "字符串示例");
+        put("privacy.clear_storage", "清除网站存储");
     }
 
 }
