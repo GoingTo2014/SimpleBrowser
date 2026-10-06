@@ -2032,6 +2032,7 @@ public class SettingsPage {
                                                                 .clear();
                                                     }
 
+                                                    activity.clearSecurityDecisions();
                                                     activity.clearCookieIndex();
 
                                                     Toast.makeText(
