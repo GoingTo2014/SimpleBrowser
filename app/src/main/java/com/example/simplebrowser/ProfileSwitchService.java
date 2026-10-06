@@ -123,12 +123,31 @@ public final class ProfileSwitchService extends Service {
                         -1);
 
         /*
-         * Never touch app_webview while the old WebView process is alive.
-         * The helper normally handles this; this path is only for recovery.
+         * Never touch app_webview while another browser process is alive.
+         * If the user launches the app while the helper is still finishing,
+         * wait for that old process rather than starting WebView against the
+         * wrong profile directory.
          */
-        if (isProcessAlive(pid) &&
-                pid != android.os.Process.myPid()) {
-            return;
+        if (pid != android.os.Process.myPid()) {
+
+            long deadline =
+                    System.currentTimeMillis() +
+                    15000L;
+
+            while (isProcessAlive(pid) &&
+                    System.currentTimeMillis() < deadline) {
+
+                try {
+                    Thread.sleep(50L);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+
+            if (isProcessAlive(pid)) {
+                return;
+            }
         }
 
         try {
