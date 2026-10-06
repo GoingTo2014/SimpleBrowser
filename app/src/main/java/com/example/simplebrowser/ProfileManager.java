@@ -242,9 +242,19 @@ public final class ProfileManager {
             return null;
         }
 
+        String cleanName =
+                name == null
+                        ? ""
+                        : name.trim();
+
         if (cleanName.isEmpty()) {
             cleanName = "Profile " +
                     (profiles.size() + 1);
+        }
+
+        if (cleanName.length() > 40) {
+            cleanName =
+                    cleanName.substring(0, 40);
         }
 
         String id =
