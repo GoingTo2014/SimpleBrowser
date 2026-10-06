@@ -123,10 +123,17 @@ public final class ProfileRouterActivity extends Activity {
             return MainActivity.class;
         }
 
-        if (Build.VERSION.SDK_INT < 28 ||
-                !ProfileManager.isKnownPersistentProfile(
-                        this,
-                        profileId)) {
+        /*
+         * Android 4.4-8.1 still uses MainActivity's legacy filesystem-swap
+         * implementation, so keep the persistent profile active there.
+         */
+        if (Build.VERSION.SDK_INT < 28) {
+            return MainActivity.class;
+        }
+
+        if (!ProfileManager.isKnownPersistentProfile(
+                this,
+                profileId)) {
             return null;
         }
 
