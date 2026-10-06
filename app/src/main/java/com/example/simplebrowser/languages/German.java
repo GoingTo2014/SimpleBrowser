@@ -453,5 +453,6 @@ public final class German extends LanguagePack {
         put("privacy.clear_security_title", "Sicherheitsentscheidungen löschen?");
         put("privacy.clear_security_message", "Dies löscht Entscheidungen zu SSL-Zertifikaten, gespeicherte Standortberechtigungen und Entscheidungen zu Clientzertifikaten. Passwörter werden nicht gelöscht.");
         put("privacy.security_decisions_cleared", "Sicherheitsentscheidungen gelöscht");
+        put("privacy.clear_security", "Sicherheitsentscheidungen löschen");
     }
 }
