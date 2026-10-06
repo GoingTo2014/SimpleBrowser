@@ -253,7 +253,7 @@ public final class BookmarksPage {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace(""", "&quot;");
+                .replace("\"", "&quot;");
     }
 
     private String attribute(String value) {
