@@ -14,7 +14,7 @@
 - Kept the vault encrypted at rest with Android Keystore-wrapped keys.
 - Removed the repeated Settings branding/version header from non-General sections; the branding remains in General only.
 - Replaced the small-screen Settings menu button label with a simple return arrow.
-- Expanded the untranslated-string audit; only the existing intentional test string remains missing from non-English packs.
+- Reviewed localization key coverage again; Russian, German, and Arabic now cover all browser-facing core settings, navigation, profile, bookmark, cookie, download, history, password, and permission strings. Older language packs keep English fallback text for some newer strings.
 - Fixed profile cookie isolation by preserving snapshots before the process-global WebView cookie jar is cleared and preventing onPause from overwriting them after a switch.
 - Added website camera and microphone permission controls with Android permission prompts where WebView supports them.
 - Expanded Advanced settings with cache mode, form-data saving, third-party cookies, mixed content, file-URL access, and universal file-URL access.
