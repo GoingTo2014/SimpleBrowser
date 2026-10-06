@@ -1909,19 +1909,21 @@ public class SettingsPage {
                                     .clearHistory();
                         }
 
-                        android.webkit.CookieManager
-                                .getInstance()
-                                .removeAllCookie();
-
                         activity.clearBrowserHistory();
                         activity.clearDownloadHistory();
-                        activity.clearCookieIndex();
 
-                        Toast.makeText(
-                                activity,
-                                Localization.translate(activity, "Browsing data cleared"),
-                                Toast.LENGTH_SHORT)
-                                .show();
+                        CookieStore.clearRuntimeCookies(
+                                () -> {
+                                    activity.clearCookieIndex();
+
+                                    Toast.makeText(
+                                            activity,
+                                            Localization.translate(
+                                                    activity,
+                                                    "Browsing data cleared"),
+                                            Toast.LENGTH_SHORT)
+                                            .show();
+                                });
                     });
         }
 
