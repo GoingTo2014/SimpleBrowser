@@ -2003,6 +2003,7 @@ public class SettingsPage {
 
                                         activity.clearBrowserHistory();
                                         activity.clearDownloadHistory();
+                                        activity.clearSharedWebViewDatabaseData();
 
                                         CookieStore.clearRuntimeCookies(
                                                 () -> {
