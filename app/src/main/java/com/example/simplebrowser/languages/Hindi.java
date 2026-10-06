@@ -358,5 +358,4 @@ put("common.cancel", "रद्द करें");
         put("profiles.choose_picture", "प्रोफ़ाइल चित्र चुनें");
         put("profiles.cannot_save", "प्रोफ़ाइल सहेजी नहीं जा सकी।");
     }
-    }
 }
