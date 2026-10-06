@@ -18,22 +18,16 @@ import java.io.IOException;
  */
 public final class ProfileSwitchService extends Service {
 
-    private static final String PREFS =
+    private static final String STATE_FILE =
             "profile_switch_state";
 
-    private static final String KEY_PENDING =
-            "pending";
-
-    private static final String KEY_FROM =
-            "from_profile";
-
-    private static final String KEY_TO =
-            "to_profile";
-
-    private static final String KEY_PID =
-            "main_pid";
-
     private static volatile boolean running;
+
+    private static final class SwitchState {
+        String from;
+        String to;
+        int pid;
+    }
 
     public static boolean request(
             Context context,
@@ -47,23 +41,19 @@ public final class ProfileSwitchService extends Service {
             return false;
         }
 
-        SharedPreferences preferences =
-                preferences(context);
+        SwitchState state =
+                new SwitchState();
 
-        preferences.edit()
-                .putString(
-                        KEY_FROM,
-                        fromProfileId)
-                .putString(
-                        KEY_TO,
-                        toProfileId)
-                .putInt(
-                        KEY_PID,
-                        android.os.Process.myPid())
-                .putBoolean(
-                        KEY_PENDING,
-                        true)
-                .commit();
+        state.from = fromProfileId;
+        state.to = toProfileId;
+        state.pid =
+                android.os.Process.myPid();
+
+        if (!writeState(
+                context,
+                state)) {
+            return false;
+        }
 
         try {
 
@@ -78,10 +68,7 @@ public final class ProfileSwitchService extends Service {
 
         } catch (Throwable error) {
 
-            preferences.edit()
-                    .clear()
-                    .apply();
-
+            clearPending(context);
             return false;
         }
     }
@@ -98,29 +85,12 @@ public final class ProfileSwitchService extends Service {
             return;
         }
 
-        SharedPreferences preferences =
-                preferences(context);
+        SwitchState state =
+                readState(context);
 
-        if (!preferences.getBoolean(
-                KEY_PENDING,
-                false)) {
+        if (state == null) {
             return;
         }
-
-        String from =
-                preferences.getString(
-                        KEY_FROM,
-                        ProfileManager.MAIN_ID);
-
-        String to =
-                preferences.getString(
-                        KEY_TO,
-                        ProfileManager.MAIN_ID);
-
-        int pid =
-                preferences.getInt(
-                        KEY_PID,
-                        -1);
 
         /*
          * Never touch app_webview while another browser process is alive.
@@ -128,13 +98,14 @@ public final class ProfileSwitchService extends Service {
          * wait for that old process rather than starting WebView against the
          * wrong profile directory.
          */
-        if (pid != android.os.Process.myPid()) {
+        if (state.pid !=
+                android.os.Process.myPid()) {
 
             long deadline =
                     System.currentTimeMillis() +
                     15000L;
 
-            while (isProcessAlive(pid) &&
+            while (isProcessAlive(state.pid) &&
                     System.currentTimeMillis() < deadline) {
 
                 try {
@@ -145,7 +116,7 @@ public final class ProfileSwitchService extends Service {
                 }
             }
 
-            if (isProcessAlive(pid)) {
+            if (isProcessAlive(state.pid)) {
                 return;
             }
         }
@@ -154,26 +125,17 @@ public final class ProfileSwitchService extends Service {
 
             completeSwap(
                     context,
-                    from,
-                    to);
+                    state.from,
+                    state.to);
 
-            clearPending(
-                    context);
+            clearPending(context);
 
         } catch (Throwable ignored) {
             /*
-             * Leave the marker intact. The next app launch or service attempt
-             * gets another opportunity to finish the recovery.
+             * Leave the state file intact. The next app launch or service
+             * attempt can finish the swap.
              */
         }
-    }
-
-    private static SharedPreferences preferences(
-            Context context) {
-
-        return context.getSharedPreferences(
-                PREFS,
-                Context.MODE_PRIVATE);
     }
 
     @Override
@@ -207,29 +169,12 @@ public final class ProfileSwitchService extends Service {
 
     private void performPendingSwitch() {
 
-        SharedPreferences preferences =
-                preferences(this);
+        SwitchState state =
+                readState(this);
 
-        if (!preferences.getBoolean(
-                KEY_PENDING,
-                false)) {
+        if (state == null) {
             return;
         }
-
-        String from =
-                preferences.getString(
-                        KEY_FROM,
-                        ProfileManager.MAIN_ID);
-
-        String to =
-                preferences.getString(
-                        KEY_TO,
-                        ProfileManager.MAIN_ID);
-
-        int mainPid =
-                preferences.getInt(
-                        KEY_PID,
-                        -1);
 
         /*
          * Wait for the WebView-using process to disappear. On a normal switch
@@ -239,7 +184,7 @@ public final class ProfileSwitchService extends Service {
                 System.currentTimeMillis() +
                 15000L;
 
-        while (isProcessAlive(mainPid) &&
+        while (isProcessAlive(state.pid) &&
                 System.currentTimeMillis() < deadline) {
 
             try {
@@ -250,7 +195,7 @@ public final class ProfileSwitchService extends Service {
             }
         }
 
-        if (isProcessAlive(mainPid)) {
+        if (isProcessAlive(state.pid)) {
             return;
         }
 
@@ -258,18 +203,17 @@ public final class ProfileSwitchService extends Service {
 
             completeSwap(
                     this,
-                    from,
-                    to);
+                    state.from,
+                    state.to);
 
-            clearPending(
-                    this);
+            clearPending(this);
 
             launchBrowser();
 
         } catch (Throwable ignored) {
             /*
-             * Keep pending=true so MainActivity.recoverIfNeeded() can finish
-             * the swap on the next launch.
+             * Keep the state file so MainActivity.recoverIfNeeded() can finish
+             * the operation on a later launch.
              */
         }
     }
@@ -307,13 +251,161 @@ public final class ProfileSwitchService extends Service {
         }
     }
 
+    private static FileStateFile stateFile(
+            Context context) {
+
+        return new FileStateFile(
+                new java.io.File(
+                        context.getFilesDir(),
+                        STATE_FILE));
+    }
+
+    private static final class FileStateFile {
+
+        final android.util.AtomicFile file;
+
+        FileStateFile(
+                java.io.File base) {
+            file =
+                    new android.util.AtomicFile(
+                            base);
+        }
+    }
+
+    private static boolean writeState(
+            Context context,
+            SwitchState state) {
+
+        FileStateFile holder =
+                stateFile(context);
+
+        java.io.FileOutputStream output =
+                null;
+
+        try {
+
+            output =
+                    holder.file.startWrite();
+
+            String value =
+                    state.from +
+                    "\n" +
+                    state.to +
+                    "\n" +
+                    state.pid +
+                    "\n";
+
+            output.write(
+                    value.getBytes("UTF-8"));
+
+            output.flush();
+            output.getFD().sync();
+
+            holder.file.finishWrite(output);
+
+            return true;
+
+        } catch (Throwable ignored) {
+
+            if (output != null) {
+                try {
+                    holder.file.failWrite(output);
+                } catch (Throwable ignoredAgain) {
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private static SwitchState readState(
+            Context context) {
+
+        FileStateFile holder =
+                stateFile(context);
+
+        java.io.FileInputStream input =
+                null;
+
+        try {
+
+            input =
+                    holder.file.openRead();
+
+            java.io.ByteArrayOutputStream output =
+                    new java.io.ByteArrayOutputStream();
+
+            byte[] buffer =
+                    new byte[256];
+
+            int count;
+
+            while ((count = input.read(buffer)) != -1) {
+                output.write(
+                        buffer,
+                        0,
+                        count);
+            }
+
+            String[] lines =
+                    new String(
+                            output.toByteArray(),
+                            "UTF-8")
+                    .split("\\n");
+
+            if (lines.length < 3) {
+                return null;
+            }
+
+            String from =
+                    lines[0].trim();
+
+            String to =
+                    lines[1].trim();
+
+            int pid =
+                    Integer.parseInt(
+                            lines[2].trim());
+
+            if (from.isEmpty() ||
+                    to.isEmpty() ||
+                    pid <= 0) {
+                return null;
+            }
+
+            SwitchState state =
+                    new SwitchState();
+
+            state.from = from;
+            state.to = to;
+            state.pid = pid;
+
+            return state;
+
+        } catch (Throwable ignored) {
+
+            return null;
+
+        } finally {
+
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
     private static void clearPending(
             Context context) {
 
-        preferences(context)
-                .edit()
-                .clear()
-                .apply();
+        try {
+            stateFile(context)
+                    .file
+                    .delete();
+        } catch (Throwable ignored) {
+        }
     }
 
     private static boolean isProcessAlive(
