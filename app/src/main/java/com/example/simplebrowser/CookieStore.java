@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public final class CookieStore {
 
     private static final String PREFS =
@@ -24,12 +27,29 @@ public final class CookieStore {
     private static final String KEY =
             "domains";
 
+    private static final String KEY_URLS =
+            "urls";
+
+    private static final String KEY_SNAPSHOT =
+            "cookie_snapshot";
+
     private final SharedPreferences preferences;
 
     public CookieStore(Context context) {
+        this(
+                context,
+                ProfileManager.getActiveProfileId(context));
+    }
+
+    public CookieStore(
+            Context context,
+            String profileId) {
+
         preferences =
                 context.getSharedPreferences(
-                        PREFS,
+                        ProfileManager.scopedPrefsName(
+                                PREFS,
+                                profileId),
                         Context.MODE_PRIVATE);
 
         try {
@@ -64,20 +84,46 @@ public final class CookieStore {
                                 Collections
                                         .<String>emptySet()));
 
+        Set<String> savedUrls =
+                new LinkedHashSet<>(
+                        preferences.getStringSet(
+                                KEY_URLS,
+                                Collections
+                                        .<String>emptySet()));
+
         for (String url : urls) {
 
+            if (url == null ||
+                    url.trim().isEmpty()) {
+                continue;
+            }
+
+            String cleanUrl =
+                    url.trim();
+
             String domain =
-                    getDomain(url);
+                    getDomain(cleanUrl);
 
             if (domain != null) {
                 domains.add(domain);
             }
+
+            savedUrls.add(cleanUrl);
+        }
+
+        while (savedUrls.size() > 1000) {
+            String first =
+                    savedUrls.iterator().next();
+            savedUrls.remove(first);
         }
 
         preferences.edit()
                 .putStringSet(
                         KEY,
                         domains)
+                .putStringSet(
+                        KEY_URLS,
+                        savedUrls)
                 .apply();
     }
 
@@ -619,7 +665,138 @@ public final class CookieStore {
 
         preferences.edit()
                 .remove(KEY)
+                .remove(KEY_URLS)
+                .remove(KEY_SNAPSHOT)
                 .apply();
+    }
+
+    /** Saves this profile's view of the process-global WebView cookie jar. */
+    public synchronized void snapshotCookies() {
+
+        CookieManager manager =
+                CookieManager.getInstance();
+
+        JSONArray snapshot =
+                new JSONArray();
+
+        Set<String> urls =
+                preferences.getStringSet(
+                        KEY_URLS,
+                        Collections
+                                .<String>emptySet());
+
+        for (String url : urls) {
+
+            if (url == null ||
+                    url.trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+                String raw =
+                        manager.getCookie(url);
+
+                if (raw == null ||
+                        raw.trim().isEmpty()) {
+                    continue;
+                }
+
+                snapshot.put(
+                        new JSONObject()
+                                .put("url", url)
+                                .put("cookies", raw));
+            } catch (Throwable ignored) {
+            }
+        }
+
+        preferences.edit()
+                .putString(
+                        KEY_SNAPSHOT,
+                        snapshot.toString())
+                .apply();
+    }
+
+    /** Restores this profile's cookie snapshot into CookieManager. */
+    public synchronized void restoreCookies() {
+
+        String json =
+                preferences.getString(
+                        KEY_SNAPSHOT,
+                        "");
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            JSONArray snapshot =
+                    new JSONArray(json);
+
+            CookieManager manager =
+                    CookieManager.getInstance();
+
+            for (int i = 0;
+                    i < snapshot.length();
+                    i++) {
+
+                JSONObject item =
+                        snapshot.getJSONObject(i);
+
+                String url =
+                        item.optString("url", "");
+
+                String cookies =
+                        item.optString("cookies", "");
+
+                if (url.isEmpty() ||
+                        cookies.isEmpty()) {
+                    continue;
+                }
+
+                for (String part :
+                        cookies.split(";")) {
+
+                    String cookie =
+                            part.trim();
+
+                    if (cookie.indexOf('=') <= 0) {
+                        continue;
+                    }
+
+                    try {
+                        manager.setCookie(
+                                url,
+                                cookie);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }
+
+            syncCookies();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void clearRuntimeCookies() {
+
+        try {
+            CookieManager manager =
+                    CookieManager.getInstance();
+
+            manager.removeAllCookie();
+
+            if (Build.VERSION.SDK_INT >= 21) {
+                manager.removeSessionCookie();
+            }
+
+            try {
+                CookieSyncManager.getInstance()
+                        .sync();
+            } catch (Throwable ignored) {
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     public List<CookieValue> parseCookies(
