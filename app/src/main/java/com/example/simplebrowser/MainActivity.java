@@ -535,6 +535,7 @@ public class MainActivity extends Activity {
 
             if (tab == null ||
                     tab.isIncognito ||
+                    tab.isGuest ||
                     bookmarkStore == null ||
                     tab.webView == null) {
                 return;
@@ -640,8 +641,14 @@ public class MainActivity extends Activity {
                 active != null &&
                         active.isIncognito;
 
+        boolean guest =
+                active != null &&
+                        active.isGuest;
+
         int accent =
-                incognito
+                guest
+                        ? Color.WHITE
+                        : incognito
                         ? Color.rgb(
                                 48, 49, 52)
                         : getAccentColor();
@@ -651,11 +658,14 @@ public class MainActivity extends Activity {
                         accent);
 
         int menuBackground =
-                ColorUtils.darken(
-                        accent,
-                        incognito
-                                ? 0.03f
-                                : 0.06f);
+                guest
+                        ? Color.rgb(
+                                250, 250, 250)
+                        : ColorUtils.darken(
+                                accent,
+                                incognito
+                                        ? 0.03f
+                                        : 0.06f);
 
         LinearLayout menu =
                 new LinearLayout(this);
@@ -771,7 +781,11 @@ public class MainActivity extends Activity {
 
         addMenuActionButton(
                 menu,
-                incognito
+                guest
+                        ? Localization.translate(
+                                this,
+                                "guest.exit")
+                        : incognito
                         ? "Exit Incognito Mode"
                         : "Enter Incognito Mode",
                 () -> {
@@ -779,7 +793,9 @@ public class MainActivity extends Activity {
                         browserMenu.dismiss();
                     }
 
-                    if (incognito) {
+                    if (guest) {
+                        exitGuestProfile();
+                    } else if (incognito) {
                         tabManager.exitIncognitoMode();
                     } else {
                         tabManager.enterIncognitoMode(
@@ -868,6 +884,17 @@ public class MainActivity extends Activity {
             return;
         }
 
+        boolean guest =
+                tabManager != null &&
+                tabManager.isGuestMode();
+
+        String profileName =
+                guest
+                        ? Localization.translate(
+                                this,
+                                "profiles.guest")
+                        : profile.name;
+
         LinearLayout row =
                 new LinearLayout(this);
 
@@ -903,12 +930,12 @@ public class MainActivity extends Activity {
         avatar.setGravity(
                 android.view.Gravity.CENTER);
         avatar.setText(
-                profile.name == null ||
-                        profile.name.trim().isEmpty()
+                profileName == null ||
+                        profileName.trim().isEmpty()
                         ? "?"
                         : String.valueOf(
                                 Character.toUpperCase(
-                                        profile.name
+                                        profileName
                                                 .trim()
                                                 .charAt(0))));
         avatar.setTextColor(readable);
@@ -935,7 +962,7 @@ public class MainActivity extends Activity {
         TextView name =
                 new TextView(this);
 
-        name.setText(profile.name);
+        name.setText(profileName);
         name.setTextColor(readable);
         name.setTextSize(16f);
         name.setGravity(
@@ -1319,6 +1346,31 @@ public class MainActivity extends Activity {
         recordInternalVisit(tab, BrowserPage.PROFILES);
     }
 
+    public void showPasswordSite(
+            BrowserTab tab,
+            String site) {
+
+        if (tab == null ||
+                site == null ||
+                site.trim().isEmpty()) {
+            return;
+        }
+
+        if (!passwordManagerAuthenticated) {
+            showPasswordManager(tab);
+            return;
+        }
+
+        passwordsPage.show(
+                tab,
+                site);
+
+        tabManager.selectTab(tab);
+        recordInternalVisit(
+                tab,
+                BrowserPage.PASSWORDS);
+    }
+
     public void showPasswordManager(BrowserTab tab) {
         if (tab == null) return;
         if (passwordManagerAuthenticated) {
@@ -1562,6 +1614,7 @@ public class MainActivity extends Activity {
 
         if (tab == null ||
                 tab.isIncognito ||
+                tab.isGuest ||
                 password == null ||
                 password.isEmpty() ||
                 passwordStore == null) {
@@ -1658,11 +1711,162 @@ public class MainActivity extends Activity {
 
     public void switchProfile(String profileId) {
         if (profileId == null) return;
+
+        if (tabManager != null &&
+                tabManager.isGuestMode()) {
+
+            exitGuestProfile(
+                    () -> performProfileSwitch(
+                            profileId));
+
+            return;
+        }
+
         performProfileSwitch(profileId);
     }
 
     public void enterGuestProfile(BrowserTab tab) {
-        performProfileSwitch(ProfileManager.createGuestSession());
+
+        if (tabManager == null ||
+                tabManager.isGuestMode() ||
+                tabManager.isIncognitoMode()) {
+            return;
+        }
+
+        profileSwitching = true;
+
+        if (cookieStore != null) {
+            cookieStore.stopSync();
+        }
+
+        snapshotAllWebStorage(
+                () -> {
+
+                    if (cookieStore != null) {
+                        cookieStore.discoverFromHistory(
+                                browserHistory);
+                        cookieStore.recordUrls(
+                                getOpenWebUrls());
+                        cookieStore.snapshotCookies();
+                    }
+
+                    clearRuntimeWebStorage(
+                            () -> CookieStore.clearRuntimeCookies(
+                                    () -> {
+
+                                        // Pause/hide the normal tabs while
+                                        // the transition guard is still on.
+                                        tabManager.enterGuestMode(
+                                                browserSettings
+                                                        .getHomePage());
+
+                                        applyBrowserAppearance();
+
+                                        profileSwitching = false;
+                                    }));
+                });
+    }
+
+    public void exitGuestProfile() {
+        exitGuestProfile(null);
+    }
+
+    private void exitGuestProfile(
+            final Runnable after) {
+
+        if (tabManager == null ||
+                !tabManager.isGuestMode()) {
+
+            if (after != null) {
+                after.run();
+            }
+
+            return;
+        }
+
+        profileSwitching = true;
+
+        clearRuntimeWebStorage(
+                () -> CookieStore.clearRuntimeCookies(
+                        () -> {
+
+                            Runnable finish =
+                                    () -> {
+
+                                        tabManager.exitGuestMode();
+
+                                        if (cookieStore != null) {
+                                            cookieStore.startSync();
+                                        }
+
+                                        profileSwitching = false;
+                                        applyBrowserAppearance();
+
+                                        if (after != null) {
+                                            after.run();
+                                        }
+                                    };
+
+                            // Rehydrate normal WebViews while they are still
+                            // hidden/paused, before exposing the normal session.
+                            restoreWebStorageForNormalTabs(
+                                    finish);
+                        }));
+    }
+
+    private void restoreWebStorageForNormalTabs(
+            final Runnable completion) {
+
+        if (tabManager == null) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        java.util.ArrayList<BrowserTab> candidates =
+                new java.util.ArrayList<>();
+
+        for (BrowserTab tab :
+                tabManager.getNormalTabs()) {
+
+            if (tab == null ||
+                    tab.webView == null ||
+                    tab.isIncognito ||
+                    tab.isGuest) {
+                continue;
+            }
+
+            String url = tab.webView.getUrl();
+
+            if (WebStorageStore.normalizeOrigin(url) != null) {
+                candidates.add(tab);
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        final int[] remaining =
+                new int[] { candidates.size() };
+
+        for (BrowserTab tab : candidates) {
+            restoreWebStorage(
+                    tab,
+                    tab.webView.getUrl(),
+                    () -> {
+                        remaining[0]--;
+
+                        if (remaining[0] <= 0 &&
+                                completion != null) {
+                            completion.run();
+                        }
+                    });
+        }
     }
 
     private void performProfileSwitch(String targetProfileId) {
@@ -1699,20 +1903,15 @@ public class MainActivity extends Activity {
             cookieStore.snapshotCookies();
         }
 
-        final boolean deleteGuest =
-                ProfileManager.isGuest(current);
-
         snapshotAllWebStorage(
                 () -> continueProfileSwitch(
                         current,
-                        targetProfileId,
-                        deleteGuest));
+                        targetProfileId));
     }
 
     private void continueProfileSwitch(
             final String current,
-            final String targetProfileId,
-            final boolean deleteGuest) {
+            final String targetProfileId) {
 
         if (browserHistory != null) {
             browserHistory.close();
@@ -1730,33 +1929,27 @@ public class MainActivity extends Activity {
             passwordStore.close();
         }
 
-        for (BrowserTab openTab :
-                tabManager.getTabs()) {
-            if (openTab.webView != null) {
-                openTab.webView.clearCache(true);
-            }
+        /*
+         * Android 4.4 WebStorage is process-global. Destroy every old
+         * WebView before clearing it so no old page/script can repopulate
+         * the global store after the snapshot.
+         */
+        if (tabManager != null) {
+            tabManager.destroyAllTabsForProfileSwitch();
         }
 
-        clearRuntimeWebStorage();
         clearSharedWebViewDatabaseData();
 
-        CookieStore.clearRuntimeCookies(
-                new Runnable() {
-                    @Override
-                    public void run() {
+        clearRuntimeWebStorage(
+                () -> CookieStore.clearRuntimeCookies(
+                        () -> {
 
-                        if (deleteGuest) {
-                            ProfileManager.deleteProfileData(
+                            ProfileManager.setActiveProfileId(
                                     MainActivity.this,
-                                    current);
-                        }
+                                    targetProfileId);
 
-                        ProfileManager.setActiveProfileId(
-                                MainActivity.this,
-                                targetProfileId);
-                        recreate();
-                    }
-                });
+                            recreate();
+                        }));
     }
 
     public void showProfileEditor(
@@ -1918,6 +2111,11 @@ public class MainActivity extends Activity {
 
         if ("guest".equals(action)) {
             enterGuestProfile(tab);
+            return true;
+        }
+
+        if ("exit-guest".equals(action)) {
+            exitGuestProfile();
             return true;
         }
 
@@ -2574,7 +2772,11 @@ public class MainActivity extends Activity {
         return webStorageStore;
     }
 
-    public void saveWebStorageSnapshot(
+    public boolean isProfileSwitching() {
+        return profileSwitching;
+    }
+
+    private void persistWebStorageSnapshot(
             String origin,
             String data) {
 
@@ -2588,6 +2790,19 @@ public class MainActivity extends Activity {
                     data);
         } catch (Throwable ignored) {
         }
+    }
+
+    public void saveWebStorageSnapshot(
+            String origin,
+            String data) {
+
+        if (profileSwitching) {
+            return;
+        }
+
+        persistWebStorageSnapshot(
+                origin,
+                data);
     }
 
     public void restoreWebStorage(
@@ -2711,17 +2926,42 @@ public class MainActivity extends Activity {
                     "var k=localStorage.key(i);" +
                     "o[k]=localStorage.getItem(k);" +
                     "}" +
-                    "return JSON.stringify(o);" +
-                    "}catch(e){return '{}';}})();",
+                    "return JSON.stringify({" +
+                    "__simpleBrowserSnapshot:true," +
+                    "data:o});" +
+                    "}catch(e){" +
+                    "return JSON.stringify({" +
+                    "__simpleBrowserSnapshot:false});" +
+                    "}})();",
                     value -> {
 
                         String json =
                                 parseJavascriptString(
                                         value);
 
-                        saveWebStorageSnapshot(
-                                origin,
-                                json);
+                        try {
+                            org.json.JSONObject wrapper =
+                                    new org.json.JSONObject(
+                                            json);
+
+                            if (wrapper.optBoolean(
+                                    "__simpleBrowserSnapshot",
+                                    false)) {
+
+                                org.json.JSONObject dataObject =
+                                        wrapper.optJSONObject(
+                                                "data");
+
+                                if (dataObject != null) {
+                                    persistWebStorageSnapshot(
+                                            origin,
+                                            dataObject.toString());
+                                }
+                            }
+                        } catch (Throwable ignored) {
+                            // Never replace a valid snapshot with "{}" on
+                            // an evaluateJavascript failure/result parse error.
+                        }
 
                         if (completion != null) {
                             completion.run();
@@ -2756,11 +2996,12 @@ public class MainActivity extends Activity {
                 new java.util.ArrayList<>();
 
         for (BrowserTab tab :
-                tabManager.getTabs()) {
+                tabManager.getNormalTabs()) {
 
             if (tab != null &&
                     tab.webView != null &&
                     !tab.isIncognito &&
+                    !tab.isGuest &&
                     browserSettings.isStorageEnabled() &&
                     WebStorageStore.normalizeOrigin(
                             tab.webView.getUrl()) != null) {
@@ -2854,12 +3095,69 @@ public class MainActivity extends Activity {
     }
 
     public void clearRuntimeWebStorage() {
+        clearRuntimeWebStorage(null);
+    }
+
+    public void clearRuntimeWebStorage(
+            final Runnable completion) {
 
         try {
             android.webkit.WebStorage
                     .getInstance()
                     .deleteAllData();
         } catch (Throwable ignored) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        if (completion == null) {
+            return;
+        }
+
+        waitForWebStorageClear(
+                completion,
+                0);
+    }
+
+    private void waitForWebStorageClear(
+            final Runnable completion,
+            final int attempt) {
+
+        if (attempt >= 12) {
+            completion.run();
+            return;
+        }
+
+        try {
+            android.webkit.WebStorage
+                    .getInstance()
+                    .getOrigins(
+                            origins -> {
+
+                                if (origins == null ||
+                                        origins.isEmpty()) {
+                                    completion.run();
+                                    return;
+                                }
+
+                                new android.os.Handler(
+                                        android.os.Looper
+                                                .getMainLooper())
+                                        .postDelayed(
+                                                () -> waitForWebStorageClear(
+                                                        completion,
+                                                        attempt + 1),
+                                                100L);
+                            });
+        } catch (Throwable ignored) {
+            new android.os.Handler(
+                    android.os.Looper
+                            .getMainLooper())
+                    .postDelayed(
+                            () -> completion.run(),
+                            150L);
         }
     }
 
@@ -3243,6 +3541,18 @@ public class MainActivity extends Activity {
         int urlBackground;
 
         if (tab != null &&
+                tab.isGuest) {
+
+            chromeColor =
+                    Color.WHITE;
+
+            urlBackground =
+                    Color.rgb(
+                            245,
+                            245,
+                            245);
+
+        } else if (tab != null &&
                 tab.isIncognito) {
 
             chromeColor =
@@ -3271,6 +3581,9 @@ public class MainActivity extends Activity {
 
         int tabBarColor =
                 tab != null &&
+                        tab.isGuest
+                        ? Color.WHITE
+                        : tab != null &&
                         tab.isIncognito
                         ? INCOGNITO_CHROME
                         : ColorUtils.darken(
@@ -4794,6 +5107,9 @@ public class MainActivity extends Activity {
         int color =
                 ColorUtils.getReadableTextColor(
                         active != null &&
+                        active.isGuest
+                                ? Color.WHITE
+                                : active != null &&
                         active.isIncognito
                                 ? INCOGNITO_CHROME
                                 : getAccentColor());
