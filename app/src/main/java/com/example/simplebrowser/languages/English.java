@@ -436,6 +436,14 @@ put("common.cancel", "Cancel");
         put("passwords.import_failed", "Could not import the encrypted password backup.");
 
         put("privacy.clear_storage", "Clear website storage");
+        put("Settings", "Settings");
+        put("settings.wide_viewport", "Wide viewport");
+        put("settings.wide_viewport_desc", "Use the viewport configured by the website so responsive pages can choose their layout.");
+        put("settings.offline_mode", "Offline mode");
+        put("settings.offline_mode_desc", "Block network loads in WebView. Cached pages can still be displayed.");
+        put("privacy.clear_security_title", "Clear security decisions?");
+        put("privacy.clear_security_message", "This clears SSL certificate decisions, saved location permissions, and client-certificate decisions. It does not delete passwords.");
+        put("privacy.security_decisions_cleared", "Security decisions cleared");
     }
 
 }
