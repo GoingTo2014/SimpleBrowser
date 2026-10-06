@@ -394,20 +394,6 @@ public class BrowserSettings {
                 "default");
     }
 
-    public void setCacheMode(String mode) {
-        String value =
-                "no_cache".equals(mode) ||
-                "cache_only".equals(mode)
-                        ? mode
-                        : "default";
-
-        preferences.edit()
-                .putString(
-                        "cache_mode",
-                        value)
-                .apply();
-    }
-
     public boolean isAutomaticUpdatesEnabled() {
         return preferences.getBoolean(
                 "automatic_updates",
