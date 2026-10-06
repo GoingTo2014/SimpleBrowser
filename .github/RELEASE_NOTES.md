@@ -22,3 +22,7 @@
 - Added Russian, German, and Arabic language packs, including Arabic right-to-left Settings layout.
 - Renamed Main to Profile 1 and made the main profile name editable.
 - Kept Android 4.4 / API 19 compatibility and no third-party runtime dependencies.
+- Added profile-scoped localStorage snapshot/restore for API 19, clears shared Web Storage/Web SQL during profile switching, and clears shared WebView cache to prevent cross-profile cached data.
+- Added a Privacy & Security control for clearing website storage, plus confirmation dialogs before clearing browsing data or restoring defaults.
+- Removed General, Websites, Appearance, and Privacy & Security shortcut buttons from the three-dot menu; Settings is now the first action after the current-profile header.
+- Made the tab overview dialog fill the available screen.
