@@ -2825,6 +2825,7 @@ public class MainActivity extends Activity {
         if (tab == null ||
                 tab.webView == null ||
                 tab.isIncognito ||
+                tab.isGuest ||
                 !browserSettings.isStorageEnabled() ||
                 webStorageStore == null) {
 
@@ -5321,7 +5322,9 @@ public class MainActivity extends Activity {
 
         super.onResume();
 
-        if (cookieStore != null) {
+        if (cookieStore != null &&
+                (tabManager == null ||
+                 !tabManager.isGuestMode())) {
             cookieStore.startSync();
         }
 
@@ -5341,8 +5344,13 @@ public class MainActivity extends Activity {
             passwordManagerAuthenticated = false;
         }
 
+        boolean guestMode =
+                tabManager != null &&
+                tabManager.isGuestMode();
+
         if (cookieStore != null) {
-            if (!profileSwitching) {
+            if (!profileSwitching &&
+                    !guestMode) {
                 cookieStore.snapshotCookies();
                 snapshotAllWebStorage();
             }
@@ -5380,11 +5388,10 @@ public class MainActivity extends Activity {
         }
 
         if (!profileSwitching &&
-                ProfileManager.isGuest(
-                        ProfileManager.getActiveProfileId(this))) {
-            ProfileManager.deleteProfileData(
-                    this,
-                    ProfileManager.getActiveProfileId(this));
+                tabManager != null &&
+                tabManager.isGuestMode()) {
+            clearRuntimeWebStorage();
+            CookieStore.clearRuntimeCookies();
         }
 
         super.onDestroy();
