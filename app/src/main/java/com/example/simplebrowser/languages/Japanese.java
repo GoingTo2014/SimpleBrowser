@@ -357,7 +357,6 @@ put("common.cancel", "キャンセル");
         put("profiles.name", "プロフィール名");
         put("profiles.choose_picture", "プロフィール画像を選択");
         put("profiles.cannot_save", "プロフィールを保存できませんでした。");
-    }
         put("Bookmark", "ブックマーク");
         put("passwords.import", "インポート");
         put("passwords.export", "エクスポート");
@@ -376,5 +375,7 @@ put("common.cancel", "キャンセル");
         put("passwords.imported", "インポートしたパスワード：");
         put("passwords.export_failed", "暗号化されたパスワードのバックアップをエクスポートできませんでした。");
         put("passwords.import_failed", "暗号化されたパスワードのバックアップをインポートできませんでした。");
+
+    }
 
 }
