@@ -119,8 +119,7 @@ public final class ProfileManager {
         Profile main =
                 new Profile(
                         MAIN_ID,
-                        "Main",
-                        "");
+                        "Main");
 
         result.add(main);
 
@@ -194,15 +193,13 @@ public final class ProfileManager {
 
             return new Profile(
                     MAIN_ID,
-                    "Main",
-                    "");
+                    "Main");
         }
 
         if (isGuest(profileId)) {
             return new Profile(
                     profileId,
-                    "Guest Profile",
-                    "");
+                    "Guest Profile");
         }
 
         List<Profile> profiles =
