@@ -96,6 +96,8 @@ public class MainActivity extends Activity {
         urlBox =
                 findViewById(R.id.url);
 
+        urlBox.setSelectAllOnFocus(true);
+
         urlBox.setHint(
                 Localization.translate(
                         this,
@@ -446,6 +448,8 @@ public class MainActivity extends Activity {
 
             } else {
 
+                tab.loading = true;
+                tabManager.updateTabLoadingState(tab);
                 refreshTab(tab);
             }
         });
@@ -1355,6 +1359,11 @@ public class MainActivity extends Activity {
 
         removeInternalPageState(tab);
 
+        tab.loading = true;
+        tab.sslError = false;
+        tab.favicon = null;
+        tabManager.updateTabLoadingState(tab);
+
         tab.webView.loadUrl(url);
     }
 
@@ -1746,6 +1755,14 @@ public class MainActivity extends Activity {
             return;
         }
 
+        String lower =
+                url.trim().toLowerCase();
+
+        // browser:// pages are browser UI, not browsing history.
+        if (lower.startsWith("browser://")) {
+            return;
+        }
+
         browserHistory.addVisit(
                 url,
                 tab.title,
@@ -1761,6 +1778,50 @@ public class MainActivity extends Activity {
                     tab,
                     favicon);
         }
+    }
+
+    public void setBrowserPageIcon(
+            BrowserTab tab,
+            int iconType) {
+
+        if (tab == null ||
+                tabManager == null) {
+            return;
+        }
+
+        int chromeColor =
+                tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : getAccentColor();
+
+        int color =
+                ColorUtils.getReadableTextColor(
+                        chromeColor);
+
+        android.graphics.Bitmap bitmap =
+                android.graphics.Bitmap.createBitmap(
+                        32,
+                        32,
+                        android.graphics.Bitmap.Config.ARGB_8888);
+
+        android.graphics.Canvas canvas =
+                new android.graphics.Canvas(bitmap);
+
+        BrowserIconDrawable drawable =
+                new BrowserIconDrawable(
+                        iconType,
+                        color);
+
+        drawable.setBounds(
+                0, 0, 32, 32);
+
+        drawable.draw(canvas);
+
+        tab.favicon = bitmap;
+
+        tabManager.updateTabIcon(
+                tab,
+                bitmap);
     }
 
     public void saveTabs() {
@@ -1811,8 +1872,32 @@ public class MainActivity extends Activity {
                 ColorUtils.getReadableTextColor(
                         chromeColor);
 
+        int tabBarColor =
+                tab != null &&
+                        tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : ColorUtils.darken(
+                                chromeColor,
+                                0.14f);
+
         toolbar.setBackgroundColor(
                 chromeColor);
+
+        View tabBar =
+                findViewById(R.id.tab_bar);
+
+        if (tabBar != null) {
+            tabBar.setBackgroundColor(
+                    tabBarColor);
+        }
+
+        View tabScroll =
+                findViewById(R.id.tab_scroll);
+
+        if (tabScroll != null) {
+            tabScroll.setBackgroundColor(
+                    tabBarColor);
+        }
 
         setToolbarIcon(
                 R.id.back,
@@ -2118,9 +2203,17 @@ public class MainActivity extends Activity {
             BrowserTab tab,
             String section) {
 
-        settingsPage.restore(
+        settingsPage.show(
                 tab,
                 section);
+
+        if ("general".equals(
+                tab.settingsSection) &&
+                updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
     }
 
     public void pageStarted(
@@ -2493,10 +2586,15 @@ public class MainActivity extends Activity {
         ImageButton reload =
                 findViewById(R.id.reload);
 
+        int chromeColor =
+                tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : getAccentColor();
+
         int iconColor =
                 ColorUtils
                         .getReadableTextColor(
-                                getAccentColor());
+                                chromeColor);
 
         reload.setImageDrawable(
                 new BrowserIconDrawable(
