@@ -97,9 +97,15 @@ public final class ProfilesPage {
                         card,
                         3.0d);
 
+        boolean guestMode =
+                activity.getTabManager()
+                        .isGuestMode();
+
         String currentId =
-                ProfileManager.getActiveProfileId(
-                        activity);
+                guestMode
+                        ? "__guest__"
+                        : ProfileManager.getActiveProfileId(
+                                activity);
 
         StringBuilder html =
                 new StringBuilder();
@@ -222,7 +228,7 @@ public final class ProfilesPage {
             html.append("</div></div>");
         }
 
-        if (ProfileManager.isGuest(currentId)) {
+        if (guestMode) {
 
             html.append("<div class='card'>");
             html.append("<div class='avatar'>G</div>");
@@ -233,6 +239,12 @@ public final class ProfilesPage {
             html.append("<div class='current'>");
             html.append(escape(
                     t("profiles.current")));
+            html.append("</div>");
+            html.append("<div class='actions'>");
+            html.append(actionLink(
+                    "simplebrowser://profile/exit-guest",
+                    t("guest.exit"),
+                    button));
             html.append("</div>");
             html.append("</div>");
         }
