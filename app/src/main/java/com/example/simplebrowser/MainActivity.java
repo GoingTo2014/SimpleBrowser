@@ -111,6 +111,14 @@ public class MainActivity extends Activity {
         profileManager =
                 new ProfileManager(this);
 
+        /*
+         * Select the correct Chromium data directory before any WebView API
+         * is initialized. On API 19-27 this also recovers an interrupted
+         * legacy profile-directory swap.
+         */
+        ProfileSwitchService.recoverIfNeeded(this);
+        ProfileWebViewStorage.configureForProcess(this);
+
         browserSettings =
                 new BrowserSettings(this);
 
@@ -1753,20 +1761,22 @@ public class MainActivity extends Activity {
                         cookieStore.snapshotCookies();
                     }
 
-                    clearRuntimeWebStorage(
-                            () -> CookieStore.clearRuntimeCookies(
-                                    () -> {
+                    /*
+                     * Guest WebViews disable DOM storage/WebSQL. Clear only
+                     * cookies so guest cookies cannot leak into the persistent
+                     * profile; never delete the profile's WebStorage.
+                     */
+                    CookieStore.clearRuntimeCookies(
+                            () -> {
 
-                                        // Pause/hide the normal tabs while
-                                        // the transition guard is still on.
-                                        tabManager.enterGuestMode(
-                                                browserSettings
-                                                        .getHomePage());
+                                tabManager.enterGuestMode(
+                                        browserSettings
+                                                .getHomePage());
 
-                                        applyBrowserAppearance();
+                                applyBrowserAppearance();
 
-                                        profileSwitching = false;
-                                    }));
+                                profileSwitching = false;
+                            });
                 });
     }
 
@@ -1789,38 +1799,38 @@ public class MainActivity extends Activity {
 
         profileSwitching = true;
 
-        clearRuntimeWebStorage(
-                () -> CookieStore.clearRuntimeCookies(
-                        () -> {
+        /*
+         * Guest mode disables DOM storage, so WebStorage.deleteAllData()
+         * would only destroy the persistent profile's data. Clear the guest
+         * cookie jar and restore the saved persistent-profile cookies.
+         */
+        CookieStore.clearRuntimeCookies(
+                () -> {
 
-                            Runnable restoreStorage =
-                                    () -> {
+                    Runnable restoreCookies =
+                            () -> {
 
-                                        tabManager.exitGuestMode();
+                                tabManager.exitGuestMode();
 
-                                        if (cookieStore != null) {
-                                            cookieStore.startSync();
-                                        }
+                                if (cookieStore != null) {
+                                    cookieStore.startSync();
+                                }
 
-                                        profileSwitching = false;
-                                        applyBrowserAppearance();
+                                profileSwitching = false;
+                                applyBrowserAppearance();
 
-                                        if (after != null) {
-                                            after.run();
-                                        }
-                                    };
+                                if (after != null) {
+                                    after.run();
+                                }
+                            };
 
-                            Runnable finish =
-                                    () -> restoreWebStorageForNormalTabs(
-                                            restoreStorage);
-
-                            if (cookieStore != null) {
-                                cookieStore.restoreCookies(
-                                        finish);
-                            } else {
-                                finish.run();
-                            }
-                        }));
+                    if (cookieStore != null) {
+                        cookieStore.restoreCookies(
+                                restoreCookies);
+                    } else {
+                        restoreCookies.run();
+                    }
+                });
     }
 
     private void restoreWebStorageForNormalTabs(
@@ -1939,26 +1949,66 @@ public class MainActivity extends Activity {
         }
 
         /*
-         * Android 4.4 WebStorage is process-global. Destroy every old
-         * WebView before clearing it so no old page/script can repopulate
-         * the global store after the snapshot.
+         * Do not call WebStorage.deleteAllData(), clear the WebView database,
+         * or clear the global cookie jar here. Those objects contain the
+         * actual persistent site data that the new profile mechanism preserves.
          */
         if (tabManager != null) {
             tabManager.destroyAllTabsForProfileSwitch();
         }
 
-        clearSharedWebViewDatabaseData();
+        flushWebViewDataBeforeProcessExit();
 
-        clearRuntimeWebStorage(
-                () -> CookieStore.clearRuntimeCookies(
-                        () -> {
+        ProfileManager.setActiveProfileId(
+                MainActivity.this,
+                targetProfileId);
 
-                            ProfileManager.setActiveProfileId(
-                                    MainActivity.this,
-                                    targetProfileId);
+        if (!ProfileSwitchService.request(
+                MainActivity.this,
+                current,
+                targetProfileId)) {
 
-                            recreate();
-                        }));
+            ProfileManager.setActiveProfileId(
+                    MainActivity.this,
+                    current);
+
+            profileSwitching = false;
+
+            android.widget.Toast.makeText(
+                    MainActivity.this,
+                    "Could not switch profiles.",
+                    android.widget.Toast.LENGTH_LONG)
+                    .show();
+
+            return;
+        }
+
+        /*
+         * Chromium's files are swapped only after this process is gone.
+         * The helper then launches a fresh MainActivity in the target
+         * profile.
+         */
+        finishAffinity();
+
+        android.os.Process.killProcess(
+                android.os.Process.myPid());
+    }
+
+    private void flushWebViewDataBeforeProcessExit() {
+
+        try {
+            if (Build.VERSION.SDK_INT >= 21) {
+                CookieManager
+                        .getInstance()
+                        .flush();
+            } else {
+                android.webkit.CookieSyncManager
+                        .createInstance(
+                                getApplicationContext())
+                        .sync();
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     public void showProfileEditor(
