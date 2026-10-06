@@ -362,7 +362,8 @@ public class TabManager {
 
         tab.webView.addJavascriptInterface(
                 new ProfileActionBridge(
-                        activity),
+                        activity,
+                        tab),
                 "ProfileActions");
 
         tab.webView.setWebViewClient(
