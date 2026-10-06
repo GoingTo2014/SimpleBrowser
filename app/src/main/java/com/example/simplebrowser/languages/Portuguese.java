@@ -430,6 +430,14 @@ put("common.cancel", "Cancelar");
         put("common.deny", "Negar");
         put("strings.test.example", "Exemplo de strings");
         put("privacy.clear_storage", "Limpar armazenamento de sites");
+        put("Settings", "Configurações");
+        put("settings.wide_viewport", "Viewport amplo");
+        put("settings.wide_viewport_desc", "Usar o viewport configurado pelo site para que páginas responsivas possam escolher seu layout.");
+        put("settings.offline_mode", "Modo offline");
+        put("settings.offline_mode_desc", "Bloquear cargas de rede no WebView. Páginas em cache ainda podem ser exibidas.");
+        put("privacy.clear_security_title", "Limpar decisões de segurança?");
+        put("privacy.clear_security_message", "Isso limpa decisões de certificados SSL, permissões de localização salvas e decisões de certificados de cliente. Não apaga senhas.");
+        put("privacy.security_decisions_cleared", "Decisões de segurança limpas");
     }
 
 }
