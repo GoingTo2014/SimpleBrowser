@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
     private DownloadsPage downloadsPage;
     private ErrorPage errorPage;
     private CookieStore cookieStore;
+    private WebStorageStore webStorageStore;
     private CookiesPage cookiesPage;
     private DemoPage demoPage;
     private UpdateManager updateManager;
@@ -198,6 +199,9 @@ public class MainActivity extends Activity {
 
         cookieStore =
                 new CookieStore(this);
+
+        webStorageStore =
+                new WebStorageStore(this);
 
         cookiesPage =
                 new CookiesPage(
@@ -1682,6 +1686,8 @@ public class MainActivity extends Activity {
             cookieStore.snapshotCookies();
         }
 
+        snapshotAllWebStorage();
+
         if (browserHistory != null) {
             browserHistory.close();
         }
@@ -1700,6 +1706,15 @@ public class MainActivity extends Activity {
 
         final boolean deleteGuest =
                 ProfileManager.isGuest(current);
+
+        for (BrowserTab openTab :
+                tabManager.getTabs()) {
+            if (openTab.webView != null) {
+                openTab.webView.clearCache(true);
+            }
+        }
+
+        clearRuntimeWebStorage();
 
         CookieStore.clearRuntimeCookies(
                 new Runnable() {
@@ -2529,6 +2544,172 @@ public class MainActivity extends Activity {
         }
 
         tab.webView.reload();
+    }
+
+    public WebStorageStore getWebStorageStore() {
+        return webStorageStore;
+    }
+
+    public void saveWebStorageSnapshot(
+            String origin,
+            String data) {
+
+        if (webStorageStore == null) {
+            return;
+        }
+
+        webStorageStore.put(
+                origin,
+                data);
+    }
+
+    public void restoreWebStorage(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                tab.isIncognito ||
+                !browserSettings.isStorageEnabled() ||
+                webStorageStore == null) {
+            return;
+        }
+
+        final String origin =
+                WebStorageStore.normalizeOrigin(url);
+
+        if (origin == null ||
+                !webStorageStore.has(origin)) {
+            return;
+        }
+
+        final String data =
+                webStorageStore.get(origin);
+
+        String script =
+                "(function(){try{" +
+                "var d=" +
+                javaScriptString(data) +
+                ";" +
+                "var o=JSON.parse(d);" +
+                "for(var k in o){" +
+                "if(Object.prototype.hasOwnProperty.call(o,k))" +
+                "localStorage.setItem(k,String(o[k]));" +
+                "}" +
+                "}catch(e){}})();";
+
+        try {
+            tab.webView.evaluateJavascript(
+                    script,
+                    null);
+        } catch (Throwable ignored) {
+            try {
+                tab.webView.loadUrl(
+                        "javascript:" +
+                        script);
+            } catch (Throwable ignoredAgain) {
+            }
+        }
+    }
+
+    public void snapshotWebStorageForTab(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                tab.isIncognito ||
+                !browserSettings.isStorageEnabled()) {
+            return;
+        }
+
+        final String origin =
+                WebStorageStore.normalizeOrigin(
+                        tab.webView.getUrl());
+
+        if (origin == null) {
+            return;
+        }
+
+        try {
+            tab.webView.evaluateJavascript(
+                    "(function(){try{" +
+                    "var o={};" +
+                    "for(var i=0;i<localStorage.length;i++){" +
+                    "var k=localStorage.key(i);" +
+                    "o[k]=localStorage.getItem(k);" +
+                    "}" +
+                    "return JSON.stringify(o);" +
+                    "}catch(e){return '{}';}})();",
+                    value -> {
+                        String json =
+                                parseJavascriptString(
+                                        value);
+
+                        saveWebStorageSnapshot(
+                                origin,
+                                json);
+                    });
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void snapshotAllWebStorage() {
+
+        if (tabManager == null) {
+            return;
+        }
+
+        for (BrowserTab tab :
+                tabManager.getTabs()) {
+            snapshotWebStorageForTab(tab);
+        }
+    }
+
+    public void clearRuntimeWebStorage() {
+
+        try {
+            android.webkit.WebStorage
+                    .getInstance()
+                    .deleteAllData();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private String parseJavascriptString(
+            String value) {
+
+        if (value == null ||
+                value.trim().isEmpty() ||
+                "null".equals(value)) {
+            return "{}";
+        }
+
+        try {
+            return new org.json.JSONArray(
+                    "[" +
+                    value +
+                    "]")
+                    .getString(0);
+        } catch (Throwable ignored) {
+            return "{}";
+        }
+    }
+
+    private String javaScriptString(
+            String value) {
+
+        if (value == null) {
+            return "''";
+        }
+
+        return "'" +
+                value
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n")
+                        .replace("</script>", "<\\/script>") +
+                "'";
     }
 
     private java.util.List<String> getOpenWebUrls() {
@@ -4656,6 +4837,7 @@ public class MainActivity extends Activity {
         if (cookieStore != null) {
             if (!profileSwitching) {
                 cookieStore.snapshotCookies();
+                snapshotAllWebStorage();
             }
             cookieStore.stopSync();
         }
@@ -4668,6 +4850,10 @@ public class MainActivity extends Activity {
 
         if (!profileSwitching) {
             saveTabs();
+        }
+
+        if (webStorageStore != null) {
+            webStorageStore.close();
         }
 
         if (browserHistory != null) {
