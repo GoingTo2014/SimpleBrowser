@@ -453,5 +453,6 @@ public final class Russian extends LanguagePack {
         put("privacy.clear_security_title", "Очистить решения безопасности?");
         put("privacy.clear_security_message", "Будут очищены решения по SSL-сертификатам, сохранённые разрешения местоположения и решения по клиентским сертификатам. Пароли не удаляются.");
         put("privacy.security_decisions_cleared", "Решения безопасности очищены");
+        put("privacy.clear_security", "Очистить решения безопасности");
     }
 }
