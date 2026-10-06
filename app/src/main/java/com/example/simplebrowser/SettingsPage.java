@@ -1206,7 +1206,7 @@ public class SettingsPage {
                 "<div style='margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;'>" +
                 "<button onclick='refreshLogs()'>Refresh logs</button>" +
                 "<button onclick='copyLogs()'>Copy logs</button>" +
-                "<button onclick="Android.clearLogs();refreshLogs()">Clear logs</button>" +
+                "<button onclick=\"Android.clearLogs();refreshLogs()\">Clear logs</button>" +
                 "</div>" +
                 "</div>" +
 
@@ -1229,7 +1229,7 @@ public class SettingsPage {
                 "<input type='text' value='" +
                 htmlAttribute(
                         settings.getCustomUserAgent()) +
-                "' onchange="Android.setCustomUserAgent(this.value)">" +
+                "' onchange=\"Android.setCustomUserAgent(this.value)\">" +
                 "</div>" +
 
                 settingRow(
@@ -1265,7 +1265,7 @@ public class SettingsPage {
                 "<div class='row'>" +
                 "<div class='title'>Cache mode</div>" +
                 "<div class='description'>Choose how WebView reads website resources from its cache.</div>" +
-                "<select onchange="Android.setCacheMode(this.value)">" +
+                "<select onchange=\"Android.setCacheMode(this.value)\">" +
                 "<option value='default'" +
                 ("default".equals(settings.getCacheMode()) ? " selected" : "") +
                 ">Normal</option>" +
