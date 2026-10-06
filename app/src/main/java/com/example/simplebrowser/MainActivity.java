@@ -1989,10 +1989,10 @@ public class MainActivity extends Activity {
 
         /*
          * Chromium's files are swapped only after this process is gone.
-         * The helper then launches a fresh MainActivity in the target
-         * profile.
+         * Keep the task record alive while the helper immediately relaunches
+         * MainActivity after the swap, instead of explicitly closing the task.
          */
-        finishAffinity();
+        overridePendingTransition(0, 0);
 
         android.os.Process.killProcess(
                 android.os.Process.myPid());
