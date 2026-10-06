@@ -316,8 +316,7 @@ public final class Spanish extends LanguagePack {
         put("demo.form_output", "Salida del formulario");
         put("demo.dialog", "Diálogo");
         put("demo.dialog_text", "Elemento de diálogo predeterminado");
-    }
-        put("common.cancel", "Cancelar");
+put("common.cancel", "Cancelar");
         put("common.save", "Guardar");
         put("bookmarks.title", "Marcadores");
         put("bookmarks.desc", "Páginas que has guardado en Simple Browser.");
@@ -358,5 +357,6 @@ public final class Spanish extends LanguagePack {
         put("profiles.name", "Nombre del perfil");
         put("profiles.choose_picture", "Elegir foto de perfil");
         put("profiles.cannot_save", "No se pudo guardar el perfil.");
-
+    }
+    }
 }
