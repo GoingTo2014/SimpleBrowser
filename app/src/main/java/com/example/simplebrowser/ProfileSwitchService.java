@@ -207,7 +207,7 @@ public final class ProfileSwitchService extends Service {
 
             clearPending(this);
 
-            launchBrowser();
+            launchBrowserWithRetry(0);
 
         } catch (Throwable ignored) {
             /*
@@ -232,7 +232,8 @@ public final class ProfileSwitchService extends Service {
         }
     }
 
-    private void launchBrowser() {
+    private void launchBrowserWithRetry(
+            int attempt) {
 
         Intent intent =
                 new Intent(
@@ -242,12 +243,24 @@ public final class ProfileSwitchService extends Service {
         intent.addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK |
                 Intent.FLAG_ACTIVITY_CLEAR_TASK |
-                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_NO_ANIMATION);
 
         try {
             startActivity(intent);
+            return;
         } catch (Throwable ignored) {
+            if (attempt >= 8) {
+                return;
+            }
         }
+
+        new android.os.Handler(
+                android.os.Looper.getMainLooper())
+                .postDelayed(
+                        () -> launchBrowserWithRetry(
+                                attempt + 1),
+                        300L);
     }
 
     private static FileStateFile stateFile(
