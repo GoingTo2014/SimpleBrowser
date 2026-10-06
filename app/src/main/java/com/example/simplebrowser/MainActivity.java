@@ -1387,6 +1387,65 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void showPasswordEntry(
+            BrowserTab tab,
+            long id) {
+
+        if (tab == null ||
+                id <= 0L) {
+            return;
+        }
+
+        if (!passwordManagerAuthenticated) {
+            pendingPasswordRevealId = id;
+            pendingPasswordTab = tab;
+            showPasswordManager(tab);
+            return;
+        }
+
+        try {
+            PasswordStore.Entry entry =
+                    passwordStore.get(id);
+
+            if (entry == null) {
+                showPasswordManagerError(
+                        Localization.translate(
+                                this,
+                                "passwords.error"));
+                return;
+            }
+
+            String title =
+                    entry.site == null ||
+                    entry.site.trim().isEmpty()
+                            ? Localization.translate(
+                                    this,
+                                    "passwords.reveal")
+                            : entry.site;
+
+            String message =
+                    entry.username +
+                    "\n\nPassword:\n" +
+                    entry.password;
+
+            new AlertDialog.Builder(this)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton(
+                            Localization.translate(
+                                    this,
+                                    "common.ok"),
+                            null)
+                    .show();
+
+        } catch (Exception exception) {
+            showPasswordManagerError(
+                    Localization.translate(
+                            this,
+                            "passwords.error"));
+        }
+    }
+
     public void showPasswordManager(BrowserTab tab) {
         if (tab == null) return;
         if (passwordManagerAuthenticated) {
