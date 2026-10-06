@@ -25,6 +25,7 @@ public final class BrowserIconDrawable extends Drawable {
     public static final int ADD = 12;
     public static final int CLOSE = 13;
     public static final int DANGER = 14;
+    public static final int BOOKMARK = 15;
 
     private final int type;
 
@@ -33,13 +34,26 @@ public final class BrowserIconDrawable extends Drawable {
 
     private int color;
     private int alpha = 255;
+    private boolean filled;
 
     public BrowserIconDrawable(
             int type,
             int color) {
 
+        this(
+                type,
+                color,
+                false);
+    }
+
+    public BrowserIconDrawable(
+            int type,
+            int color,
+            boolean filled) {
+
         this.type = type;
         this.color = color;
+        this.filled = filled;
 
         paint.setStyle(
                 Paint.Style.STROKE);
@@ -157,6 +171,10 @@ public final class BrowserIconDrawable extends Drawable {
 
             case DANGER:
                 drawDanger(canvas);
+                break;
+
+            case BOOKMARK:
+                drawBookmark(canvas);
                 break;
         }
 
@@ -615,6 +633,29 @@ public final class BrowserIconDrawable extends Drawable {
 
         paint.setStyle(
                 Paint.Style.STROKE);
+    }
+
+    private void drawBookmark(
+            Canvas canvas) {
+
+        Path shape =
+                new Path();
+
+        shape.moveTo(8f, 5f);
+        shape.lineTo(24f, 5f);
+        shape.lineTo(24f, 27f);
+        shape.lineTo(16f, 22f);
+        shape.lineTo(8f, 27f);
+        shape.close();
+
+        if (filled) {
+            Paint.Style oldStyle = paint.getStyle();
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawPath(shape, paint);
+            paint.setStyle(oldStyle);
+        } else {
+            canvas.drawPath(shape, paint);
+        }
     }
 
     private void drawDanger(
