@@ -40,3 +40,10 @@
 - Added more Advanced controls for JavaScript windows, overview mode, text zoom, minimum font size, Web SQL, and hardware acceleration.
 - Completed translation coverage for all current language-pack keys across English, Spanish, Portuguese, French, Japanese, Chinese, Hindi, Russian, German, and Arabic.
 - Moved the password bridge installation to WebView creation so it exists before the first page load; password capture now checks submits, form buttons, role buttons, and Enter-key submissions.
+- Tab overview now opens as a full-screen window.
+- Added profile-isolated localStorage snapshots and restore; shared Web Storage/Web SQL, HTTP cache, legacy WebView form/auth data, and other process-wide browsing stores are cleared during profile switches where Android exposes clearing APIs.
+- Added a separate Privacy & Security action to clear SSL/security decisions and location permissions, with confirmation dialogs for destructive actions.
+- Settings is the first three-dot menu action; the old section shortcut buttons were removed.
+- Expanded Advanced with wide viewport and offline mode plus existing cache, text zoom, font size, Web SQL, JavaScript window, hardware acceleration, and debugging controls.
+- Password capture now attaches before navigation and recognizes submit events, buttons, nested button elements, role buttons, and Enter-key submissions.
+- All nine non-system language packs now contain the full current English key set, including Russian, German, and Arabic.
