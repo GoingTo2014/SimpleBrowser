@@ -635,6 +635,42 @@ public class UpdateManager {
         }
     }
 
+    private String readAll(
+            InputStream input)
+            throws Exception {
+
+        StringBuilder result =
+                new StringBuilder();
+
+        byte[] buffer =
+                new byte[8192];
+
+        int count;
+
+        try {
+
+            while ((count =
+                    input.read(buffer)) >= 0) {
+
+                result.append(
+                        new String(
+                                buffer,
+                                0,
+                                count,
+                                "UTF-8"));
+            }
+
+        } finally {
+
+            try {
+                input.close();
+            } catch (Exception ignored) {
+            }
+        }
+
+        return result.toString();
+    }
+
     private String sha256(
             File file)
             throws Exception {
