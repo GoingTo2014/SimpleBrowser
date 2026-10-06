@@ -358,4 +358,23 @@ put("common.cancel", "Cancelar");
         put("profiles.choose_picture", "Elegir foto de perfil");
         put("profiles.cannot_save", "No se pudo guardar el perfil.");
     }
+        put("Bookmark", "Marcador");
+        put("passwords.import", "Importar");
+        put("passwords.export", "Exportar");
+        put("passwords.all_sites", "Todos los sitios");
+        put("passwords.saved_one", "contraseña guardada");
+        put("passwords.saved_many", "contraseñas guardadas");
+        put("passwords.no_entries", "No hay contraseñas guardadas para este sitio.");
+        put("passwords.export_title", "Exportar contraseñas");
+        put("passwords.export_password", "Contraseña de exportación (6+ caracteres)");
+        put("passwords.import_title", "Importar contraseñas");
+        put("passwords.save_prompt_title", "¿Guardar contraseña?");
+        put("passwords.save_prompt", "Simple Browser detectó una contraseña enviada. ¿Quieres guardarla en el gestor de contraseñas?");
+        put("passwords.not_now", "Ahora no");
+        put("passwords.save_password", "Guardar contraseña");
+        put("passwords.exported", "Copia de seguridad de contraseñas cifrada exportada.");
+        put("passwords.imported", "Contraseñas importadas:");
+        put("passwords.export_failed", "No se pudo exportar la copia de seguridad cifrada.");
+        put("passwords.import_failed", "No se pudo importar la copia de seguridad cifrada.");
+
 }
