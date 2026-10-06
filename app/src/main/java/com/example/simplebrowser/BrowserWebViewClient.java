@@ -211,7 +211,6 @@ public class BrowserWebViewClient
             }
 
             tab.loading = false;
-            activity.updateReloadButton(tab);
             activity.updateNavigationButtonsForTabs();
             return;
         }
