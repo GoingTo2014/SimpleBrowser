@@ -1,6 +1,7 @@
 package com.example.simplebrowser;
 
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import java.util.List;
 
@@ -49,6 +50,10 @@ public final class BookmarksPage {
                                 ? ""
                                 : query);
 
+        tab.webView.removeJavascriptInterface("BookmarksPage");
+        tab.webView.getSettings().setJavaScriptEnabled(true);
+        tab.webView.addJavascriptInterface(new Bridge(tab), "BookmarksPage");
+
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.BOOKMARKS,
@@ -71,6 +76,7 @@ public final class BookmarksPage {
             return;
         }
 
+        tab.webView.removeJavascriptInterface("BookmarksPage");
         tab.bookmarksPage = false;
     }
 
@@ -192,11 +198,11 @@ public final class BookmarksPage {
         }
 
         html.append("<script>");
-        html.append("function search(v){Android.search(v)}");
-        html.append("function openBookmark(id){Android.open(id)}");
+        html.append("function search(v){BookmarksPage.search(v)}");
+        html.append("function openBookmark(id){BookmarksPage.open(id)}");
         html.append("function deleteBookmark(id){if(confirm(");
         html.append(js(t("bookmarks.confirm_delete")));
-        html.append(")){Android.deleteBookmark(id)}}");
+        html.append(")){BookmarksPage.deleteBookmark(id)}}");
         html.append("</script></body></html>");
 
         return Localization.translateHtml(
