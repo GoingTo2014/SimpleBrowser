@@ -317,4 +317,46 @@ public final class Chinese extends LanguagePack {
         put("demo.dialog", "对话框");
         put("demo.dialog_text", "默认对话框元素");
     }
+        put("common.cancel", "取消");
+        put("common.save", "保存");
+        put("bookmarks.title", "书签");
+        put("bookmarks.desc", "你在 Simple Browser 中保存的页面。");
+        put("bookmarks.search", "搜索书签");
+        put("bookmarks.empty", "没有找到书签。");
+        put("bookmarks.open", "打开");
+        put("bookmarks.confirm_delete", "删除此书签？");
+        put("bookmarks.invalid", "只有网页可以添加到书签。");
+        put("bookmarks.added", "已添加书签。");
+        put("passwords.title", "密码管理器");
+        put("passwords.security_desc", "密码会在此设备上加密保存。如果 Android 支持，打开管理器前需要验证设备锁屏凭据。");
+        put("passwords.add", "添加密码");
+        put("passwords.site", "网站");
+        put("passwords.username", "用户名");
+        put("passwords.password", "密码");
+        put("passwords.note", "备注");
+        put("passwords.save", "保存");
+        put("passwords.clear", "清除");
+        put("passwords.edit", "编辑");
+        put("passwords.reveal", "显示");
+        put("passwords.revealed", "密码：");
+        put("passwords.confirm_delete", "删除此已保存的密码？");
+        put("passwords.empty", "没有保存密码。");
+        put("passwords.error", "无法读取加密的密码数据库。");
+        put("passwords.save_failed", "无法保存密码。");
+        put("passwords.unlock_title", "解锁密码管理器");
+        put("passwords.unlock_desc", "请确认设备的 PIN、密码、图案或其他安全锁屏方式。");
+        put("passwords.api_limit", "Android 4.4 无法显示系统凭据确认界面。设备已经解锁后才能打开管理器。");
+        put("profiles.title", "配置文件");
+        put("profiles.desc", "最多可创建 %d 个持久配置文件。每个配置文件都有独立的设置、历史记录、书签、Cookie、标签页、下载历史和密码。");
+        put("profiles.create", "创建配置文件");
+        put("profiles.guest", "访客配置文件");
+        put("profiles.current", "当前配置文件");
+        put("profiles.switch", "切换");
+        put("profiles.edit", "编辑");
+        put("profiles.guest_confirm", "开始新的访客配置文件？其中的所有内容都是临时的，离开后会被清除。");
+        put("profiles.delete_confirm", "删除此配置文件及其所有浏览器数据？");
+        put("profiles.name", "配置文件名称");
+        put("profiles.choose_picture", "选择配置文件图片");
+        put("profiles.cannot_save", "无法保存配置文件。");
+
 }
