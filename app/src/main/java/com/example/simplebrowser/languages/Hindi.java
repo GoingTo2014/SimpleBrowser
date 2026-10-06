@@ -317,4 +317,46 @@ public final class Hindi extends LanguagePack {
         put("demo.dialog", "डायलॉग");
         put("demo.dialog_text", "डिफ़ॉल्ट डायलॉग तत्व");
     }
+        put("common.cancel", "रद्द करें");
+        put("common.save", "सहेजें");
+        put("bookmarks.title", "बुकमार्क");
+        put("bookmarks.desc", "Simple Browser में आपके द्वारा सहेजे गए पेज।");
+        put("bookmarks.search", "बुकमार्क खोजें");
+        put("bookmarks.empty", "कोई बुकमार्क नहीं मिला।");
+        put("bookmarks.open", "खोलें");
+        put("bookmarks.confirm_delete", "क्या यह बुकमार्क हटाना है?");
+        put("bookmarks.invalid", "केवल वेब पेज को बुकमार्क किया जा सकता है।");
+        put("bookmarks.added", "बुकमार्क जोड़ा गया।");
+        put("passwords.title", "पासवर्ड मैनेजर");
+        put("passwords.security_desc", "पासवर्ड इस डिवाइस पर एन्क्रिप्ट किए जाते हैं। Android द्वारा समर्थित होने पर मैनेजर खोलने से पहले डिवाइस लॉक की पुष्टि मांगी जाएगी।");
+        put("passwords.add", "पासवर्ड जोड़ें");
+        put("passwords.site", "वेबसाइट");
+        put("passwords.username", "उपयोगकर्ता नाम");
+        put("passwords.password", "पासवर्ड");
+        put("passwords.note", "नोट");
+        put("passwords.save", "सहेजें");
+        put("passwords.clear", "साफ़ करें");
+        put("passwords.edit", "संपादित करें");
+        put("passwords.reveal", "दिखाएँ");
+        put("passwords.revealed", "पासवर्ड: ");
+        put("passwords.confirm_delete", "क्या यह सहेजा हुआ पासवर्ड हटाना है?");
+        put("passwords.empty", "कोई पासवर्ड सहेजा नहीं गया।");
+        put("passwords.error", "एन्क्रिप्टेड पासवर्ड डेटाबेस पढ़ा नहीं जा सका।");
+        put("passwords.save_failed", "पासवर्ड सहेजा नहीं जा सका।");
+        put("passwords.unlock_title", "पासवर्ड मैनेजर अनलॉक करें");
+        put("passwords.unlock_desc", "डिवाइस का PIN, पासवर्ड, पैटर्न या अन्य सुरक्षित लॉक सत्यापित करें।");
+        put("passwords.api_limit", "Android 4.4 सिस्टम क्रेडेंशियल पुष्टि स्क्रीन नहीं दिखा सकता। डिवाइस पहले से अनलॉक होने पर मैनेजर खुलेगा।");
+        put("profiles.title", "प्रोफ़ाइल");
+        put("profiles.desc", "अधिकतम %d स्थायी प्रोफ़ाइल बनाएँ। हर प्रोफ़ाइल की सेटिंग, इतिहास, बुकमार्क, कुकी, टैब, डाउनलोड इतिहास और पासवर्ड अलग होते हैं।");
+        put("profiles.create", "प्रोफ़ाइल बनाएँ");
+        put("profiles.guest", "अतिथि प्रोफ़ाइल");
+        put("profiles.current", "वर्तमान प्रोफ़ाइल");
+        put("profiles.switch", "बदलें");
+        put("profiles.edit", "संपादित करें");
+        put("profiles.guest_confirm", "नई अतिथि प्रोफ़ाइल शुरू करें? इसमें सब कुछ अस्थायी होगा और बाहर निकलने पर मिटा दिया जाएगा।");
+        put("profiles.delete_confirm", "क्या इस प्रोफ़ाइल और इसके सभी ब्राउज़र डेटा को हटाना है?");
+        put("profiles.name", "प्रोफ़ाइल नाम");
+        put("profiles.choose_picture", "प्रोफ़ाइल चित्र चुनें");
+        put("profiles.cannot_save", "प्रोफ़ाइल सहेजी नहीं जा सकी।");
+
 }
