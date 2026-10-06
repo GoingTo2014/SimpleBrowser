@@ -47,3 +47,5 @@
 - Expanded Advanced with wide viewport and offline mode plus existing cache, text zoom, font size, Web SQL, JavaScript window, hardware acceleration, and debugging controls.
 - Password capture now attaches before navigation and recognizes submit events, buttons, nested button elements, role buttons, and Enter-key submissions.
 - All nine non-system language packs now contain the full current English key set, including Russian, German, and Arabic.
+- Hardened password-save detection for mobile touch buttons, nested controls, and scripted form submissions.
+- Hardened localStorage snapshot writes so profile switching cannot overwrite data after the profile database has closed.
