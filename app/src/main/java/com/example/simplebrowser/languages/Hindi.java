@@ -439,6 +439,9 @@ put("common.cancel", "रद्द करें");
         put("privacy.clear_security_message", "यह SSL प्रमाणपत्र निर्णय, सहेजी गई स्थान अनुमतियाँ और क्लाइंट-प्रमाणपत्र निर्णय साफ़ करेगा। पासवर्ड नहीं मिटेंगे।");
         put("privacy.security_decisions_cleared", "सुरक्षा निर्णय साफ़ किए गए");
         put("privacy.clear_security", "सुरक्षा निर्णय साफ़ करें");
+        put("tab.guest_tabs", "अतिथि टैब");
+        put("guest.enter", "अतिथि मोड में प्रवेश करें");
+        put("guest.exit", "अतिथि मोड से बाहर निकलें");
     }
 
 }
