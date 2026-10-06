@@ -1686,7 +1686,20 @@ public class MainActivity extends Activity {
             cookieStore.snapshotCookies();
         }
 
-        snapshotAllWebStorage();
+        final boolean deleteGuest =
+                ProfileManager.isGuest(current);
+
+        snapshotAllWebStorage(
+                () -> continueProfileSwitch(
+                        current,
+                        targetProfileId,
+                        deleteGuest));
+    }
+
+    private void continueProfileSwitch(
+            final String current,
+            final String targetProfileId,
+            final boolean deleteGuest) {
 
         if (browserHistory != null) {
             browserHistory.close();
@@ -1703,9 +1716,6 @@ public class MainActivity extends Activity {
         if (passwordStore != null) {
             passwordStore.close();
         }
-
-        final boolean deleteGuest =
-                ProfileManager.isGuest(current);
 
         for (BrowserTab openTab :
                 tabManager.getTabs()) {
@@ -2614,11 +2624,24 @@ public class MainActivity extends Activity {
 
     public void snapshotWebStorageForTab(
             BrowserTab tab) {
+        snapshotWebStorageForTab(
+                tab,
+                null);
+    }
+
+    private void snapshotWebStorageForTab(
+            BrowserTab tab,
+            final Runnable completion) {
 
         if (tab == null ||
                 tab.webView == null ||
                 tab.isIncognito ||
                 !browserSettings.isStorageEnabled()) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
             return;
         }
 
@@ -2627,6 +2650,11 @@ public class MainActivity extends Activity {
                         tab.webView.getUrl());
 
         if (origin == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
             return;
         }
 
@@ -2641,6 +2669,7 @@ public class MainActivity extends Activity {
                     "return JSON.stringify(o);" +
                     "}catch(e){return '{}';}})();",
                     value -> {
+
                         String json =
                                 parseJavascriptString(
                                         value);
@@ -2648,20 +2677,92 @@ public class MainActivity extends Activity {
                         saveWebStorageSnapshot(
                                 origin,
                                 json);
+
+                        if (completion != null) {
+                            completion.run();
+                        }
                     });
+
         } catch (Throwable ignored) {
+
+            if (completion != null) {
+                completion.run();
+            }
         }
     }
 
     private void snapshotAllWebStorage() {
+        snapshotAllWebStorage(null);
+    }
+
+    private void snapshotAllWebStorage(
+            final Runnable completion) {
 
         if (tabManager == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
             return;
         }
 
+        java.util.ArrayList<BrowserTab> webTabs =
+                new java.util.ArrayList<>();
+
         for (BrowserTab tab :
                 tabManager.getTabs()) {
-            snapshotWebStorageForTab(tab);
+
+            if (tab != null &&
+                    tab.webView != null &&
+                    !tab.isIncognito &&
+                    browserSettings.isStorageEnabled() &&
+                    WebStorageStore.normalizeOrigin(
+                            tab.webView.getUrl()) != null) {
+
+                webTabs.add(tab);
+            }
+        }
+
+        if (webTabs.isEmpty()) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        final int[] remaining =
+                new int[] {
+                        webTabs.size()
+                };
+
+        final boolean[] completed =
+                new boolean[] {
+                        false
+                };
+
+        Runnable done =
+                () -> {
+
+                    remaining[0]--;
+
+                    if (remaining[0] <= 0 &&
+                            !completed[0]) {
+
+                        completed[0] = true;
+
+                        if (completion != null) {
+                            completion.run();
+                        }
+                    }
+                };
+
+        for (BrowserTab tab : webTabs) {
+            snapshotWebStorageForTab(
+                    tab,
+                    done);
         }
     }
 
