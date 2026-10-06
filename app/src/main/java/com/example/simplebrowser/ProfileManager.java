@@ -419,8 +419,7 @@ public final class ProfileManager {
                 array.put(
                         new JSONObject()
                                 .put("id", profile.id)
-                                .put("name", profile.name)
-                                .put("pfp", profile.pfpBase64));
+                                .put("name", profile.name));
             } catch (Exception ignored) {
             }
         }
