@@ -996,11 +996,17 @@ public class TabManager {
     public void updateTabAppearanceColors() {
 
         int accent =
-                ColorUtils.parseColor(
-                        activity
-                                .getBrowserSettings()
-                                .getAccentColor(),
-                        Color.WHITE);
+                current != null &&
+                        current.isIncognito
+                        ? Color.rgb(
+                                48,
+                                49,
+                                52)
+                        : ColorUtils.parseColor(
+                                activity
+                                        .getBrowserSettings()
+                                        .getAccentColor(),
+                                Color.WHITE);
 
         BrowserTab current =
                 activeTab;
@@ -1016,6 +1022,11 @@ public class TabManager {
 
         tabsLayout.setBackgroundColor(
                 tabBarBackground);
+
+        if (tabScroll != null) {
+            tabScroll.setBackgroundColor(
+                    tabBarBackground);
+        }
 
         for (BrowserTab tab :
                 tabs) {
