@@ -592,6 +592,14 @@ public final class ProfileManager {
         PasswordStore.deleteCryptoKey(
                 context,
                 profileId);
+
+        /*
+         * WebView has its own Chromium storage outside the browser's SQLite
+         * stores. Remove that profile's isolated WebView data as well.
+         */
+        ProfileWebViewStorage.deleteProfileData(
+                context,
+                profileId);
     }
 
     public static final class Profile {
