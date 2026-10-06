@@ -99,6 +99,24 @@ public class BrowserChromeClient
         return true;
     }
 
+    @android.annotation.TargetApi(21)
+    @Override
+    public void onPermissionRequest(
+            android.webkit.PermissionRequest request) {
+
+        activity.handleWebPermissionRequest(
+                request);
+    }
+
+    @android.annotation.TargetApi(21)
+    @Override
+    public void onPermissionRequestCanceled(
+            android.webkit.PermissionRequest request) {
+
+        activity.handleWebPermissionRequestCanceled(
+                request);
+    }
+
     @Override
     public void onGeolocationPermissionsShowPrompt(
             String origin,
