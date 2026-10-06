@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
     private boolean awaitingPasswordAuthentication;
     private boolean profileSwitching;
     private BrowserTab pendingPasswordTab;
+    private String pendingPasswordSite;
     private long pendingPasswordRevealId = -1L;
     private BrowserTab pendingPasswordFileTab;
     private String pendingPasswordExport;
@@ -1368,6 +1369,11 @@ public class MainActivity extends Activity {
         }
 
         if (!passwordManagerAuthenticated) {
+            pendingPasswordTab = tab;
+            pendingPasswordSite =
+                    site == null
+                            ? ""
+                            : site;
             showPasswordManager(tab);
             return;
         }
@@ -2051,10 +2057,17 @@ public class MainActivity extends Activity {
          * visible instead of disappearing while the process is replaced.
          */
         try {
-            startActivity(
+            Intent switchIntent =
                     new Intent(
                             MainActivity.this,
-                            ProfileSwitchActivity.class));
+                            ProfileSwitchActivity.class);
+
+            switchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+            startActivity(switchIntent);
             overridePendingTransition(0, 0);
         } catch (Throwable ignored) {
         }
@@ -2064,7 +2077,7 @@ public class MainActivity extends Activity {
                 .postDelayed(
                         () -> android.os.Process.killProcess(
                                 android.os.Process.myPid()),
-                        350L);
+                        150L);
     }
 
     private void flushWebViewDataBeforeProcessExit() {
@@ -5353,22 +5366,38 @@ public class MainActivity extends Activity {
                 passwordManagerAuthenticated = true;
 
                 if (pendingPasswordTab != null) {
+                    BrowserTab passwordTab =
+                            pendingPasswordTab;
+
                     if (pendingPasswordRevealId > 0L) {
                         long revealId =
                                 pendingPasswordRevealId;
                         pendingPasswordRevealId = -1L;
 
                         showPasswordEntry(
-                                pendingPasswordTab,
+                                passwordTab,
                                 revealId);
+
+                    } else if (pendingPasswordSite != null &&
+                            !pendingPasswordSite.trim().isEmpty()) {
+
+                        String site =
+                                pendingPasswordSite;
+                        pendingPasswordSite = null;
+
+                        showPasswordSite(
+                                passwordTab,
+                                site);
+
                     } else {
                         showPasswordManagerPage(
-                                pendingPasswordTab);
+                                passwordTab);
                     }
                 }
             }
 
             pendingPasswordTab = null;
+            pendingPasswordSite = null;
             return;
         }
 
