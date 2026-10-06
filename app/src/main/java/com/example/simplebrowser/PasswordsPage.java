@@ -301,7 +301,7 @@ public final class PasswordsPage {
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace(""", "&quot;");
+                .replace("\"", "&quot;");
     }
 
     private String js(String value) {
@@ -310,8 +310,8 @@ public final class PasswordsPage {
         }
 
         return "'" +
-                value.replace("\", "\\")
-                        .replace("'", "\'")
+                value.replace("\\", "\\\\")
+                        .replace("'", "\\'")
                         .replace("", "\r")
                         .replace("
 ", "\n") +
