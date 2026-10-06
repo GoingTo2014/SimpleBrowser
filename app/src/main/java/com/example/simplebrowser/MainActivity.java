@@ -34,6 +34,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.InputStream;
@@ -645,6 +646,11 @@ public class MainActivity extends Activity {
         menu.setBackgroundColor(
                 menuBackground);
 
+        addCurrentProfileMenuHeader(
+                menu,
+                accent,
+                readable);
+
         addMenuActionButton(menu, "Bookmarks", () -> {
             if (browserMenu != null) browserMenu.dismiss();
             BrowserTab tab = getActiveTab();
@@ -660,12 +666,6 @@ public class MainActivity extends Activity {
             if (browserMenu != null) browserMenu.dismiss();
             BrowserTab tab = getActiveTab();
             if (tab != null) showPasswordManager(tab);
-        }, accent, readable);
-
-        addMenuActionButton(menu, "Profiles", () -> {
-            if (browserMenu != null) browserMenu.dismiss();
-            BrowserTab tab = getActiveTab();
-            if (tab != null) showProfiles(tab);
         }, accent, readable);
 
         addMenuActionButton(
@@ -821,6 +821,111 @@ public class MainActivity extends Activity {
                 0);
     }
 
+    private void addCurrentProfileMenuHeader(
+            LinearLayout menu,
+            int accent,
+            int readable) {
+
+        ProfileManager.Profile profile =
+                profileManager.getActiveProfile(
+                        this);
+
+        if (profile == null) {
+            return;
+        }
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setOrientation(
+                LinearLayout.HORIZONTAL);
+        row.setGravity(
+                android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(
+                dp(10),
+                dp(8),
+                dp(10),
+                dp(8));
+        row.setBackgroundColor(
+                accent);
+        row.setClickable(true);
+        row.setOnClickListener(
+                v -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showProfiles(tab);
+                    }
+                });
+
+        TextView avatar =
+                new TextView(this);
+
+        avatar.setGravity(
+                android.view.Gravity.CENTER);
+        avatar.setText(
+                profile.name == null ||
+                        profile.name.trim().isEmpty()
+                        ? "?"
+                        : String.valueOf(
+                                Character.toUpperCase(
+                                        profile.name
+                                                .trim()
+                                                .charAt(0))));
+        avatar.setTextColor(readable);
+        avatar.setTextSize(18f);
+
+        GradientDrawable circle =
+                new GradientDrawable();
+        circle.setShape(
+                GradientDrawable.OVAL);
+        circle.setColor(
+                Color.TRANSPARENT);
+        circle.setStroke(
+                dp(2),
+                readable);
+
+        avatar.setBackground(circle);
+
+        row.addView(
+                avatar,
+                new LinearLayout.LayoutParams(
+                        dp(40),
+                        dp(40)));
+
+        TextView name =
+                new TextView(this);
+
+        name.setText(profile.name);
+        name.setTextColor(readable);
+        name.setTextSize(16f);
+        name.setGravity(
+                android.view.Gravity.CENTER_VERTICAL);
+        name.setPadding(
+                dp(10),
+                0,
+                dp(4),
+                0);
+
+        row.addView(
+                name,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(40),
+                        1f));
+
+        menu.addView(
+                row,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(56)));
+    }
+
     private void addMenuActionButton(
             LinearLayout menu,
             String text,
@@ -836,14 +941,10 @@ public class MainActivity extends Activity {
                         this,
                         text));
         button.setAllCaps(false);
-        int buttonColor =
-                ColorUtils.ensureContrast(
-                        ColorUtils.darken(accent, 0.22f),
-                        Color.WHITE,
-                        3.0d);
         button.setTextColor(
-                ColorUtils.getReadableTextColor(buttonColor));
-        button.setBackgroundColor(buttonColor);
+                readable);
+        button.setBackgroundColor(
+                accent);
         button.setGravity(
                 android.view.Gravity.RIGHT |
                 android.view.Gravity.CENTER_VERTICAL);
@@ -878,15 +979,8 @@ public class MainActivity extends Activity {
                         this,
                         text));
         button.setAllCaps(false);
-        int buttonColor =
-                ColorUtils.ensureContrast(
-                        ColorUtils.darken(accent, 0.22f),
-                        Color.WHITE,
-                        3.0d);
-        button.setTextColor(
-                ColorUtils.getReadableTextColor(
-                        buttonColor));
-        button.setBackgroundColor(buttonColor);
+        button.setTextColor(readable);
+        button.setBackgroundColor(accent);
         button.setGravity(
                 android.view.Gravity.RIGHT |
                 android.view.Gravity.CENTER_VERTICAL);
