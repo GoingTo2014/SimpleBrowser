@@ -290,7 +290,14 @@ public class SettingsPage {
                 ColorUtils.toHex(contentSecondaryText);
 
         return Localization.translateHtml(activity, "<!DOCTYPE html>" +
-                "<html>" +
+                "<html dir='" +
+                (Localization.ARABIC.equals(
+                        Localization.resolve(
+                                activity,
+                                settings.getLanguage()))
+                        ? "rtl"
+                        : "ltr") +
+                "'>" +
                 "<head>" +
 
                 "<meta name='viewport' " +
@@ -553,6 +560,10 @@ public class SettingsPage {
 
                 ".section.active{display:block;}" +
 
+                ".mobile-back{" +
+                "display:none;" +
+                "}" +
+
                 ".update-status{margin-top:8px;font-size:12px;color:" +
                 secondaryTextHex +
                 ";line-height:1.4;display:flex;align-items:center;gap:6px;}" +
@@ -631,9 +642,6 @@ public class SettingsPage {
                 "font-size:34px;" +
                 "line-height:52px;" +
                 "text-align:left;" +
-                "}" +
-                ".mobile-back{" +
-                "display:none;" +
                 "}" +
                 ".subtitle{" +
                 "margin-bottom:16px;" +
