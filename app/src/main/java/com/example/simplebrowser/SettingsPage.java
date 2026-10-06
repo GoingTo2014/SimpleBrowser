@@ -726,9 +726,7 @@ public class SettingsPage {
 
                 "<div class='sidebar'>" +
 
-                "<div class='brand'>Simple Browser " +
-                BuildConfig.VERSION_NAME +
-                "</div>" +
+                "" +
 
                 "<div class='nav " +
                 active(currentSection, "general") +
@@ -764,20 +762,21 @@ public class SettingsPage {
                 "<div class='content'>" +
 
                 "<button class='mobile-back' " +
-                "onclick='showMobileMenu()'>" +
-                "Settings" +
-                "</button>" +
+                "onclick='showMobileMenu()' " +
+                "aria-label='Back'>&#8592;</button>" +
 
-                "<h1>Settings</h1>" +
-                "<div class='subtitle'>Simple Browser " +
-                BuildConfig.VERSION_NAME +
-                " &bull; Configure Simple Browser</div>" +
+                "" +
 
                 "<div id='section-general' class='section " +
                 sectionActive(
                         currentSection,
                         "general") +
                 "'>" +
+
+                "<h1>Settings</h1>" +
+                "<div class='subtitle'>Simple Browser " +
+                BuildConfig.VERSION_NAME +
+                " &bull; Configure Simple Browser</div>" +
 
                 "<h2>General</h2>" +
                 "<div class='card'>" +
