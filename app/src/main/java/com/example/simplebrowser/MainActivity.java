@@ -1432,9 +1432,7 @@ public class MainActivity extends Activity {
                     .setTitle(title)
                     .setMessage(message)
                     .setPositiveButton(
-                            Localization.translate(
-                                    this,
-                                    "common.ok"),
+                            android.R.string.ok,
                             null)
                     .show();
 
