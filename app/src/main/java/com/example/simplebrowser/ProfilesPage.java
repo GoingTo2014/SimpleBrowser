@@ -93,9 +93,7 @@ public final class ProfilesPage {
 
         int button =
                 ColorUtils.ensureContrast(
-                        ColorUtils.darken(
-                                accent,
-                                0.10f),
+                        accent,
                         card,
                         3.0d);
 
@@ -204,12 +202,13 @@ public final class ProfilesPage {
                         button));
             }
 
+            html.append(actionLink(
+                    "simplebrowser://profile/edit/" +
+                            attribute(profile.id),
+                    t("profiles.edit"),
+                    button));
+
             if (!profile.isMain()) {
-                html.append(actionLink(
-                        "simplebrowser://profile/edit/" +
-                                attribute(profile.id),
-                        t("profiles.edit"),
-                        button));
 
                 if (!current) {
                     html.append(actionLink(
