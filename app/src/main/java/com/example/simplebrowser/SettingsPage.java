@@ -1348,19 +1348,6 @@ public class SettingsPage {
                         "hardware_acceleration",
                         settings.isHardwareAccelerationEnabled()) +
 
-                "<div class='row'>" +
-                "<div class='title'>Web SQL / DOM storage</div>" +
-                "<div class='description'>Control legacy website database storage and HTML5 Web Storage. Profile-specific localStorage is isolated by Simple Browser; Web SQL is cleared when switching profiles.</div>" +
-                "</div>" +
-
-                "<div class='row'>" +
-                "<div class='title'>Open links in new windows automatically</div>" +
-                "<div class='description'>Allow JavaScript to create windows without a user gesture.</div>" +
-                "<input type='checkbox'" +
-                (settings.isJavaScriptCanOpenWindowsAutomatically() ? " checked" : "") +
-                " onchange=\"Android.setSetting('js_open_windows',this.checked)\">" +
-                "</div>" +
-
                 "<div class='row switchrow'>" +
                 "<div>" +
                 "<div class='title'>WebView debugging</div>" +
