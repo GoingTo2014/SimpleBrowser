@@ -358,4 +358,23 @@ put("common.cancel", "取消");
         put("profiles.choose_picture", "选择配置文件图片");
         put("profiles.cannot_save", "无法保存配置文件。");
     }
+        put("Bookmark", "书签");
+        put("passwords.import", "导入");
+        put("passwords.export", "导出");
+        put("passwords.all_sites", "所有网站");
+        put("passwords.saved_one", "个已保存密码");
+        put("passwords.saved_many", "个已保存密码");
+        put("passwords.no_entries", "此网站没有保存的密码。");
+        put("passwords.export_title", "导出密码");
+        put("passwords.export_password", "导出密码（至少6个字符）");
+        put("passwords.import_title", "导入密码");
+        put("passwords.save_prompt_title", "保存密码？");
+        put("passwords.save_prompt", "Simple Browser 检测到提交的密码。要将其保存到密码管理器吗？");
+        put("passwords.not_now", "暂不保存");
+        put("passwords.save_password", "保存密码");
+        put("passwords.exported", "已导出加密的密码备份。");
+        put("passwords.imported", "已导入密码：");
+        put("passwords.export_failed", "无法导出加密的密码备份。");
+        put("passwords.import_failed", "无法导入加密的密码备份。");
+
 }
