@@ -6,3 +6,4 @@ Tab persistence, password navigation and file chooser fixes.
 Fix profile switch visibility and native password reveal.
 Deep profile switch handoff and password reveal fix release trigger.
 Verified Java string escaping before release build.
+Rebuild after final Java quoting correction.
