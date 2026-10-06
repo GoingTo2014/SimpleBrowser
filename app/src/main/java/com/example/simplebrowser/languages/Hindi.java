@@ -357,7 +357,6 @@ put("common.cancel", "रद्द करें");
         put("profiles.name", "प्रोफ़ाइल नाम");
         put("profiles.choose_picture", "प्रोफ़ाइल चित्र चुनें");
         put("profiles.cannot_save", "प्रोफ़ाइल सहेजी नहीं जा सकी।");
-    }
         put("Bookmark", "बुकमार्क");
         put("passwords.import", "आयात करें");
         put("passwords.export", "निर्यात करें");
@@ -376,5 +375,7 @@ put("common.cancel", "रद्द करें");
         put("passwords.imported", "आयात किए गए पासवर्ड:");
         put("passwords.export_failed", "एन्क्रिप्टेड पासवर्ड बैकअप निर्यात नहीं किया जा सका।");
         put("passwords.import_failed", "एन्क्रिप्टेड पासवर्ड बैकअप आयात नहीं किया जा सका।");
+
+    }
 
 }
