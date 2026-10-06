@@ -57,12 +57,26 @@ public final class ProfileWebViewStorage {
                 ProfileManager.getActiveProfileId(
                         context);
 
-        if (ProfileManager.isGuest(profileId) ||
-                ProfileManager.MAIN_ID.equals(profileId)) {
+        if (ProfileManager.isGuest(profileId)) {
+            return;
+        }
+
+        if (ProfileManager.MAIN_ID.equals(profileId)) {
             /*
              * Main intentionally keeps the legacy default directory so
              * existing installations retain their original WebView data.
+             * Mark the one-time migration complete here so creating a new
+             * profile later never clones Main's legacy WebView state.
              */
+            context.getSharedPreferences(
+                    MIGRATION_PREFS,
+                    Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(
+                            "isolation_initialized",
+                            true)
+                    .apply();
+
             return;
         }
 
