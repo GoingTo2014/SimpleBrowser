@@ -1099,6 +1099,12 @@ public class SettingsPage {
                 "</div>" +
 
                 "<div class='row'>" +
+                "<button onclick=\"Android.clearSecurityDecisions()\">" +
+                "Clear security decisions" +
+                "</button>" +
+                "</div>" +
+
+                "<div class='row'>" +
                 "<button onclick=\"Android.resetSettings()\">" +
                 "Restore default settings" +
                 "</button>" +
@@ -1289,6 +1295,18 @@ public class SettingsPage {
                 ">Cache only</option>" +
                 "</select>" +
                 "</div>" +
+
+                settingRow(
+                        "Wide viewport",
+                        "Use the viewport configured by the website so responsive pages can choose their layout.",
+                        "wide_viewport",
+                        settings.isWideViewportEnabled()) +
+
+                settingRow(
+                        "Offline mode",
+                        "Block network loads in WebView. Cached pages can still be displayed.",
+                        "offline_mode",
+                        settings.isOfflineModeEnabled()) +
 
                 settingRow(
                         "JavaScript automatic windows",
@@ -2024,6 +2042,43 @@ public class SettingsPage {
                                                             Toast.LENGTH_SHORT)
                                                             .show();
                                                 });
+                                    })
+                            .show());
+        }
+
+        @JavascriptInterface
+        public void clearSecurityDecisions() {
+
+            activity.runOnUiThread(
+                    () -> new android.app.AlertDialog.Builder(
+                            activity)
+                            .setTitle(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.clear_security_title"))
+                            .setMessage(
+                                    Localization.translate(
+                                            activity,
+                                            "privacy.clear_security_message"))
+                            .setNegativeButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.cancel"),
+                                    null)
+                            .setPositiveButton(
+                                    Localization.translate(
+                                            activity,
+                                            "common.clear"),
+                                    (dialog, which) -> {
+                                        activity.clearSecurityDecisions();
+
+                                        Toast.makeText(
+                                                activity,
+                                                Localization.translate(
+                                                        activity,
+                                                        "privacy.security_decisions_cleared"),
+                                                Toast.LENGTH_SHORT)
+                                                .show();
                                     })
                             .show());
         }
