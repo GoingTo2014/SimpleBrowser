@@ -403,11 +403,11 @@ public class BrowserWebViewClient
                     .isJavaScriptEnabled()) {
 
                 injectPasswordSubmitWatcher(view);
-                injectWebStorageWatcher(view);
 
                 activity.restoreWebStorage(
                         tab,
-                        url);
+                        url,
+                        () -> injectWebStorageWatcher(view));
             }
 
             tab.url = url;
