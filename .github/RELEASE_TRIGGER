@@ -23,3 +23,4 @@ Final compile trigger after storage/password/privacy/menu/translation fixes.
 Final trigger: full-screen tabs, profile storage isolation, password capture, privacy confirmation, advanced controls, security reset, and complete translations.
 Final release trigger after password capture and storage hardening.
 Trigger profile Web Storage persistence release.
+Release build after profile-storage, guest-mode, tab-grid, and password-manager fixes
