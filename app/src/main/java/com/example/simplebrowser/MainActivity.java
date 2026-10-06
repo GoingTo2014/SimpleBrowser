@@ -1350,9 +1350,7 @@ public class MainActivity extends Activity {
             BrowserTab tab,
             String site) {
 
-        if (tab == null ||
-                site == null ||
-                site.trim().isEmpty()) {
+        if (tab == null) {
             return;
         }
 
@@ -1361,14 +1359,19 @@ public class MainActivity extends Activity {
             return;
         }
 
-        passwordsPage.show(
-                tab,
-                site);
+        if (site == null ||
+                site.trim().isEmpty()) {
+            showPasswordManagerPage(tab);
+        } else {
+            passwordsPage.show(
+                    tab,
+                    site);
 
-        tabManager.selectTab(tab);
-        recordInternalVisit(
-                tab,
-                BrowserPage.PASSWORDS);
+            tabManager.selectTab(tab);
+            recordInternalVisit(
+                    tab,
+                    BrowserPage.PASSWORDS);
+        }
     }
 
     public void showPasswordManager(BrowserTab tab) {
