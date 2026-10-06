@@ -20,3 +20,5 @@ Profile lifecycle, WebView reuse, and first-tap switch hardening.
 Scope ProfileActions bridge to Profiles page only.
 
 Deep cross-process profile identity and registry hardening.
+
+Deep profile process identity, registry, and slot lifecycle hardening.
