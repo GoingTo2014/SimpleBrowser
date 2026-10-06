@@ -438,6 +438,7 @@ put("common.cancel", "Cancelar");
         put("privacy.clear_security_title", "Limpar decisões de segurança?");
         put("privacy.clear_security_message", "Isso limpa decisões de certificados SSL, permissões de localização salvas e decisões de certificados de cliente. Não apaga senhas.");
         put("privacy.security_decisions_cleared", "Decisões de segurança limpas");
+        put("privacy.clear_security", "Limpar decisões de segurança");
     }
 
 }
