@@ -101,13 +101,7 @@ public final class BookmarksPage {
                         card,
                         4.5d);
 
-        int button =
-                ColorUtils.ensureContrast(
-                        ColorUtils.darken(
-                                accent,
-                                0.10f),
-                        card,
-                        3.0d);
+        int button = accent;
 
         StringBuilder html =
                 new StringBuilder();
