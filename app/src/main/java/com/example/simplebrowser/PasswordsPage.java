@@ -1,7 +1,6 @@
 package com.example.simplebrowser;
 
 import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
 
 import org.json.JSONObject;
 
@@ -18,17 +17,20 @@ public final class PasswordsPage {
     public PasswordsPage(
             MainActivity activity,
             PasswordStore store) {
-
         this.activity = activity;
         this.store = store;
     }
 
     public void show(
             BrowserTab tab) {
+        show(tab, "");
+    }
 
-        if (tab == null) {
-            return;
-        }
+    public void show(
+            BrowserTab tab,
+            String selectedSite) {
+
+        if (tab == null) return;
 
         tab.settingsPage = false;
         tab.defaultPage = false;
@@ -40,40 +42,46 @@ public final class PasswordsPage {
         tab.errorPage = false;
         tab.passwordsPage = true;
         tab.url = BrowserPage.PASSWORDS;
+        tab.loading = false;
         tab.title =
                 Localization.translate(
                         activity,
                         "Password manager");
 
-        tab.webView.removeJavascriptInterface("PasswordsPage");
-        tab.webView.getSettings().setJavaScriptEnabled(true);
-        tab.webView.addJavascriptInterface(new Bridge(tab), "PasswordsPage");
+        tab.webView.removeJavascriptInterface(
+                "PasswordsPage");
+        tab.webView.getSettings()
+                .setJavaScriptEnabled(true);
+        tab.webView.addJavascriptInterface(
+                new Bridge(tab),
+                "PasswordsPage");
 
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.PASSWORDS,
-                createHtml(),
+                createHtml(selectedSite == null
+                        ? ""
+                        : selectedSite),
                 BrowserPage.PASSWORDS);
 
         activity.setBrowserPageIcon(
                 tab,
                 BrowserIconDrawable.SECURE);
-
         activity.updateTabTitle(tab);
         activity.updateSecurity(tab);
-        activity.settingsLoaded(tab);
+        activity.updateNavigationButtonsForTabs();
     }
 
-    public void remove(
-            BrowserTab tab) {
-
+    public void remove(BrowserTab tab) {
         if (tab != null) {
-            tab.webView.removeJavascriptInterface("PasswordsPage");
+            tab.webView.removeJavascriptInterface(
+                    "PasswordsPage");
             tab.passwordsPage = false;
         }
     }
 
-    private String createHtml() {
+    private String createHtml(
+            String selectedSite) {
 
         int accent =
                 ColorUtils.parseColor(
@@ -85,13 +93,13 @@ public final class PasswordsPage {
                 ColorUtils.mix(
                         accent,
                         android.graphics.Color.WHITE,
-                        0.94f);
+                        0.95f);
 
         int card =
                 ColorUtils.mix(
                         accent,
                         android.graphics.Color.WHITE,
-                        0.90f);
+                        0.91f);
 
         int text =
                 ColorUtils.getReadableTextColor(card);
@@ -99,13 +107,15 @@ public final class PasswordsPage {
         int secondary =
                 ColorUtils.ensureContrast(
                         android.graphics.Color.rgb(
-                                90, 90, 90),
+                                95, 95, 95),
                         card,
                         4.5d);
 
         int button =
                 ColorUtils.ensureContrast(
-                        ColorUtils.darken(accent, 0.20f),
+                        ColorUtils.darken(
+                                accent,
+                                0.10f),
                         card,
                         3.0d);
 
@@ -114,171 +124,99 @@ public final class PasswordsPage {
 
         html.append("<!DOCTYPE html><html><head>");
         html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
-        html.append("<style>*{box-sizing:border-box}html,body{margin:0;padding:0;background:");
+        html.append("<style>");
+        html.append("*{box-sizing:border-box}");
+        html.append("html,body{margin:0;padding:0;background:");
         html.append(ColorUtils.toHex(content));
         html.append(";color:");
         html.append(ColorUtils.toHex(text));
-        html.append(";font-family:sans-serif}body{padding:16px;max-width:900px;margin:auto}");
-        html.append("h1{margin:0;font-size:26px}.warning{color:");
+        html.append(";font-family:sans-serif}");
+        html.append("body{padding:16px;max-width:920px;margin:auto}");
+        html.append("h1{margin:0 0 4px;font-size:26px}");
+        html.append(".desc{color:");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";font-size:13px;margin:5px 0 14px}.card{background:");
-        html.append(ColorUtils.toHex(card));
-        html.append(";border:1px solid ");
-        html.append(ColorUtils.toHex(secondary));
-        html.append(";border-radius:8px;padding:12px;margin-top:10px}");
-        html.append("label{display:block;font-weight:bold;font-size:13px;margin-top:9px}");
-        html.append("input,textarea{width:100%;padding:9px;margin-top:4px;border:1px solid ");
-        html.append(ColorUtils.toHex(secondary));
-        html.append(";background:");
-        html.append(ColorUtils.toHex(card));
-        html.append(";color:");
-        html.append(ColorUtils.toHex(text));
-        html.append("}textarea{min-height:70px;resize:vertical}");
-        html.append(".actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}");
-        html.append("button{border:1px solid ");
+        html.append(";font-size:13px;line-height:1.45;margin-bottom:12px}");
+        html.append(".toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}");
+        html.append("button,.button{border:1px solid ");
         html.append(ColorUtils.toHex(button));
         html.append(";background:");
         html.append(ColorUtils.toHex(button));
         html.append(";color:");
         html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
-        html.append(";border-radius:5px;padding:9px 12px;font-weight:bold}");
-        html.append(".site{font-weight:bold}.user{font-size:13px;color:");
+        html.append(";border-radius:5px;padding:9px 12px;font-weight:bold;text-decoration:none;display:inline-block}");
+        html.append(".site{display:flex;align-items:center;gap:12px;background:");
+        html.append(ColorUtils.toHex(card));
+        html.append(";border:1px solid ");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";margin-top:3px}");
-        html.append("@media(max-width:420px){body{padding:10px}.actions button{flex:1 1 120px}}");
+        html.append(";border-radius:9px;padding:12px;margin-top:9px;cursor:pointer}");
+        html.append(".favicon{width:44px;height:44px;border-radius:9px;object-fit:contain;flex:none}");
+        html.append(".fallback{width:44px;height:44px;border-radius:9px;background:");
+        html.append(ColorUtils.toHex(button));
+        html.append(";color:");
+        html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
+        html.append(";display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;flex:none}");
+        html.append(".site-name{font-weight:bold;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}");
+        html.append(".count{color:");
+        html.append(ColorUtils.toHex(secondary));
+        html.append(";font-size:12px;margin-top:3px}");
+        html.append(".entry{background:");
+        html.append(ColorUtils.toHex(card));
+        html.append(";border:1px solid ");
+        html.append(ColorUtils.toHex(secondary));
+        html.append(";border-radius:9px;padding:12px;margin-top:9px}");
+        html.append(".username{font-weight:bold;font-size:15px}");
+        html.append(".note{color:");
+        html.append(ColorUtils.toHex(secondary));
+        html.append(";font-size:12px;margin-top:4px;white-space:pre-wrap}");
+        html.append(".empty{background:");
+        html.append(ColorUtils.toHex(card));
+        html.append(";border:1px solid ");
+        html.append(ColorUtils.toHex(secondary));
+        html.append(";border-radius:9px;padding:14px;margin-top:10px}");
         html.append("</style></head><body>");
 
         html.append("<h1>");
         html.append(escape(t("passwords.title")));
         html.append("</h1>");
-        html.append("<div class='warning'>");
+
+        html.append("<div class='desc'>");
         html.append(escape(t("passwords.security_desc")));
         html.append("</div>");
 
-        html.append("<div class='card'>");
-        html.append("<strong>");
-        html.append(escape(t("passwords.add")));
-        html.append("</strong>");
-
-        html.append("<input id='entry-id' type='hidden' value='0'>");
-        html.append("<label>");
-        html.append(escape(t("passwords.site")));
-        html.append("</label>");
-        html.append("<input id='site' type='text' autocomplete='off'>");
-
-        html.append("<label>");
-        html.append(escape(t("passwords.username")));
-        html.append("</label>");
-        html.append("<input id='username' type='text' autocomplete='off'>");
-
-        html.append("<label>");
-        html.append(escape(t("passwords.password")));
-        html.append("</label>");
-        html.append("<input id='password' type='password' autocomplete='new-password'>");
-
-        html.append("<label>");
-        html.append(escape(t("passwords.note")));
-        html.append("</label>");
-        html.append("<textarea id='note'></textarea>");
-
-        html.append("<div class='actions'>");
-        html.append("<button onclick='saveEntry()'>");
-        html.append(escape(t("passwords.save")));
+        html.append("<div class='toolbar'>");
+        html.append("<button onclick='importPasswords()'>");
+        html.append(escape(t("passwords.import")));
         html.append("</button>");
-        html.append("<button onclick='clearEditor()'>");
-        html.append(escape(t("passwords.clear")));
+        html.append("<button onclick='exportPasswords()'>");
+        html.append(escape(t("passwords.export")));
         html.append("</button>");
-        html.append("</div></div>");
-
-        List<PasswordStore.Entry> entries;
-
-        try {
-            entries = store.getEntries();
-        } catch (Exception exception) {
-            entries = new java.util.ArrayList<>();
-            html.append("<div class='card'>");
-            html.append(escape(t("passwords.error")));
-            html.append("</div>");
+        if (!selectedSite.trim().isEmpty()) {
+            html.append("<button onclick='showSites()'>");
+            html.append(escape(t("passwords.all_sites")));
+            html.append("</button>");
         }
+        html.append("</div>");
 
-        if (entries != null &&
-                entries.isEmpty()) {
-
-            html.append("<div class='card'>");
-            html.append(escape(t("passwords.empty")));
-            html.append("</div>");
-        }
-
-        if (entries != null) {
-            for (PasswordStore.Entry entry :
-                    entries) {
-
-                html.append("<div class='card'>");
-                html.append("<div class='site'>");
-                html.append(escape(entry.site));
-                html.append("</div>");
-                html.append("<div class='user'>");
-                html.append(escape(entry.username));
-                html.append("</div>");
-                html.append("<div class='actions'>");
-
-                html.append("<button onclick='editEntry(");
-                html.append(entry.id);
-                html.append(")'>");
-                html.append(escape(t("passwords.edit")));
-                html.append("</button>");
-
-                html.append("<button onclick='revealPassword(");
-                html.append(entry.id);
-                html.append(")'>");
-                html.append(escape(t("passwords.reveal")));
-                html.append("</button>");
-
-                html.append("<button onclick='deleteEntry(");
-                html.append(entry.id);
-                html.append(")'>");
-                html.append(escape(t("common.delete")));
-                html.append("</button>");
-
-                html.append("</div></div>");
-            }
+        if (selectedSite.trim().isEmpty()) {
+            html.append(createSiteList(button, secondary));
+        } else {
+            html.append(createSiteDetails(
+                    selectedSite,
+                    button,
+                    secondary));
         }
 
         html.append("<script>");
-        html.append("function saveEntry(){PasswordsPage.saveEntry(");
-        html.append("parseInt(document.getElementById('entry-id').value||'0'),");
-        html.append("document.getElementById('site').value,");
-        html.append("document.getElementById('username').value,");
-        html.append("document.getElementById('password').value,");
-        html.append("document.getElementById('note').value)}");
-
-        html.append("function clearEditor(){");
-        html.append("document.getElementById('entry-id').value='0';");
-        html.append("document.getElementById('site').value='';");
-        html.append("document.getElementById('username').value='';");
-        html.append("document.getElementById('password').value='';");
-        html.append("document.getElementById('note').value='';}");
-
-        html.append("function editEntry(id){");
-        html.append("var value=JSON.parse(PasswordsPage.getEntry(id));");
-        html.append("document.getElementById('entry-id').value=value.id;");
-        html.append("document.getElementById('site').value=value.site;");
-        html.append("document.getElementById('username').value=value.username;");
-        html.append("document.getElementById('password').value=value.password;");
-        html.append("document.getElementById('note').value=value.note;");
-        html.append("window.scrollTo(0,0);}");
-
-        html.append("function revealPassword(id){");
-        html.append("var p=PasswordsPage.getPassword(id);");
-        html.append("alert(");
+        html.append("function importPasswords(){PasswordsPage.importPasswords()}");
+        html.append("function exportPasswords(){PasswordsPage.exportPasswords()}");
+        html.append("function showSite(s){PasswordsPage.openSite(s)}");
+        html.append("function showSites(){PasswordsPage.openSite('')}");
+        html.append("function reveal(id){var p=PasswordsPage.getPassword(id);alert(");
         html.append(js(t("passwords.revealed")));
-        html.append("+p);}");
-
-        html.append("function deleteEntry(id){");
-        html.append("if(confirm(");
+        html.append("+p)}");
+        html.append("function del(id){if(confirm(");
         html.append(js(t("passwords.confirm_delete")));
         html.append(")){PasswordsPage.deleteEntry(id)}}");
-
         html.append("</script></body></html>");
 
         return Localization.translateHtml(
@@ -286,35 +224,219 @@ public final class PasswordsPage {
                 html.toString());
     }
 
-    private String t(String key) {
-        return Localization.translate(
-                activity,
-                key);
+    private String createSiteList(
+            int button,
+            int secondary) {
+
+        StringBuilder html =
+                new StringBuilder();
+
+        try {
+            List<PasswordStore.SiteGroup> groups =
+                    store.getSiteGroups();
+
+            if (groups.isEmpty()) {
+                html.append("<div class='empty'>");
+                html.append(escape(
+                        t("passwords.empty")));
+                html.append("</div>");
+                return html.toString();
+            }
+
+            for (PasswordStore.SiteGroup group :
+                    groups) {
+
+                html.append("<div class='site' onclick='showSite(");
+                html.append(js(group.site));
+                html.append(")'>");
+
+                appendFavicon(
+                        html,
+                        group.faviconBase64,
+                        group.label,
+                        button);
+
+                html.append("<div style='min-width:0'>");
+                html.append("<div class='site-name'>");
+                html.append(escape(group.label));
+                html.append("</div>");
+                html.append("<div class='count'>");
+                html.append(group.count);
+                html.append(" ");
+                html.append(escape(
+                        group.count == 1
+                                ? t("passwords.saved_one")
+                                : t("passwords.saved_many")));
+                html.append("</div></div></div>");
+            }
+
+        } catch (Exception exception) {
+            html.append("<div class='empty'>");
+            html.append(escape(t("passwords.error")));
+            html.append("</div>");
+        }
+
+        return html.toString();
+    }
+
+    private String createSiteDetails(
+            String selectedSite,
+            int button,
+            int secondary) {
+
+        StringBuilder html =
+                new StringBuilder();
+
+        try {
+            List<PasswordStore.Entry> entries =
+                    store.getEntriesForSite(
+                            selectedSite);
+
+            html.append("<div class='site'>");
+            String label =
+                    entries.isEmpty()
+                            ? selectedSite
+                            : siteLabel(entries.get(0).site);
+
+            String favicon =
+                    entries.isEmpty()
+                            ? ""
+                            : entries.get(0).faviconBase64;
+
+            appendFavicon(
+                    html,
+                    favicon,
+                    label,
+                    button);
+
+            html.append("<div class='site-name'>");
+            html.append(escape(label));
+            html.append("</div></div>");
+
+            if (entries.isEmpty()) {
+                html.append("<div class='empty'>");
+                html.append(escape(
+                        t("passwords.no_entries")));
+                html.append("</div>");
+                return html.toString();
+            }
+
+            for (PasswordStore.Entry entry :
+                    entries) {
+
+                html.append("<div class='entry'>");
+                html.append("<div class='username'>");
+                html.append(escape(entry.username));
+                html.append("</div>");
+
+                if (entry.note != null &&
+                        !entry.note.trim().isEmpty()) {
+                    html.append("<div class='note'>");
+                    html.append(escape(entry.note));
+                    html.append("</div>");
+                }
+
+                html.append("<div class='toolbar'>");
+                html.append("<button onclick='reveal(");
+                html.append(entry.id);
+                html.append(")'>");
+                html.append(escape(
+                        t("passwords.reveal")));
+                html.append("</button>");
+
+                html.append("<button onclick='del(");
+                html.append(entry.id);
+                html.append(")'>");
+                html.append(escape(
+                        t("common.delete")));
+                html.append("</button>");
+                html.append("</div></div>");
+            }
+
+        } catch (Exception exception) {
+            html.append("<div class='empty'>");
+            html.append(escape(t("passwords.error")));
+            html.append("</div>");
+        }
+
+        return html.toString();
+    }
+
+    private void appendFavicon(
+            StringBuilder html,
+            String encoded,
+            String label,
+            int button) {
+
+        if (encoded != null &&
+                !encoded.isEmpty()) {
+
+            html.append("<img class='favicon' src='data:image/png;base64,");
+            html.append(attribute(encoded));
+            html.append("'>");
+
+        } else {
+
+            html.append("<div class='fallback'>");
+            html.append(escape(initial(label)));
+            html.append("</div>");
+        }
+    }
+
+    private String siteLabel(String site) {
+        try {
+            android.net.Uri uri =
+                    android.net.Uri.parse(site);
+
+            if (uri.getHost() != null &&
+                    !uri.getHost().isEmpty()) {
+                return uri.getHost();
+            }
+        } catch (Throwable ignored) {
+        }
+
+        return site;
+    }
+
+    private String initial(String value) {
+        if (value == null ||
+                value.trim().isEmpty()) {
+            return "?";
+        }
+
+        return String.valueOf(
+                Character.toUpperCase(
+                        value.trim().charAt(0)));
     }
 
     private String escape(String value) {
-        if (value == null) {
-            return "";
-        }
-
+        if (value == null) return "";
         return value
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+                .replace(""", "&quot;");
+    }
+
+    private String attribute(String value) {
+        return escape(value)
+                .replace("'", "&#39;");
     }
 
     private String js(String value) {
-        if (value == null) {
-            return "''";
-        }
-
+        if (value == null) return "''";
         return "'" +
                 value.replace("\\", "\\\\")
                         .replace("'", "\\'")
                         .replace("\r", "\\r")
                         .replace("\n", "\\n") +
                 "'";
+    }
+
+    private String t(String key) {
+        return Localization.translate(
+                activity,
+                key);
     }
 
     public final class Bridge {
@@ -326,32 +448,13 @@ public final class PasswordsPage {
         }
 
         @JavascriptInterface
-        public String getEntry(long id) {
-
-            try {
-                PasswordStore.Entry entry =
-                        store.get(id);
-
-                if (entry == null) {
-                    return "{}";
-                }
-
-                return new JSONObject()
-                        .put("id", entry.id)
-                        .put("site", entry.site)
-                        .put("username", entry.username)
-                        .put("password", entry.password)
-                        .put("note", entry.note)
-                        .toString();
-
-            } catch (Exception exception) {
-                return "{}";
-            }
+        public void openSite(String site) {
+            activity.runOnUiThread(
+                    () -> show(tab, site));
         }
 
         @JavascriptInterface
         public String getPassword(long id) {
-
             try {
                 PasswordStore.Entry entry =
                         store.get(id);
@@ -359,45 +462,26 @@ public final class PasswordsPage {
                 return entry == null
                         ? ""
                         : entry.password;
-
             } catch (Exception exception) {
                 return "";
             }
         }
 
         @JavascriptInterface
-        public void saveEntry(
-                long id,
-                String site,
-                String username,
-                String password,
-                String note) {
-
-            try {
-                store.save(
-                        id,
-                        site,
-                        username,
-                        password,
-                        note);
-
-                activity.runOnUiThread(
-                        () -> show(tab));
-
-            } catch (Exception exception) {
-                activity.runOnUiThread(
-                        () -> activity.showPasswordManagerError(
-                                t("passwords.save_failed")));
-            }
+        public void deleteEntry(long id) {
+            store.delete(id);
+            activity.runOnUiThread(
+                    () -> show(tab));
         }
 
         @JavascriptInterface
-        public void deleteEntry(long id) {
+        public void importPasswords() {
+            activity.startPasswordImport(tab);
+        }
 
-            store.delete(id);
-
-            activity.runOnUiThread(
-                    () -> show(tab));
+        @JavascriptInterface
+        public void exportPasswords() {
+            activity.startPasswordExport(tab);
         }
     }
 }
