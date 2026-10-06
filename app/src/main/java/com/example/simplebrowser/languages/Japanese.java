@@ -439,6 +439,9 @@ put("common.cancel", "キャンセル");
         put("privacy.clear_security_message", "SSL 証明書の判断、保存された位置情報権限、クライアント証明書の判断を消去します。パスワードは削除されません。");
         put("privacy.security_decisions_cleared", "セキュリティ設定を消去しました");
         put("privacy.clear_security", "セキュリティ設定を消去");
+        put("tab.guest_tabs", "ゲストタブ");
+        put("guest.enter", "ゲストモードに入る");
+        put("guest.exit", "ゲストモードを終了");
     }
 
 }
