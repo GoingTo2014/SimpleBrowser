@@ -439,6 +439,9 @@ put("common.cancel", "Annuler");
         put("privacy.clear_security_message", "Efface les décisions relatives aux certificats SSL, les autorisations de localisation enregistrées et les décisions relatives aux certificats client. Les mots de passe ne sont pas supprimés.");
         put("privacy.security_decisions_cleared", "Décisions de sécurité effacées");
         put("privacy.clear_security", "Effacer les décisions de sécurité");
+        put("tab.guest_tabs", "Onglets invité");
+        put("guest.enter", "Entrer en mode invité");
+        put("guest.exit", "Quitter le mode invité");
     }
 
 }
