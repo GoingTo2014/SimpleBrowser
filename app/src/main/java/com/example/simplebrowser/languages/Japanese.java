@@ -429,6 +429,7 @@ put("common.cancel", "キャンセル");
         put("common.allow", "許可");
         put("common.deny", "拒否");
         put("strings.test.example", "文字列の例");
+        put("privacy.clear_storage", "サイトのストレージを消去");
     }
 
 }
