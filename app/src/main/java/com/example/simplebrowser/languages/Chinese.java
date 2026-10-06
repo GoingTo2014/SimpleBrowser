@@ -438,6 +438,7 @@ put("common.cancel", "取消");
         put("privacy.clear_security_title", "清除安全决定？");
         put("privacy.clear_security_message", "这会清除 SSL 证书决定、已保存的位置权限和客户端证书决定，但不会删除密码。");
         put("privacy.security_decisions_cleared", "安全决定已清除");
+        put("privacy.clear_security", "清除安全决定");
     }
 
 }
