@@ -469,7 +469,7 @@ public class BrowserSettings {
                         value == null
                                 ? ""
                                 : value)
-                .apply();
+                .commit();
     }
 
     public String getAccentColor() {
