@@ -110,6 +110,11 @@
 
         </activity>
 
+        <service
+            android:name=".ProfileSwitchService"
+            android:process=":profileswitch"
+            android:exported="false" />
+
         <provider
             android:name=".UpdateApkProvider"
             android:authorities="com.example.simplebrowser.update"
