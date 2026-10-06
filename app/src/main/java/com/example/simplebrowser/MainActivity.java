@@ -219,6 +219,8 @@ public class MainActivity extends Activity {
                         finishStartup();
                     }
                 });
+    }
+
     private void finishStartup() {
 
         if (isFinishing()) {
@@ -1789,7 +1791,12 @@ public class MainActivity extends Activity {
                                                 .trim();
 
                                 if (cleanName.isEmpty()) {
-                                    cleanName = "Profile";
+                                    cleanName =
+                                            profileId != null &&
+                                            ProfileManager.MAIN_ID
+                                                    .equals(profileId)
+                                                    ? "Profile 1"
+                                                    : "Profile";
                                 }
 
                                 boolean ok;
@@ -2550,6 +2557,33 @@ public class MainActivity extends Activity {
         }
 
         return urls;
+    }
+
+    public void copyLogsToClipboard(
+            String filter) {
+
+        String text =
+                BrowserLogger.getText(filter);
+
+        ClipboardManager clipboard =
+                (ClipboardManager)
+                        getSystemService(
+                                CLIPBOARD_SERVICE);
+
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(
+                    ClipData.newPlainText(
+                            "Simple Browser logs",
+                            text));
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "settings.logs_copied"),
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
     }
 
     public void clearBrowserHistory() {
