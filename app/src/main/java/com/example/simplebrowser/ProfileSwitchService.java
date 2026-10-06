@@ -137,6 +137,14 @@ public final class ProfileSwitchService extends Service {
         }
     }
 
+    public static void cancelPendingSwitch(
+            Context context) {
+
+        if (context != null) {
+            clearPending(context);
+        }
+    }
+
     @Override
     public int onStartCommand(
             Intent intent,
