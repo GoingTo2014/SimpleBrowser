@@ -18,6 +18,7 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -1402,6 +1403,21 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.BOOKMARKS.equalsIgnoreCase(value)) {
+            showBookmarks(tab, "");
+            return;
+        }
+
+        if (BrowserPage.PASSWORDS.equalsIgnoreCase(value)) {
+            showPasswordManager(tab);
+            return;
+        }
+
+        if (BrowserPage.PROFILES.equalsIgnoreCase(value)) {
+            showProfiles(tab);
+            return;
+        }
+
         if (isLocalPath(value)) {
 
             loadTabUrl(
@@ -1642,6 +1658,21 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (BrowserPage.BOOKMARKS.equalsIgnoreCase(url)) {
+            showBookmarks(tab, "");
+            return;
+        }
+
+        if (BrowserPage.PASSWORDS.equalsIgnoreCase(url)) {
+            showPasswordManager(tab);
+            return;
+        }
+
+        if (BrowserPage.PROFILES.equalsIgnoreCase(url)) {
+            showProfiles(tab);
+            return;
+        }
+
         removeInternalPageState(tab);
 
         tab.loading = true;
@@ -1665,12 +1696,18 @@ public class MainActivity extends Activity {
         historyPage.remove(tab);
         downloadsPage.remove(tab);
         cookiesPage.remove(tab);
+        bookmarksPage.remove(tab);
+        passwordsPage.remove(tab);
+        profilesPage.remove(tab);
 
         tab.settingsPage = false;
         tab.defaultPage = false;
         tab.historyPage = false;
         tab.downloadsPage = false;
         tab.cookiesPage = false;
+        tab.bookmarksPage = false;
+        tab.passwordsPage = false;
+        tab.profilesPage = false;
         tab.errorPage = false;
         tab.settingsSection = "general";
     }
@@ -1839,6 +1876,25 @@ public class MainActivity extends Activity {
 
         if (tab.cookiesPage) {
             cookiesPage.show(tab);
+            return;
+        }
+
+        if (tab.bookmarksPage) {
+            bookmarksPage.show(tab, "");
+            return;
+        }
+
+        if (tab.passwordsPage) {
+            if (passwordManagerAuthenticated) {
+                passwordsPage.show(tab);
+            } else {
+                showPasswordManager(tab);
+            }
+            return;
+        }
+
+        if (tab.profilesPage) {
+            profilesPage.show(tab);
             return;
         }
 
@@ -2469,12 +2525,21 @@ public class MainActivity extends Activity {
             BrowserTab tab,
             boolean enabled) {
 
-        if (tab != null &&
-                tab.settingsPage) {
+        Runnable updateUi =
+                () -> {
+                    if (tab != null &&
+                            tab.settingsPage) {
+                        settingsPage.updateAutomaticUpdatesUi(
+                                tab,
+                                enabled);
+                    }
+                };
 
-            settingsPage.updateAutomaticUpdatesUi(
-                    tab,
-                    enabled);
+        if (Looper.myLooper() ==
+                Looper.getMainLooper()) {
+            updateUi.run();
+        } else {
+            runOnUiThread(updateUi);
         }
     }
 
@@ -2532,6 +2597,30 @@ public class MainActivity extends Activity {
 
                 setUrlText(
                         BrowserPage.DEMO);
+
+            } else if (tab.bookmarksPage) {
+
+                setUrlText(BrowserPage.BOOKMARKS);
+
+            } else if (tab.passwordsPage) {
+
+                setUrlText(BrowserPage.PASSWORDS);
+
+            } else if (tab.profilesPage) {
+
+                setUrlText(BrowserPage.PROFILES);
+
+            } else if (tab.bookmarksPage) {
+
+                setUrlText(BrowserPage.BOOKMARKS);
+
+            } else if (tab.passwordsPage) {
+
+                setUrlText(BrowserPage.PASSWORDS);
+
+            } else if (tab.profilesPage) {
+
+                setUrlText(BrowserPage.PROFILES);
 
             } else if (tab.errorPage) {
 
@@ -3382,6 +3471,92 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data) {
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data);
+
+        if (requestCode ==
+                PASSWORD_AUTH_REQUEST) {
+
+            awaitingPasswordAuthentication = false;
+
+            if (resultCode ==
+                    RESULT_OK) {
+
+                passwordManagerAuthenticated = true;
+
+                if (pendingPasswordTab != null) {
+                    showPasswordManagerPage(
+                            pendingPasswordTab);
+                }
+            }
+
+            pendingPasswordTab = null;
+            return;
+        }
+
+        if (requestCode ==
+                PROFILE_IMAGE_REQUEST) {
+
+            BrowserTab tab =
+                    pendingProfileEditorTab;
+
+            String id =
+                    pendingProfileEditorId;
+
+            if (resultCode ==
+                    RESULT_OK &&
+                    data != null &&
+                    data.getData() != null) {
+
+                InputStream input = null;
+
+                try {
+                    input =
+                            getContentResolver()
+                                    .openInputStream(
+                                            data.getData());
+
+                    Bitmap bitmap =
+                            BitmapFactory
+                                    .decodeStream(input);
+
+                    pendingProfileEditorPfp =
+                            ProfileManager
+                                    .encodeBitmap(bitmap);
+
+                    if (bitmap != null) {
+                        bitmap.recycle();
+                    }
+
+                } catch (Throwable ignored) {
+
+                } finally {
+
+                    if (input != null) {
+                        try {
+                            input.close();
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+
+                if (tab != null) {
+                    showProfileEditorDialog();
+                }
+            }
+
+            return;
+        }
+    }
+
+    @Override
     protected void onResume() {
 
         super.onResume();
@@ -3398,7 +3573,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
 
-        saveTabs();
+        if (!profileSwitching) {
+            saveTabs();
+        }
 
         if (cookieStore != null) {
             cookieStore.stopSync();
@@ -3410,7 +3587,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
 
-        saveTabs();
+        if (!profileSwitching) {
+            saveTabs();
+        }
 
         if (browserHistory != null) {
             browserHistory.close();
@@ -3418,6 +3597,22 @@ public class MainActivity extends Activity {
 
         if (downloadHistory != null) {
             downloadHistory.close();
+        }
+
+        if (bookmarkStore != null) {
+            bookmarkStore.close();
+        }
+
+        if (passwordStore != null) {
+            passwordStore.close();
+        }
+
+        if (!profileSwitching &&
+                ProfileManager.isGuest(
+                        ProfileManager.getActiveProfileId(this))) {
+            ProfileManager.deleteProfileData(
+                    this,
+                    ProfileManager.getActiveProfileId(this));
         }
 
         super.onDestroy();
