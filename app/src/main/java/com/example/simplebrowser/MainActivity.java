@@ -81,6 +81,10 @@ public class MainActivity extends Activity {
     private String pendingPasswordExport;
     private static final int PASSWORD_EXPORT_REQUEST = 3101;
     private static final int PASSWORD_IMPORT_REQUEST = 3102;
+    private static final int WEB_FILE_CHOOSER_REQUEST = 4201;
+
+    private android.webkit.ValueCallback<Uri[]> pendingFileChooser;
+    private android.webkit.ValueCallback<Uri> pendingLegacyFileChooser;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
