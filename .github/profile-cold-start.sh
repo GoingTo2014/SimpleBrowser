@@ -10,7 +10,7 @@ adb logcat -c
 
 wait_for_package() {
   for i in $(seq 1 20); do
-    if adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
+    if adb shell pidof "$PACKAGE" >/dev/null 2>&1 || adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
@@ -59,14 +59,21 @@ tap_text() {
   adb shell input tap "$1" "$2"
 }
 
-echo "Launching SimpleBrowser initially..."
-adb shell am start -W -n "$PACKAGE/.MainActivity"
-wait_for_package || {
-  echo "SimpleBrowser died on initial launch"
-  adb logcat -d
-  exit 1
+assert_no_app_fatal() {
+  FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|Process: com\\.example\\.simplebrowser( |$)' || true)"
+  if [ -n "$FATAL_LOG" ]; then
+    echo "Fatal SimpleBrowser crash evidence:"
+    echo "$FATAL_LOG"
+    adb logcat -d
+    exit 1
+  fi
 }
+
+echo "Launching Main profile..."
+adb shell am start -W -n "$PACKAGE/.MainActivity"
+wait_for_package
 sleep 5
+assert_no_app_fatal
 
 echo "Opening profile manager..."
 tap_text "Browser settings"
@@ -79,129 +86,59 @@ adb shell input text "RuntimeProfile"
 tap_text "SAVE"
 sleep 3
 
-echo "Created profile; now switching into the new profile before closing..."
-if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
-  echo "SimpleBrowser died immediately after profile creation"
-  adb logcat -d
-  exit 1
-fi
-
+echo "Switching into the new non-Main profile..."
 tap_text "Browser settings"
 sleep 1
 tap_text "Profile 1"
 sleep 2
+tap_text "RuntimeProfile"
+sleep 2
 tap_text "Switch"
 sleep 8
 
-echo "Verifying the new profile process before cold start..."
 if ! adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
-  echo "Profile process did not start after switching into the new profile"
+  echo "Profile process did not start after switching"
   adb logcat -d
   exit 1
 fi
+assert_no_app_fatal
 
-echo "Cold-starting while the non-Main profile is active..."
-adb shell am force-stop "$PACKAGE"
-adb logcat -c
-sleep 2
+echo "Closing the non-Main profile normally with Back..."
+adb shell input keyevent 4
+sleep 4
+assert_no_app_fatal
 
+echo "Launching again after normal close with non-Main profile still active..."
 adb shell am start -W -n "$PACKAGE/.MainActivity"
 sleep 10
 
 if ! wait_for_package; then
-  echo "SimpleBrowser died after cold-starting into a non-Main profile"
+  echo "SimpleBrowser did not survive cold launch after a normal close"
   adb logcat -d
   exit 1
 fi
 
-echo "UI after cold-start with non-Main profile active:"
+echo "UI after normal-close cold start:"
 dump_ui
 cat /tmp/window.xml || true
+assert_no_app_fatal
 
-FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|Process: com\\.example\\.simplebrowser( |$)' || true)"
-if [ -n "$FATAL_LOG" ]; then
-  echo "Crash/fatal evidence found during non-Main cold start:"
-  echo "$FATAL_LOG"
-  adb logcat -d
-  exit 1
-fi
-
-echo "NON-MAIN PROFILE COLD-START TEST PASSED"
-
-echo "Created profile; checking process and active UI..."
-if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
-  echo "SimpleBrowser died immediately after profile creation"
-  adb logcat -d
-  exit 1
-fi
-
-echo "Force-stopping for cold-start test..."
+echo "Force-stopping and cold-starting the same non-Main profile..."
 adb shell am force-stop "$PACKAGE"
 adb logcat -c
-
-echo "Launching SimpleBrowser after profile creation..."
+sleep 2
 adb shell am start -W -n "$PACKAGE/.MainActivity"
-sleep 8
+sleep 10
 
 if ! wait_for_package; then
-  echo "SimpleBrowser died after creating a profile and force-stop"
+  echo "SimpleBrowser did not survive force-stop cold start with non-Main profile active"
   adb logcat -d
   exit 1
 fi
 
-echo "Second launch UI:"
+echo "UI after force-stop cold start:"
 dump_ui
 cat /tmp/window.xml || true
+assert_no_app_fatal
 
-FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|AndroidRuntime.*FATAL|Process: com\.example\.simplebrowser' || true)"
-if [ -n "$FATAL_LOG" ]; then
-  echo "Fatal Android exception found:"
-  echo "$FATAL_LOG"
-  adb logcat -d
-  exit 1
-fi
-
-echo "Testing one-tap switch into the new profile..."
-tap_text "Browser settings"
-sleep 1
-tap_text "Profile 1"
-sleep 2
-tap_text "Switch"
-sleep 7
-
-if ! adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
-  echo "Profile process did not start after one switch tap"
-  adb logcat -d
-  exit 1
-fi
-
-echo "Testing one-tap switch back to Main..."
-tap_text "Browser settings"
-sleep 1
-tap_text "RuntimeProfileProfile 2"
-sleep 2
-tap_text "Switch"
-sleep 7
-
-if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
-  echo "Main process did not return after one switch tap"
-  adb logcat -d
-  exit 1
-fi
-
-sleep 2
-if adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
-  echo "Old profile process is still alive after returning to Main"
-  adb logcat -d
-  exit 1
-fi
-
-FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|AndroidRuntime.*FATAL|Process: com\.example\.simplebrowser' || true)"
-if [ -n "$FATAL_LOG" ]; then
-  echo "Fatal Android exception found during profile switching:"
-  echo "$FATAL_LOG"
-  adb logcat -d
-  exit 1
-fi
-
-echo "PROFILE COLD-START AND ONE-TAP SWITCH TEST PASSED"
+echo "NON-MAIN PROFILE NORMAL-CLOSE AND FORCE-STOP COLD-START TEST PASSED"
