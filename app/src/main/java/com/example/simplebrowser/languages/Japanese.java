@@ -358,5 +358,4 @@ put("common.cancel", "キャンセル");
         put("profiles.choose_picture", "プロフィール画像を選択");
         put("profiles.cannot_save", "プロフィールを保存できませんでした。");
     }
-    }
 }
