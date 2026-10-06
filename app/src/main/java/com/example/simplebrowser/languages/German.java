@@ -164,5 +164,102 @@ public final class German extends LanguagePack {
         put("permissions.website_request", "Eine Website fordert Zugriff auf:");
         put("permissions.camera", "Kamera");
         put("permissions.microphone", "Mikrofon");
+
+        put("settings.update_auto_desc", "Beim Start und beim Öffnen von Einstellungen > Allgemein automatisch nach neuen Simple-Browser-Versionen suchen.");
+        put("settings.update_verification_failed", "Das Update konnte nicht überprüft werden.");
+        put("settings.update_opening_installer", "Update heruntergeladen. Installationsprogramm wird geöffnet...");
+        put("settings.update_allow_install", "Erlaube Simple Browser, Updates zu installieren, und kehre dann zu Simple Browser zurück.");
+        put("settings.update_installer_error", "Das Android-Installationsprogramm konnte nicht geöffnet werden.");
+        put("settings.update_github_http_error", "GitHub hat HTTP %s zurückgegeben.");
+        put("settings.update_download_http_error", "Der Download des Updates ist mit HTTP %s fehlgeschlagen.");
+        put("settings.update_hash_mismatch", "Update-Prüfung fehlgeschlagen: Der APK-Hash stimmt nicht mit dem GitHub-Release überein.");
+        put("settings.update_package_mismatch", "Update-Prüfung fehlgeschlagen: Der Paketname stimmt nicht überein.");
+        put("settings.update_certificate_missing", "Update-Prüfung fehlgeschlagen: Das Signaturzertifikat fehlt.");
+        put("settings.update_certificate_mismatch", "Update-Prüfung fehlgeschlagen: Das Signaturzertifikat stimmt nicht mit der installierten App überein.");
+        put("settings.update_prepare_failed", "Das heruntergeladene Update konnte nicht vorbereitet werden.");
+        put("settings.update_connection_error", "Verbindung zu GitHub konnte nicht hergestellt werden.");
+        put("settings.restore_tabs_desc", "Normale Tabs beim nächsten Start von Simple Browser wieder öffnen.");
+        put("settings.complete_url", "Eine vollständige URL verwenden, z. B. https://example.com/");
+        put("settings.search_insert", "%s an der Stelle des Suchtexts verwenden.");
+        put("settings.logs_desc", "Navigation, Ladefehler, JavaScript-Konsolenausgaben und Browserdiagnose. Protokolle bleiben im Speicher und behalten die neuesten Einträge.");
+        put("settings.user_agent_desc", "Festlegen, wie Websites diesen Browser erkennen.");
+        put("settings.custom_user_agent_desc", "Einen vollständigen User-Agent eingeben.");
+        put("settings.webview_debug_desc", "Chrome-Entwicklertools dürfen Simple-Browser-WebViews untersuchen.");
+        put("settings.webview_cache_desc", "Zwischengespeicherte Website-Ressourcen aus allen geöffneten Tabs löschen.");
+        put("settings.current_webview_desc", "URL und User-Agent des aktiven Tabs anzeigen.");
+        put("settings.browser_color_desc", "Ändert Toolbar, Tabs, Menü und die integrierte Einstellungsoberfläche.");
+        put("settings.language_desc", "Browser-Sprache auswählen.");
+        put("settings.log_filter", "Protokolle filtern");
+        put("settings.log_entries", "Einträge");
+        put("settings.blank_page", "Leere Seite");
+        put("settings.default_page", "Standardseite");
+        put("settings.custom", "Benutzerdefiniert");
+
+        put("history.incognito_desc", "Browserverlauf wird im Inkognito-Modus nicht gespeichert.");
+        put("history.empty_private", "Beim privaten Surfen wird hier nichts angezeigt.");
+        put("history.empty", "Keine Verlaufseinträge gefunden.");
+        put("history.cleared", "Verlauf gelöscht");
+
+        put("downloads.incognito_desc", "Downloadverlauf wird im Inkognito-Modus nicht gespeichert.");
+        put("downloads.status_unavailable", "Status nicht verfügbar");
+        put("downloads.record_unavailable", "Download-Eintrag nicht verfügbar");
+        put("downloads.completed", "Abgeschlossen");
+        put("downloads.failed", "Fehlgeschlagen");
+        put("downloads.downloading", "Wird heruntergeladen");
+        put("downloads.history_cleared", "Downloadverlauf gelöscht");
+        put("downloads.not_ready", "Download ist noch nicht bereit");
+        put("downloads.no_app", "Keine App kann diesen Download öffnen");
+        put("downloads.unknown_type", "Unbekannter Typ");
+        put("downloads.search", "Downloads durchsuchen");
+        put("downloads.download", "Download");
+
+        put("cookies.incognito_data", "Cookie-Daten sind im Inkognito-Modus vorübergehend.");
+        put("cookies.incognito_empty", "Cookies können im Inkognito-Modus nicht verwaltet werden.");
+        put("cookies.discovery", "Websites mit Cookies werden anhand besuchter Seiten und geöffneter Tabs ermittelt.");
+        put("cookies.empty", "Keine bekannten Cookies.");
+        put("cookies.edit_title", "Cookie bearbeiten: ");
+        put("cookies.change_failed", "Cookie konnte nicht geändert werden");
+        put("cookies.delete_failed", "Cookie konnte nicht gelöscht werden");
+        put("cookies.some_delete_failed", "Einige Website-Cookies konnten nicht gelöscht werden");
+
+        put("common.copied", "Kopiert");
+        put("common.no_share_app", "Keine App zum Teilen verfügbar");
+        put("common.download_started", "Download gestartet: ");
+        put("common.download_failed", "Download konnte nicht gestartet werden");
+        put("common.stop_loading", "Laden stoppen");
+        put("common.unknown", "Unbekannt");
+        put("common.queued", "Warteschlange");
+        put("common.paused", "Pausiert");
+        put("common.waiting", "Warten");
+        put("common.tab_overview", "Tab-Übersicht");
+
+        put("settings.browser_settings", "Browsereinstellungen");
+        put("settings.webview_cache_cleared", "WebView-Cache gelöscht");
+        put("settings.browsing_data_cleared", "Browserdaten gelöscht");
+
+        put("bookmarks.invalid", "Nur Webseiten können als Lesezeichen gespeichert werden.");
+
+        put("passwords.add", "Passwort hinzufügen");
+        put("passwords.save", "Speichern");
+        put("passwords.clear", "Leeren");
+        put("passwords.edit", "Bearbeiten");
+        put("passwords.revealed", "Passwort: ");
+        put("passwords.error", "Die verschlüsselte Passwortdatenbank konnte nicht gelesen werden.");
+        put("passwords.save_failed", "Passwort konnte nicht gespeichert werden.");
+        put("passwords.api_limit", "Android 4.4 kann keinen Systemdialog zur Anmeldedatenbestätigung anzeigen.");
+        put("passwords.export_title", "Passwörter exportieren");
+        put("passwords.export_password", "Exportpasswort (6+ Zeichen)");
+        put("passwords.import_title", "Passwörter importieren");
+        put("passwords.exported", "Verschlüsselte Sicherung exportiert.");
+        put("passwords.imported", "Passwörter importiert:");
+        put("passwords.export_failed", "Die verschlüsselte Sicherung konnte nicht exportiert werden.");
+        put("passwords.import_failed", "Die verschlüsselte Sicherung konnte nicht importiert werden.");
+
+        put("profiles.guest_confirm", "Neues Gastprofil starten? Alle Daten sind vorübergehend und werden beim Verlassen gelöscht.");
+        put("profiles.delete_confirm", "Dieses Profil und alle seine Browserdaten löschen?");
+        put("profiles.name", "Profilname");
+        put("profiles.choose_picture", "Profilbild auswählen");
+        put("profiles.cannot_save", "Profil konnte nicht gespeichert werden.");
+
     }
 }
