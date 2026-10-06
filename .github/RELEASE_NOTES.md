@@ -1,0 +1,10 @@
+- Added persistent browser profiles with up to 8 total profiles, editable names, optional profile pictures, separate settings/history/bookmarks/cookies/tabs/download history, and password storage.
+- Added a Guest Profile that uses a temporary profile ID and wipes its browser data when the guest session is left or the activity is closed.
+- Added profile-scoped bookmarks with search, open, add, and delete actions.
+- Added an encrypted password manager using Android Keystore-wrapped AES/HMAC keys.
+- Added device-credential protection for the password manager on Android versions that support the system credential confirmation API.
+- Changed automatic updates so an available update asks for confirmation before downloading/installing.
+- Fixed the automatic-updates toggle so its label updates immediately.
+- Updated settings and browser-menu buttons to use a darker, contrasting background instead of disappearing when the selected accent is white.
+- Added localized strings for the new profile, bookmark, password-manager, and update UI in all bundled languages.
+- Kept Android 4.4 / API 19 compatibility and avoided third-party runtime dependencies.
