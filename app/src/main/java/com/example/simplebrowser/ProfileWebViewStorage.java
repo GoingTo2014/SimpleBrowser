@@ -26,6 +26,14 @@ public final class ProfileWebViewStorage {
 
     // Storage boundary implementation kept independent of the UI/profile stores.
 
+    /*
+     * WebView.setDataDirectorySuffix() is process-scoped. Android may keep a
+     * profile process alive after its Activity is destroyed and later create
+     * the Activity again. Remember the configuration so recreation does not
+     * attempt to configure WebView a second time.
+     */
+    private static String configuredProfileId;
+
     private static final String BACKUP_ROOT =
             "webview_profiles";
 
@@ -45,7 +53,7 @@ public final class ProfileWebViewStorage {
      * Must be called before any WebView or other android.webkit API is used
      * in the main process.
      */
-    public static void configureForProcess(
+    public static synchronized void configureForProcess(
             Context context) {
 
         if (context == null ||
@@ -61,7 +69,32 @@ public final class ProfileWebViewStorage {
             return;
         }
 
+        if (configuredProfileId != null) {
+            /*
+             * The process may recreate its Activity without being killed.
+             * Calling setDataDirectorySuffix() again would throw.
+             */
+            if (configuredProfileId.equals(profileId)) {
+                return;
+            }
+
+            /*
+             * A persistent profile process is permanently owned by one
+             * profile. A mismatch indicates a broken slot assignment; never
+             * silently fall through to another profile's WebView storage.
+             */
+            if (!ProfileManager.MAIN_ID.equals(profileId)) {
+                throw new IllegalStateException(
+                        "WebView process already belongs to another profile");
+            }
+
+            return;
+        }
+
         if (ProfileManager.MAIN_ID.equals(profileId)) {
+            configuredProfileId =
+                    ProfileManager.MAIN_ID;
+
             /*
              * Main intentionally keeps the legacy default directory so
              * existing installations retain their original WebView data.
@@ -92,16 +125,10 @@ public final class ProfileWebViewStorage {
                 context,
                 profileId);
 
-        try {
-            WebView.setDataDirectorySuffix(
-                    getSuffix(profileId));
-        } catch (Throwable ignored) {
-            /*
-             * Android 9+ should support this API. A defensive catch keeps
-             * unusual vendor WebView implementations from crashing before
-             * the browser UI can load.
-             */
-        }
+        WebView.setDataDirectorySuffix(
+                getSuffix(profileId));
+
+        configuredProfileId = profileId;
     }
 
     private static void migrateLegacySharedDirectory(
