@@ -2808,6 +2808,34 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void clearSecurityDecisions() {
+
+        if (tabManager != null) {
+            for (BrowserTab tab :
+                    tabManager.getTabs()) {
+                if (tab != null &&
+                        tab.webView != null) {
+                    tab.webView.clearSslPreferences();
+                }
+            }
+        }
+
+        try {
+            android.webkit.GeolocationPermissions
+                    .getInstance()
+                    .clearAll();
+        } catch (Throwable ignored) {
+        }
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            try {
+                WebView.clearClientCertPreferences(
+                        null);
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
     public void clearSharedWebViewDatabaseData() {
 
         try {
