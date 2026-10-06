@@ -441,7 +441,13 @@ put("common.cancel", "रद्द करें");
         put("privacy.clear_security", "सुरक्षा निर्णय साफ़ करें");
         put("tab.guest_tabs", "अतिथि टैब");
         put("guest.enter", "अतिथि मोड में प्रवेश करें");
-        put("guest.exit", "अतिथि मोड से बाहर निकलें");
+        put("guest.exit", "अतिथि मोड से बाहर निकलें");        put("app.name", "Simple Browser");
+        put("settings.update_title", "अपडेट उपलब्ध है");
+        put("settings.update_later", "बाद में");
+        put("settings.update_now", "अभी अपडेट करें");
+        put("common.close", "बंद करें");
+        put("common.close_tab", "टैब बंद करें");
+
     }
 
 }
