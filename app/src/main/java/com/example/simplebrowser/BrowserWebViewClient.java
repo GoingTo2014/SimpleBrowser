@@ -462,21 +462,18 @@ public class BrowserWebViewClient
         String script =
                 "(function(){" +
                 "try{" +
-                "var forms=document.getElementsByTagName('form');" +
-                "for(var i=0;i<forms.length;i++){" +
-                "var f=forms[i];" +
-                "if(f.__simpleBrowserPasswordWatcher)return;" +
-                "f.__simpleBrowserPasswordWatcher=true;" +
-                "f.addEventListener('submit',function(){" +
+                "if(window.__simpleBrowserPasswordWatcher)return;" +
+                "window.__simpleBrowserPasswordWatcher=true;" +
+                "document.addEventListener('submit',function(event){" +
                 "try{" +
-                "var p=this.querySelector('input[type=password]');" +
+                "var form=event.target;" +
+                "var p=form&&form.querySelector?form.querySelector('input[type=password]'):null;" +
                 "if(!p||!p.value)return;" +
-                "var u=this.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]');" +
+                "var u=form&&form.querySelector?form.querySelector('input[name=username],input[name=user],input[type=email],input[autocomplete=username]'):null;" +
                 "var user=u?u.value:'';" +
                 "PasswordCapture.submitted(location.href,user,p.value);" +
                 "}catch(e){}" +
-                "},false);" +
-                "}" +
+                "},true);" +
                 "}catch(e){}" +
                 "})();";
 
