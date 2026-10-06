@@ -5265,6 +5265,15 @@ public class MainActivity extends Activity {
                 data);
 
         if (requestCode ==
+                WEB_FILE_CHOOSER_REQUEST) {
+
+            handleWebFileChooserResult(
+                    resultCode,
+                    data);
+            return;
+        }
+
+        if (requestCode ==
                 PASSWORD_AUTH_REQUEST) {
 
             awaitingPasswordAuthentication = false;
