@@ -2,13 +2,9 @@ package com.example.simplebrowser;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -174,10 +170,7 @@ public final class ProfileManager {
                 result.add(
                         new Profile(
                                 id,
-                                name,
-                                object.optString(
-                                        "pfp",
-                                        "")));
+                                name));
             }
         } catch (Exception ignored) {
         }
@@ -240,8 +233,7 @@ public final class ProfileManager {
 
     public Profile createProfile(
             Context context,
-            String name,
-            String pfpBase64) {
+            String name) {
 
         List<Profile> profiles =
                 getProfiles(context);
@@ -274,10 +266,7 @@ public final class ProfileManager {
         Profile profile =
                 new Profile(
                         id,
-                        cleanName,
-                        pfpBase64 == null
-                                ? ""
-                                : pfpBase64);
+                        cleanName);
 
         saveProfile(context, profile);
 
@@ -287,8 +276,7 @@ public final class ProfileManager {
     public boolean updateProfile(
             Context context,
             String profileId,
-            String name,
-            String pfpBase64) {
+            String name) {
 
         if (profileId == null ||
                 MAIN_ID.equals(profileId) ||
@@ -329,10 +317,7 @@ public final class ProfileManager {
                 profile =
                         new Profile(
                                 profile.id,
-                                cleanName,
-                                pfpBase64 == null
-                                        ? profile.pfpBase64
-                                        : pfpBase64);
+                                cleanName);
 
                 found = true;
             }
@@ -341,8 +326,7 @@ public final class ProfileManager {
                 array.put(
                         new JSONObject()
                                 .put("id", profile.id)
-                                .put("name", profile.name)
-                                .put("pfp", profile.pfpBase64));
+                                .put("name", profile.name));
             } catch (Exception ignored) {
             }
         }
@@ -380,8 +364,7 @@ public final class ProfileManager {
                 array.put(
                         new JSONObject()
                                 .put("id", current.id)
-                                .put("name", current.name)
-                                .put("pfp", current.pfpBase64));
+                                .put("name", current.name));
             } catch (Exception ignored) {
             }
         }
@@ -390,8 +373,7 @@ public final class ProfileManager {
             array.put(
                     new JSONObject()
                             .put("id", profile.id)
-                            .put("name", profile.name)
-                            .put("pfp", profile.pfpBase64));
+                            .put("name", profile.name));
         } catch (Exception ignored) {
         }
 
@@ -572,107 +554,17 @@ public final class ProfileManager {
                 profileId);
     }
 
-    public static String encodeBitmap(
-            Bitmap bitmap) {
-
-        if (bitmap == null) {
-            return "";
-        }
-
-        try {
-            int width = bitmap.getWidth();
-            int height = bitmap.getHeight();
-
-            float scale =
-                    Math.min(
-                            1f,
-                            160f /
-                                    Math.max(
-                                            1f,
-                                            Math.max(
-                                                    width,
-                                                    height)));
-
-            int targetWidth =
-                    Math.max(
-                            1,
-                            Math.round(
-                                    width * scale));
-
-            int targetHeight =
-                    Math.max(
-                            1,
-                            Math.round(
-                                    height * scale));
-
-            Bitmap scaled =
-                    Bitmap.createScaledBitmap(
-                            bitmap,
-                            targetWidth,
-                            targetHeight,
-                            true);
-
-            ByteArrayOutputStream output =
-                    new ByteArrayOutputStream();
-
-            scaled.compress(
-                    Bitmap.CompressFormat.JPEG,
-                    82,
-                    output);
-
-            if (scaled != bitmap) {
-                scaled.recycle();
-            }
-
-            return android.util.Base64.encodeToString(
-                    output.toByteArray(),
-                    android.util.Base64.NO_WRAP);
-
-        } catch (Throwable ignored) {
-            return "";
-        }
-    }
-
-    public static Bitmap decodeBitmap(
-            String encoded) {
-
-        if (encoded == null ||
-                encoded.isEmpty()) {
-            return null;
-        }
-
-        try {
-            byte[] bytes =
-                    android.util.Base64.decode(
-                            encoded,
-                            android.util.Base64.DEFAULT);
-
-            return BitmapFactory.decodeByteArray(
-                    bytes,
-                    0,
-                    bytes.length);
-        } catch (Throwable ignored) {
-            return null;
-        }
-    }
-
     public static final class Profile {
 
         public final String id;
         public final String name;
-        public final String pfpBase64;
 
         public Profile(
                 String id,
-                String name,
-                String pfpBase64) {
+                String name) {
 
             this.id = id;
             this.name = name;
-            this.pfpBase64 =
-                    pfpBase64 == null
-                            ? ""
-                            : pfpBase64;
         }
 
         public boolean isMain() {
