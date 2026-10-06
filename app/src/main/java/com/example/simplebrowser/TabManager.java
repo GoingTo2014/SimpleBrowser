@@ -910,6 +910,8 @@ public class TabManager {
 
         if (incognitoMode) {
             incognitoActiveTab = tab;
+        } else if (guestMode) {
+            guestActiveTab = tab;
         } else {
             normalActiveTab = tab;
         }
