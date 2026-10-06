@@ -357,7 +357,6 @@ put("common.cancel", "Annuler");
         put("profiles.name", "Nom du profil");
         put("profiles.choose_picture", "Choisir une photo de profil");
         put("profiles.cannot_save", "Impossible d'enregistrer le profil.");
-    }
         put("Bookmark", "Favori");
         put("passwords.import", "Importer");
         put("passwords.export", "Exporter");
@@ -376,5 +375,7 @@ put("common.cancel", "Annuler");
         put("passwords.imported", "Mots de passe importés :");
         put("passwords.export_failed", "Impossible d’exporter la sauvegarde chiffrée.");
         put("passwords.import_failed", "Impossible d’importer la sauvegarde chiffrée.");
+
+    }
 
 }
