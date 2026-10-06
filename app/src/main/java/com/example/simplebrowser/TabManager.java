@@ -53,12 +53,17 @@ public class TabManager {
     private final List<BrowserTab> incognitoTabs =
             new ArrayList<>();
 
+    private final List<BrowserTab> guestTabs =
+            new ArrayList<>();
+
     private List<BrowserTab> tabs;
 
     private BrowserTab activeTab;
     private BrowserTab normalActiveTab;
     private BrowserTab incognitoActiveTab;
+    private BrowserTab guestActiveTab;
     private boolean incognitoMode = false;
+    private boolean guestMode = false;
 
     public TabManager(
             MainActivity activity,
@@ -301,6 +306,7 @@ public class TabManager {
                 new BrowserTab();
 
         tab.isIncognito = incognito;
+        tab.isGuest = guestMode;
         tab.pendingUrl =
                 url == null ||
                 url.trim().isEmpty()
@@ -928,10 +934,21 @@ public class TabManager {
         for (BrowserTab current :
                 tabs) {
 
-            current.webView.setVisibility(
-                    current == tab
-                            ? View.VISIBLE
-                            : View.GONE);
+            if (current == tab) {
+                current.webView.setVisibility(
+                        View.VISIBLE);
+                try {
+                    current.webView.onResume();
+                } catch (Throwable ignored) {
+                }
+            } else {
+                current.webView.setVisibility(
+                        View.GONE);
+                try {
+                    current.webView.onPause();
+                } catch (Throwable ignored) {
+                }
+            }
 
             updateTabAppearance(
                     current);
@@ -1127,10 +1144,19 @@ public class TabManager {
 
             activeTab = null;
 
-            if (incognitoMode) {
+            if (incognitoMode || guestMode) {
 
-                incognitoActiveTab = null;
-                switchToSession(false);
+                if (incognitoMode) {
+                    incognitoActiveTab = null;
+                } else {
+                    guestActiveTab = null;
+                }
+
+                if (guestMode) {
+                    exitGuestMode();
+                } else {
+                    switchToSession(false);
+                }
 
                 if (normalTabs.isEmpty()) {
                     activity.finish();
@@ -1486,6 +1512,133 @@ public class TabManager {
         }
     }
 
+    public void enterGuestMode(
+            String homeUrl) {
+
+        if (guestMode) {
+            if (activeTab != null) {
+                selectTab(activeTab);
+            }
+            return;
+        }
+
+        if (incognitoMode) {
+            switchToSession(false);
+        }
+
+        if (activeTab != null) {
+            normalActiveTab = activeTab;
+        }
+
+        incognitoMode = false;
+        guestMode = true;
+        tabs = guestTabs;
+
+        if (tabStrip != null) {
+            tabStrip.clearDraggedChild();
+        }
+
+        tabsLayout.setLayoutTransition(null);
+        tabsLayout.removeAllViews();
+
+        for (BrowserTab hidden : normalTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab hidden : incognitoTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab hidden : guestTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab current : guestTabs) {
+            tabsLayout.addView(current.tabView);
+        }
+
+        tabsLayout.setLayoutTransition(tabTransition);
+
+        activeTab = guestActiveTab;
+
+        if (guestTabs.isEmpty()) {
+            addTab(homeUrl, false, true);
+        } else if (activeTab != null) {
+            selectTab(activeTab);
+        } else {
+            selectTab(guestTabs.get(0));
+        }
+    }
+
+    public void exitGuestMode() {
+
+        if (!guestMode) {
+            return;
+        }
+
+        if (activeTab != null) {
+            guestActiveTab = activeTab;
+        }
+
+        guestMode = false;
+        incognitoMode = false;
+        tabs = normalTabs;
+
+        if (tabStrip != null) {
+            tabStrip.clearDraggedChild();
+        }
+
+        tabsLayout.setLayoutTransition(null);
+        tabsLayout.removeAllViews();
+
+        for (BrowserTab hidden : normalTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab hidden : incognitoTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab guest : guestTabs) {
+            try { guest.webView.stopLoading(); } catch (Throwable ignored) {}
+            try { guest.webView.onPause(); } catch (Throwable ignored) {}
+            try { webViewContainer.removeView(guest.webView); } catch (Throwable ignored) {}
+            try { guest.webView.destroy(); } catch (Throwable ignored) {}
+        }
+
+        guestTabs.clear();
+        guestActiveTab = null;
+
+        for (BrowserTab current : normalTabs) {
+            tabsLayout.addView(current.tabView);
+        }
+
+        tabsLayout.setLayoutTransition(tabTransition);
+
+        activeTab = normalActiveTab;
+
+        if (activeTab != null && normalTabs.contains(activeTab)) {
+            selectTab(activeTab);
+        } else if (!normalTabs.isEmpty()) {
+            selectTab(normalTabs.get(0));
+        } else {
+            activeTab = null;
+            activity.setUrlText("");
+            activity.updateTabOverviewIcon();
+            activity.updateNavigationButtons();
+            activity.applyActiveTabAppearance();
+        }
+    }
+
+    public boolean isGuestMode() {
+        return guestMode;
+    }
+
     public void enterIncognitoMode(
             String homeUrl) {
 
@@ -1525,6 +1678,15 @@ public class TabManager {
     private void switchToSession(
             boolean incognito) {
 
+        if (guestMode) {
+            if (activeTab != null) {
+                guestActiveTab = activeTab;
+            }
+            guestMode = false;
+            incognitoMode = false;
+            activeTab = null;
+        }
+
         if (incognitoMode == incognito) {
             return;
         }
@@ -1559,11 +1721,19 @@ public class TabManager {
         for (BrowserTab hidden :
                 normalTabs) {
             hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
         }
 
         for (BrowserTab hidden :
                 incognitoTabs) {
             hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
+        }
+
+        for (BrowserTab hidden :
+                guestTabs) {
+            hidden.webView.setVisibility(View.GONE);
+            try { hidden.webView.onPause(); } catch (Throwable ignored) {}
         }
 
         for (BrowserTab current :
@@ -1611,6 +1781,10 @@ public class TabManager {
         return tabs;
     }
 
+    public List<BrowserTab> getNormalTabs() {
+        return normalTabs;
+    }
+
     /**
      * Moves a tab within the current session and keeps the visible
      * tab strip in the same order.
@@ -1649,12 +1823,75 @@ public class TabManager {
                 tab.tabView,
                 safeTarget);
 
-        if (!incognitoMode) {
+        if (!incognitoMode && !guestMode) {
             saveTabs();
         }
 
         activity.updateTabOverviewIcon();
         updateTabAppearanceColors();
+    }
+
+    public void destroyAllTabsForProfileSwitch() {
+
+        cancelDragStateForSwitch();
+
+        java.util.ArrayList<BrowserTab> all =
+                new java.util.ArrayList<>();
+
+        all.addAll(normalTabs);
+        all.addAll(incognitoTabs);
+        all.addAll(guestTabs);
+
+        for (BrowserTab tab : all) {
+            if (tab == null || tab.webView == null) {
+                continue;
+            }
+
+            try { tab.webView.stopLoading(); } catch (Throwable ignored) {}
+            try { tab.webView.onPause(); } catch (Throwable ignored) {}
+            try { webViewContainer.removeView(tab.webView); } catch (Throwable ignored) {}
+            try { tab.webView.destroy(); } catch (Throwable ignored) {}
+        }
+
+        normalTabs.clear();
+        incognitoTabs.clear();
+        guestTabs.clear();
+
+        normalActiveTab = null;
+        incognitoActiveTab = null;
+        guestActiveTab = null;
+        activeTab = null;
+
+        incognitoMode = false;
+        guestMode = false;
+        tabs = normalTabs;
+
+        tabsLayout.setLayoutTransition(null);
+        tabsLayout.removeAllViews();
+        tabsLayout.setLayoutTransition(tabTransition);
+    }
+
+    private void cancelDragStateForSwitch() {
+
+        if (tabStrip != null) {
+            tabStrip.clearDraggedChild();
+        }
+
+        java.util.ArrayList<BrowserTab> all =
+                new java.util.ArrayList<>();
+
+        all.addAll(normalTabs);
+        all.addAll(incognitoTabs);
+        all.addAll(guestTabs);
+
+        for (BrowserTab tab : all) {
+            if (tab.dragRunnable != null &&
+                    tab.titleView != null) {
+                tab.titleView.removeCallbacks(
+                        tab.dragRunnable);
+                tab.dragRunnable = null;
+            }
+        }
     }
 
     public void applyWebSettings() {
@@ -1673,6 +1910,15 @@ public class TabManager {
 
         for (BrowserTab tab :
                 incognitoTabs) {
+
+            applyWebSettings(
+                    tab,
+                    tab.webView.getSettings(),
+                    browserSettings);
+        }
+
+        for (BrowserTab tab :
+                guestTabs) {
 
             applyWebSettings(
                     tab,
@@ -1721,7 +1967,7 @@ public class TabManager {
 
             try {
                 webSettings.setDatabaseEnabled(
-                        tab.isIncognito
+                        (tab.isIncognito || tab.isGuest)
                                 ? false
                                 : browserSettings
                                         .isWebSqlEnabled());
@@ -1739,7 +1985,7 @@ public class TabManager {
         }
 
         webSettings.setDomStorageEnabled(
-                tab.isIncognito
+                (tab.isIncognito || tab.isGuest)
                         ? false
                         : browserSettings
                                 .isStorageEnabled());
@@ -1786,7 +2032,7 @@ public class TabManager {
                     WebSettings.LOAD_CACHE_ONLY;
         }
 
-        if (tab.isIncognito) {
+        if (tab.isIncognito || tab.isGuest) {
             cacheMode =
                     WebSettings.LOAD_NO_CACHE;
         }
@@ -1794,7 +2040,7 @@ public class TabManager {
         webSettings.setCacheMode(cacheMode);
 
         webSettings.setSaveFormData(
-                tab.isIncognito
+                (tab.isIncognito || tab.isGuest)
                         ? false
                         : browserSettings
                                 .isSaveFormDataEnabled());
@@ -1873,6 +2119,7 @@ public class TabManager {
 
         if (tab == null ||
                 tab.isIncognito ||
+                tab.isGuest ||
                 !tab.hasLoaded ||
                 tab.webView == null) {
             return;
