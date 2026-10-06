@@ -445,5 +445,13 @@ public final class German extends LanguagePack {
         put("demo.dialog_text", "Standarddialogelement");
         put("Bookmark", "Lesezeichen");
         put("privacy.clear_storage", "Website-Speicher löschen");
+        put("Settings", "Einstellungen");
+        put("settings.wide_viewport", "Breiter Viewport");
+        put("settings.wide_viewport_desc", "Den vom Website konfigurierten Viewport verwenden, damit responsive Seiten ihr Layout wählen können.");
+        put("settings.offline_mode", "Offline-Modus");
+        put("settings.offline_mode_desc", "Netzwerkladevorgänge in WebView blockieren. Zwischengespeicherte Seiten können weiterhin angezeigt werden.");
+        put("privacy.clear_security_title", "Sicherheitsentscheidungen löschen?");
+        put("privacy.clear_security_message", "Dies löscht Entscheidungen zu SSL-Zertifikaten, gespeicherte Standortberechtigungen und Entscheidungen zu Clientzertifikaten. Passwörter werden nicht gelöscht.");
+        put("privacy.security_decisions_cleared", "Sicherheitsentscheidungen gelöscht");
     }
 }
