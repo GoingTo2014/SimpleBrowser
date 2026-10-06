@@ -70,7 +70,7 @@ assert_no_app_fatal() {
 }
 
 echo "Launching Main profile..."
-adb shell am start -W -n "$PACKAGE/.MainActivity"
+adb shell am start -W -n "$PACKAGE/.ProfileRouterActivity"
 wait_for_package
 sleep 5
 assert_no_app_fatal
@@ -109,7 +109,7 @@ sleep 4
 assert_no_app_fatal
 
 echo "Launching again after normal close with non-Main profile still active..."
-adb shell am start -W -n "$PACKAGE/.MainActivity"
+adb shell am start -W -n "$PACKAGE/.ProfileRouterActivity"
 sleep 10
 
 if ! wait_for_package; then
@@ -127,7 +127,7 @@ echo "Force-stopping and cold-starting the same non-Main profile..."
 adb shell am force-stop "$PACKAGE"
 adb logcat -c
 sleep 2
-adb shell am start -W -n "$PACKAGE/.MainActivity"
+adb shell am start -W -n "$PACKAGE/.ProfileRouterActivity"
 sleep 10
 
 if ! wait_for_package; then
