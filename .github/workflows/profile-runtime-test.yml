@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/profile-runtime-test.yml"
+      - ".github/profile-cold-start.sh"
   workflow_dispatch:
 
 permissions:
