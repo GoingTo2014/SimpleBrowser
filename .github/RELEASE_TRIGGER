@@ -3,3 +3,4 @@ Final profile storage isolation release trigger.
 Stable release trigger for the current main build.
 Profile switch persistence fix release trigger.
 Tab persistence, password navigation and file chooser fixes.
+Fix profile switch visibility and native password reveal.
