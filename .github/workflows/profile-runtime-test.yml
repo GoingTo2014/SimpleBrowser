@@ -34,8 +34,25 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Build debug APK
-        run: gradle assembleDebug --no-daemon
+      - name: Prepare signing keystore
+        env:
+          SIMPLEBROWSER_KEYSTORE_BASE64: ${{ secrets.SIMPLEBROWSER_KEYSTORE_BASE64 }}
+        run: |
+          set -e
+          if [ -z "$SIMPLEBROWSER_KEYSTORE_BASE64" ]; then
+            echo "SIMPLEBROWSER_KEYSTORE_BASE64 is not configured"
+            exit 1
+          fi
+          echo "$SIMPLEBROWSER_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/simplebrowser-release.jks"
+
+      - name: Build signed APK
+        env:
+          SIMPLEBROWSER_VERSION_NAME: "profile-runtime-test"
+          SIMPLEBROWSER_KEYSTORE_FILE: ${{ runner.temp }}/simplebrowser-release.jks
+          SIMPLEBROWSER_STORE_PASSWORD: ${{ secrets.SIMPLEBROWSER_STORE_PASSWORD }}
+          SIMPLEBROWSER_KEY_ALIAS: ${{ secrets.SIMPLEBROWSER_KEY_ALIAS }}
+          SIMPLEBROWSER_KEY_PASSWORD: ${{ secrets.SIMPLEBROWSER_KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon
 
       - name: Run cold-start profile scenario
         uses: reactivecircus/android-emulator-runner@v2
@@ -50,7 +67,7 @@ jobs:
             set -euo pipefail
 
             package="com.example.simplebrowser"
-            apk="app/build/outputs/apk/debug/app-debug.apk"
+            apk="app/build/outputs/apk/release/app-release.apk"
 
             adb install -r "$apk"
             adb shell pm clear "$package" >/dev/null
