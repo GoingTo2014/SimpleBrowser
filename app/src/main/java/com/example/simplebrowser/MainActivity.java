@@ -5466,6 +5466,186 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
+    public boolean openWebFileChooser(
+            android.webkit.ValueCallback<Uri[]> callback,
+            String[] acceptTypes,
+            boolean allowMultiple) {
+
+        if (callback == null) {
+            return false;
+        }
+
+        clearPendingFileChooser();
+
+        pendingFileChooser = callback;
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_GET_CONTENT);
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE);
+
+        intent.setType(
+                getFileChooserMimeType(
+                        acceptTypes));
+
+        intent.putExtra(
+                Intent.EXTRA_ALLOW_MULTIPLE,
+                allowMultiple);
+
+        try {
+            startActivityForResult(
+                    intent,
+                    WEB_FILE_CHOOSER_REQUEST);
+            return true;
+        } catch (Throwable ignored) {
+            clearPendingFileChooser();
+            return false;
+        }
+    }
+
+    public boolean openLegacyFileChooser(
+            android.webkit.ValueCallback<Uri> callback,
+            String acceptType) {
+
+        if (callback == null) {
+            return false;
+        }
+
+        clearPendingFileChooser();
+
+        pendingLegacyFileChooser = callback;
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_GET_CONTENT);
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE);
+
+        intent.setType(
+                acceptType == null ||
+                acceptType.trim().isEmpty()
+                        ? "*/*"
+                        : acceptType.trim());
+
+        try {
+            startActivityForResult(
+                    intent,
+                    WEB_FILE_CHOOSER_REQUEST);
+            return true;
+        } catch (Throwable ignored) {
+            clearPendingFileChooser();
+            return false;
+        }
+    }
+
+    private String getFileChooserMimeType(
+            String[] acceptTypes) {
+
+        if (acceptTypes != null) {
+            for (String accept : acceptTypes) {
+                if (accept != null &&
+                        !accept.trim().isEmpty() &&
+                        accept.contains("/")) {
+                    return accept.trim();
+                }
+            }
+        }
+
+        return "*/*";
+    }
+
+    private void clearPendingFileChooser() {
+
+        if (pendingFileChooser != null) {
+            try {
+                pendingFileChooser.onReceiveValue(null);
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (pendingLegacyFileChooser != null) {
+            try {
+                pendingLegacyFileChooser.onReceiveValue(null);
+            } catch (Throwable ignored) {
+            }
+        }
+
+        pendingFileChooser = null;
+        pendingLegacyFileChooser = null;
+    }
+
+    private void handleWebFileChooserResult(
+            int resultCode,
+            Intent data) {
+
+        android.webkit.ValueCallback<Uri[]> modern =
+                pendingFileChooser;
+
+        android.webkit.ValueCallback<Uri> legacy =
+                pendingLegacyFileChooser;
+
+        pendingFileChooser = null;
+        pendingLegacyFileChooser = null;
+
+        if (resultCode != RESULT_OK ||
+                data == null) {
+
+            if (modern != null) {
+                modern.onReceiveValue(null);
+            }
+
+            if (legacy != null) {
+                legacy.onReceiveValue(null);
+            }
+
+            return;
+        }
+
+        Uri[] results = null;
+
+        ClipData clipData =
+                data.getClipData();
+
+        if (clipData != null &&
+                clipData.getItemCount() > 0) {
+
+            results =
+                    new Uri[
+                            clipData.getItemCount()];
+
+            for (int i = 0;
+                    i < clipData.getItemCount();
+                    i++) {
+
+                results[i] =
+                        clipData.getItemAt(i)
+                                .getUri();
+            }
+
+        } else if (data.getData() != null) {
+
+            results =
+                    new Uri[] {
+                            data.getData()
+                    };
+        }
+
+        if (modern != null) {
+            modern.onReceiveValue(results);
+        }
+
+        if (legacy != null) {
+            legacy.onReceiveValue(
+                    results == null ||
+                    results.length == 0
+                            ? null
+                            : results[0]);
+        }
+    }
+
     public void openLocalFilePicker() {
         Intent intent =
                 new Intent(
