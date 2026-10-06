@@ -80,9 +80,6 @@ public class MainActivity extends Activity {
     private String pendingPasswordExport;
     private static final int PASSWORD_EXPORT_REQUEST = 3101;
     private static final int PASSWORD_IMPORT_REQUEST = 3102;
-    private BrowserTab pendingProfileEditorTab;
-    private String pendingProfileEditorId;
-    private String pendingProfileEditorName;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -660,11 +657,6 @@ public class MainActivity extends Activity {
             if (browserMenu != null) browserMenu.dismiss();
             BrowserTab tab = getActiveTab();
             if (tab != null) showBookmarks(tab, "");
-        }, accent, readable);
-
-        addMenuActionButton(menu, "Add bookmark", () -> {
-            if (browserMenu != null) browserMenu.dismiss();
-            addCurrentPageBookmark();
         }, accent, readable);
 
         addMenuActionButton(menu, "Password manager", () -> {
@@ -2222,6 +2214,7 @@ public class MainActivity extends Activity {
         tabManager.updateTabLoadingState(tab);
 
         tab.webView.loadUrl(url);
+        updateBookmarkButton(tab);
     }
 
     public void removeInternalPageState(
