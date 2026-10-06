@@ -163,7 +163,7 @@ public final class ProfileSwitchService extends Service {
                 "SimpleBrowser-ProfileSwitch")
                 .start();
 
-        return START_NOT_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     private void performPendingSwitch() {
