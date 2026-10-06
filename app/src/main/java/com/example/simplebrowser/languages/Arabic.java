@@ -453,5 +453,6 @@ public final class Arabic extends LanguagePack {
         put("privacy.clear_security_title", "مسح قرارات الأمان؟");
         put("privacy.clear_security_message", "سيؤدي ذلك إلى مسح قرارات شهادات SSL وأذونات الموقع المحفوظة وقرارات شهادات العميل. لن يتم حذف كلمات المرور.");
         put("privacy.security_decisions_cleared", "تم مسح قرارات الأمان");
+        put("privacy.clear_security", "مسح قرارات الأمان");
     }
 }
