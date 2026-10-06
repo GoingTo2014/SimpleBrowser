@@ -317,4 +317,46 @@ public final class Portuguese extends LanguagePack {
         put("demo.dialog", "Diálogo");
         put("demo.dialog_text", "Elemento de diálogo padrão");
     }
+        put("common.cancel", "Cancelar");
+        put("common.save", "Salvar");
+        put("bookmarks.title", "Favoritos");
+        put("bookmarks.desc", "Páginas que você salvou no Simple Browser.");
+        put("bookmarks.search", "Pesquisar favoritos");
+        put("bookmarks.empty", "Nenhum favorito encontrado.");
+        put("bookmarks.open", "Abrir");
+        put("bookmarks.confirm_delete", "Excluir este favorito?");
+        put("bookmarks.invalid", "Somente páginas da web podem ser adicionadas aos favoritos.");
+        put("bookmarks.added", "Favorito adicionado.");
+        put("passwords.title", "Gerenciador de senhas");
+        put("passwords.security_desc", "As senhas são criptografadas neste dispositivo. Quando o Android oferece suporte, o bloqueio do dispositivo é exigido antes de abrir este gerenciador.");
+        put("passwords.add", "Adicionar senha");
+        put("passwords.site", "Site");
+        put("passwords.username", "Nome de usuário");
+        put("passwords.password", "Senha");
+        put("passwords.note", "Nota");
+        put("passwords.save", "Salvar");
+        put("passwords.clear", "Limpar");
+        put("passwords.edit", "Editar");
+        put("passwords.reveal", "Mostrar");
+        put("passwords.revealed", "Senha: ");
+        put("passwords.confirm_delete", "Excluir esta senha salva?");
+        put("passwords.empty", "Nenhuma senha salva.");
+        put("passwords.error", "Não foi possível ler o banco de senhas criptografado.");
+        put("passwords.save_failed", "Não foi possível salvar a senha.");
+        put("passwords.unlock_title", "Desbloquear gerenciador de senhas");
+        put("passwords.unlock_desc", "Confirme o PIN, senha, padrão ou outro bloqueio seguro do dispositivo.");
+        put("passwords.api_limit", "O Android 4.4 não pode mostrar a tela do sistema para confirmar credenciais. O gerenciador será aberto quando o dispositivo já estiver desbloqueado.");
+        put("profiles.title", "Perfis");
+        put("profiles.desc", "Crie até %d perfis permanentes. Cada perfil tem suas próprias configurações, histórico, favoritos, cookies, abas, histórico de downloads e senhas.");
+        put("profiles.create", "Criar perfil");
+        put("profiles.guest", "Perfil de visitante");
+        put("profiles.current", "Perfil atual");
+        put("profiles.switch", "Mudar");
+        put("profiles.edit", "Editar");
+        put("profiles.guest_confirm", "Iniciar um novo Perfil de visitante? Tudo nele é temporário e será apagado quando você sair.");
+        put("profiles.delete_confirm", "Excluir este perfil e todos os dados do navegador dele?");
+        put("profiles.name", "Nome do perfil");
+        put("profiles.choose_picture", "Escolher foto do perfil");
+        put("profiles.cannot_save", "Não foi possível salvar o perfil.");
+
 }
