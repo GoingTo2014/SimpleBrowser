@@ -112,4 +112,47 @@ if [ -n "$FATAL_LOG" ]; then
   exit 1
 fi
 
-echo "PROFILE COLD-START TEST PASSED"
+echo "Testing one-tap switch into the new profile..."
+tap_text "Browser settings"
+sleep 1
+tap_text "Profile 1"
+sleep 2
+tap_text "Switch"
+sleep 7
+
+if ! adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
+  echo "Profile process did not start after one switch tap"
+  adb logcat -d
+  exit 1
+fi
+
+echo "Testing one-tap switch back to Main..."
+tap_text "Browser settings"
+sleep 1
+tap_text "RuntimeProfileProfile 2"
+sleep 2
+tap_text "Switch"
+sleep 7
+
+if ! adb shell pidof "$PACKAGE" >/dev/null 2>&1; then
+  echo "Main process did not return after one switch tap"
+  adb logcat -d
+  exit 1
+fi
+
+sleep 2
+if adb shell pidof "$PACKAGE:profile1" >/dev/null 2>&1; then
+  echo "Old profile process is still alive after returning to Main"
+  adb logcat -d
+  exit 1
+fi
+
+FATAL_LOG="$(adb logcat -d | grep -E 'FATAL EXCEPTION|AndroidRuntime.*FATAL|Process: com\.example\.simplebrowser' || true)"
+if [ -n "$FATAL_LOG" ]; then
+  echo "Fatal Android exception found during profile switching:"
+  echo "$FATAL_LOG"
+  adb logcat -d
+  exit 1
+fi
+
+echo "PROFILE COLD-START AND ONE-TAP SWITCH TEST PASSED"
