@@ -155,10 +155,8 @@ public class UpdateManager {
                                         update != null &&
                                         finalError == null) {
 
-                                    downloadAndInstall(
-                                            update,
-                                            null,
-                                            true);
+                                    activity.promptForAutomaticUpdate(
+                                            update);
                                 }
                             });
                 },
