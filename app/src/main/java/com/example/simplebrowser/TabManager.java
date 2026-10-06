@@ -4,6 +4,7 @@ import android.animation.LayoutTransition;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -22,7 +23,9 @@ import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -217,6 +220,19 @@ public class TabManager {
             String title,
             String previewKey) {
 
+        return addRestoredTab(
+                url,
+                title,
+                previewKey,
+                "");
+    }
+
+    public BrowserTab addRestoredTab(
+            String url,
+            String title,
+            String previewKey,
+            String faviconBase64) {
+
         BrowserTab tab =
                 addTab(
                         url,
@@ -245,6 +261,30 @@ public class TabManager {
         if ("browser://default".equalsIgnoreCase(
                 tab.pendingUrl)) {
             tab.title = "New Tab";
+        }
+
+        if (faviconBase64 != null &&
+                !faviconBase64.trim().isEmpty()) {
+
+            try {
+                byte[] bytes =
+                        Base64.decode(
+                                faviconBase64,
+                                Base64.DEFAULT);
+
+                tab.favicon =
+                        BitmapFactory.decodeByteArray(
+                                bytes,
+                                0,
+                                bytes.length);
+
+                if (tab.favicon != null) {
+                    updateTabIcon(
+                            tab,
+                            tab.favicon);
+                }
+            } catch (Throwable ignored) {
+            }
         }
 
         updateTabTitle(tab);
@@ -1214,6 +1254,16 @@ public class TabManager {
                         "previewKey",
                         tab.previewKey);
 
+                String faviconBase64 =
+                        encodeFaviconForTabs(
+                                tab.favicon);
+
+                if (!faviconBase64.isEmpty()) {
+                    object.put(
+                            "favicon",
+                            faviconBase64);
+                }
+
                 array.put(object);
 
                 if (tab == normalActiveTab ||
@@ -1289,6 +1339,9 @@ public class TabManager {
                                 "New Tab"),
                         object.optString(
                                 "previewKey",
+                                ""),
+                        object.optString(
+                                "favicon",
                                 ""));
             }
 
@@ -1334,6 +1387,9 @@ public class TabManager {
                                     "New Tab"),
                             object.optString(
                                     "previewKey",
+                                    ""),
+                            object.optString(
+                                    "favicon",
                                     ""));
                 }
 
@@ -1349,6 +1405,77 @@ public class TabManager {
 
                 return false;
             }
+        }
+    }
+
+    private String encodeFaviconForTabs(
+            Bitmap favicon) {
+
+        if (favicon == null ||
+                favicon.isRecycled()) {
+            return "";
+        }
+
+        try {
+            int size =
+                    48;
+
+            int width =
+                    favicon.getWidth();
+
+            int height =
+                    favicon.getHeight();
+
+            float scale =
+                    Math.min(
+                            1f,
+                            Math.min(
+                                    (float) size /
+                                            Math.max(
+                                                    1,
+                                                    width),
+                                    (float) size /
+                                            Math.max(
+                                                    1,
+                                                    height)));
+
+            int targetWidth =
+                    Math.max(
+                            1,
+                            Math.round(
+                                    width * scale));
+
+            int targetHeight =
+                    Math.max(
+                            1,
+                            Math.round(
+                                    height * scale));
+
+            Bitmap scaled =
+                    Bitmap.createScaledBitmap(
+                            favicon,
+                            targetWidth,
+                            targetHeight,
+                            true);
+
+            ByteArrayOutputStream output =
+                    new ByteArrayOutputStream();
+
+            scaled.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    output);
+
+            if (scaled != favicon) {
+                scaled.recycle();
+            }
+
+            return Base64.encodeToString(
+                    output.toByteArray(),
+                    Base64.NO_WRAP);
+
+        } catch (Throwable ignored) {
+            return "";
         }
     }
 
