@@ -223,6 +223,21 @@ public final class ProfilesPage {
             html.append("</div></div>");
         }
 
+        if (ProfileManager.isGuest(currentId)) {
+
+            html.append("<div class='card'>");
+            html.append("<div class='avatar'>G</div>");
+            html.append("<div class='name'>");
+            html.append(escape(
+                    t("profiles.guest")));
+            html.append("</div>");
+            html.append("<div class='current'>");
+            html.append(escape(
+                    t("profiles.current")));
+            html.append("</div>");
+            html.append("</div>");
+        }
+
         html.append("</div></body></html>");
 
         return Localization.translateHtml(
