@@ -197,6 +197,26 @@ public class BrowserWebViewClient
         String route =
                 BrowserPage.toPublicRoute(url);
 
+        long passwordRevealId =
+                BrowserPage.getPasswordRevealId(url);
+
+        if (passwordRevealId > 0L) {
+            try {
+                if (view != null) {
+                    view.stopLoading();
+                }
+            } catch (Throwable ignored) {
+            }
+
+            tab.loading = false;
+
+            activity.showPasswordEntry(
+                    tab,
+                    passwordRevealId);
+
+            return;
+        }
+
         String settingsSection =
                 BrowserPage.getSettingsSection(url);
 
