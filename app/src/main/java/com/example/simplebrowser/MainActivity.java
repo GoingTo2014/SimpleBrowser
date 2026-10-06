@@ -38,6 +38,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
@@ -75,6 +76,10 @@ public class MainActivity extends Activity {
     private boolean awaitingPasswordAuthentication;
     private boolean profileSwitching;
     private BrowserTab pendingPasswordTab;
+    private BrowserTab pendingPasswordFileTab;
+    private String pendingPasswordExport;
+    private static final int PASSWORD_EXPORT_REQUEST = 3101;
+    private static final int PASSWORD_IMPORT_REQUEST = 3102;
     private BrowserTab pendingProfileEditorTab;
     private String pendingProfileEditorId;
     private String pendingProfileEditorName;
@@ -1321,6 +1326,300 @@ public class MainActivity extends Activity {
         passwordsPage.show(tab);
         tabManager.selectTab(tab);
         recordInternalVisit(tab, BrowserPage.PASSWORDS);
+    }
+
+    public void startPasswordExport(
+            BrowserTab tab) {
+
+        final EditText password =
+                new EditText(this);
+
+        password.setSingleLine(true);
+        password.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        password.setHint(
+                Localization.translate(
+                        this,
+                        "passwords.export_password"));
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.export_title"))
+                .setView(password)
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.cancel"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.export"),
+                        (dialog, which) -> {
+                            try {
+                                pendingPasswordExport =
+                                        passwordStore
+                                                .exportEncrypted(
+                                                        password.getText()
+                                                                .toString());
+
+                                Intent intent =
+                                        new Intent(
+                                                Intent.ACTION_CREATE_DOCUMENT);
+
+                                intent.addCategory(
+                                        Intent.CATEGORY_OPENABLE);
+                                intent.setType(
+                                        "application/octet-stream");
+                                intent.putExtra(
+                                        Intent.EXTRA_TITLE,
+                                        "simplebrowser-passwords.sbpass");
+
+                                pendingPasswordFileTab = tab;
+
+                                startActivityForResult(
+                                        intent,
+                                        PASSWORD_EXPORT_REQUEST);
+
+                            } catch (Exception exception) {
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.export_failed"));
+                            }
+                        })
+                .show();
+    }
+
+    public void startPasswordImport(
+            BrowserTab tab) {
+
+        pendingPasswordFileTab = tab;
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_OPEN_DOCUMENT);
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE);
+
+        intent.setType(
+                "application/octet-stream");
+
+        try {
+            startActivityForResult(
+                    intent,
+                    PASSWORD_IMPORT_REQUEST);
+        } catch (Throwable exception) {
+            showPasswordManagerError(
+                    Localization.translate(
+                            this,
+                            "passwords.import_failed"));
+        }
+    }
+
+    private void promptForPasswordImport(
+            Uri uri) {
+
+        final EditText password =
+                new EditText(this);
+
+        password.setSingleLine(true);
+        password.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        password.setHint(
+                Localization.translate(
+                        this,
+                        "passwords.export_password"));
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.import_title"))
+                .setView(password)
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.cancel"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.import"),
+                        (dialog, which) -> {
+
+                            InputStream input = null;
+
+                            try {
+                                input =
+                                        getContentResolver()
+                                                .openInputStream(
+                                                        uri);
+
+                                StringBuilder data =
+                                        new StringBuilder();
+
+                                byte[] buffer =
+                                        new byte[8192];
+
+                                int count;
+
+                                while ((count =
+                                        input.read(buffer)) != -1) {
+
+                                    data.append(
+                                            new String(
+                                                    buffer,
+                                                    0,
+                                                    count,
+                                                    "UTF-8"));
+                                }
+
+                                int imported =
+                                        passwordStore
+                                                .importEncrypted(
+                                                        data.toString(),
+                                                        password.getText()
+                                                                .toString());
+
+                                BrowserTab tab =
+                                        pendingPasswordFileTab;
+
+                                if (tab != null) {
+                                    passwordsPage.show(tab, "");
+                                    tabManager.selectTab(tab);
+                                }
+
+                                android.widget.Toast.makeText(
+                                        this,
+                                        Localization.translate(
+                                                this,
+                                                "passwords.imported") +
+                                                " " +
+                                                imported,
+                                        android.widget.Toast.LENGTH_SHORT)
+                                        .show();
+
+                            } catch (Exception exception) {
+
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.import_failed"));
+
+                            } finally {
+
+                                if (input != null) {
+                                    try {
+                                        input.close();
+                                    } catch (Exception ignored) {
+                                    }
+                                }
+                            }
+                        })
+                .show();
+    }
+
+    public void promptToSavePassword(
+            BrowserTab tab,
+            String site,
+            String username,
+            String password) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                password == null ||
+                password.isEmpty() ||
+                passwordStore == null) {
+            return;
+        }
+
+        final String cleanSite =
+                site == null || site.trim().isEmpty()
+                        ? tab.webView.getUrl()
+                        : site.trim();
+
+        final String cleanUsername =
+                username == null
+                        ? ""
+                        : username;
+
+        try {
+            if (passwordStore.containsCredentials(
+                    cleanSite,
+                    cleanUsername,
+                    password)) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.save_prompt_title"))
+                .setMessage(
+                        Localization.translate(
+                                this,
+                                "passwords.save_prompt"))
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "passwords.not_now"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.save_password"),
+                        (dialog, which) -> {
+
+                            try {
+                                String favicon =
+                                        tab.favicon == null
+                                                ? ""
+                                                : android.util.Base64
+                                                        .encodeToString(
+                                                                bitmapToPng(
+                                                                        tab.favicon),
+                                                                android.util.Base64.NO_WRAP);
+
+                                passwordStore.save(
+                                        -1,
+                                        cleanSite,
+                                        cleanUsername,
+                                        password,
+                                        "",
+                                        favicon);
+
+                            } catch (Exception exception) {
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.save_failed"));
+                            }
+                        })
+                .show();
+    }
+
+    private byte[] bitmapToPng(
+            Bitmap bitmap)
+            throws Exception {
+
+        java.io.ByteArrayOutputStream output =
+                new java.io.ByteArrayOutputStream();
+
+        bitmap.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                output);
+
+        return output.toByteArray();
     }
 
     public void showPasswordManagerError(String message) {
@@ -3856,6 +4155,82 @@ public class MainActivity extends Activity {
             }
 
             pendingPasswordTab = null;
+            return;
+        }
+
+        if (requestCode ==
+                PASSWORD_EXPORT_REQUEST) {
+
+            Uri uri =
+                    data == null
+                            ? null
+                            : data.getData();
+
+            if (resultCode == RESULT_OK &&
+                    uri != null &&
+                    pendingPasswordExport != null) {
+
+                OutputStream output = null;
+
+                try {
+                    output =
+                            getContentResolver()
+                                    .openOutputStream(uri);
+
+                    if (output == null) {
+                        throw new Exception("output");
+                    }
+
+                    output.write(
+                            pendingPasswordExport
+                                    .getBytes("UTF-8"));
+
+                    output.flush();
+
+                    android.widget.Toast.makeText(
+                            this,
+                            Localization.translate(
+                                    this,
+                                    "passwords.exported"),
+                            android.widget.Toast.LENGTH_SHORT)
+                            .show();
+
+                } catch (Exception exception) {
+                    showPasswordManagerError(
+                            Localization.translate(
+                                    this,
+                                    "passwords.export_failed"));
+                } finally {
+                    if (output != null) {
+                        try {
+                            output.close();
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+            }
+
+            pendingPasswordExport = null;
+            pendingPasswordFileTab = null;
+            return;
+        }
+
+        if (requestCode ==
+                PASSWORD_IMPORT_REQUEST) {
+
+            Uri uri =
+                    data == null
+                            ? null
+                            : data.getData();
+
+            if (resultCode == RESULT_OK &&
+                    uri != null) {
+
+                promptForPasswordImport(uri);
+            } else {
+                pendingPasswordFileTab = null;
+            }
+
             return;
         }
 
