@@ -135,6 +135,64 @@ public final class BookmarkStore
         return findByUrl(cleanUrl);
     }
 
+    public synchronized boolean isBookmarked(
+            String url) {
+
+        return findByUrl(url) != null;
+    }
+
+    public synchronized void deleteByUrl(
+            String url) {
+
+        if (url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        getWritableDatabase()
+                .delete(
+                        TABLE,
+                        "url = ?",
+                        new String[] {
+                                url.trim()
+                        });
+    }
+
+    public synchronized void updateFavicon(
+            String url,
+            android.graphics.Bitmap favicon) {
+
+        if (url == null ||
+                url.trim().isEmpty() ||
+                favicon == null ||
+                favicon.isRecycled()) {
+            return;
+        }
+
+        byte[] encoded =
+                encodeFavicon(favicon);
+
+        if (encoded == null) {
+            return;
+        }
+
+        ContentValues values =
+                new ContentValues();
+
+        values.put(
+                "favicon",
+                encoded);
+
+        getWritableDatabase()
+                .update(
+                        TABLE,
+                        values,
+                        "url = ?",
+                        new String[] {
+                                url.trim()
+                        });
+    }
+
     public synchronized Entry findByUrl(
             String url) {
 
