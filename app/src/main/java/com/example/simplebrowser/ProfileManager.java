@@ -493,7 +493,10 @@ public final class ProfileManager {
                     slot <= MAX_PROFILES;
                     slot++) {
 
-                if (!used[slot]) {
+                if (!used[slot] &&
+                        !ProfileProcessRuntime.isSlotOccupied(
+                                context,
+                                slot)) {
                     slots.put(
                             profileId,
                             slot);
@@ -523,7 +526,12 @@ public final class ProfileManager {
              */
         }
 
-        return 1;
+        /*
+         * Never return an occupied slot as an emergency fallback. A caller
+         * must fail the switch instead of attaching a new profile to a live
+         * process that owns another WebView data directory.
+         */
+        return 0;
     }
 
     public static synchronized void releaseProcessSlot(
@@ -978,6 +986,14 @@ public final class ProfileManager {
                         KEY_PROFILES,
                         updatedProfiles)
                 .apply();
+
+        /*
+         * Stop the dedicated process before removing its WebView directory.
+         * Android may keep inactive activities/processes cached otherwise.
+         */
+        ProfileProcessRuntime.stopProfileProcess(
+                context,
+                profileId);
 
         deleteProfileData(
                 context,
