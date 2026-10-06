@@ -122,7 +122,6 @@ jobs:
               --repo "$GITHUB_REPOSITORY" \
               --target "$target_commit" \
               --title "SimpleBrowser $RELEASE_VERSION" \
-              --prerelease \
               --notes-file "$RUNNER_TEMP/release-notes.md"
           fi
 
