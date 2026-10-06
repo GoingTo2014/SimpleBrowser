@@ -485,15 +485,26 @@ public class SettingsPage {
                 "}" +
 
                 "button{" +
+                "display:inline-block;" +
+                "-webkit-appearance:none;" +
+                "appearance:none;" +
                 "font-size:14px;" +
-                "padding:9px 13px;" +
+                "font-weight:bold;" +
+                "line-height:1.2;" +
+                "padding:10px 14px;" +
+                "min-height:38px;" +
                 "background:" +
+                accent +
+                ";" +
+                "background-color:" +
                 accent +
                 ";" +
                 "color:" +
                 accentTextHex +
                 ";" +
-                "border:0;" +
+                "border:1px solid " +
+                accent +
+                ";" +
                 "border-radius:5px;" +
                 "max-width:100%;" +
                 "}" +
@@ -531,10 +542,13 @@ public class SettingsPage {
 
                 ".update-status{margin-top:8px;font-size:12px;color:" +
                 secondaryTextHex +
-                ";line-height:1.4;}" +
+                ";line-height:1.4;display:flex;align-items:center;gap:6px;}" +
+                ".update-status.warning{color:#D99A00;font-weight:bold;}" +
+                ".update-warning-icon{display:none;font-size:16px;line-height:1;}" +
+                ".update-status.warning .update-warning-icon{display:inline-block;color:#E0A000;}" +
                 ".update-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}" +
-                ".update-buttons button{margin:0;}" +
-                ".update-auto-button{width:100%;margin-top:8px;}" +
+                ".update-buttons button{margin:0;background:" + accent + ";background-color:" + accent + ";color:" + accentTextHex + ";border:1px solid " + accent + ";}" +
+                ".update-auto-button{width:100%;margin-top:8px;background:" + accent + ";background-color:" + accent + ";color:" + accentTextHex + ";border:1px solid " + accent + ";}" +
 
                 "@media(max-width:600px){" +
                 ".layout{" +
@@ -650,20 +664,23 @@ public class SettingsPage {
                 "var layout=document.getElementsByClassName('layout')[0];" +
                 "if(layout)layout.className='layout';" +
                 "}" +
-                "function setUpdateStatus(message,showInstall){" +
+                "function setUpdateStatus(message,showInstall,warning){" +
                 "var status=document.getElementById('update-status');" +
+                "var text=document.getElementById('update-status-text');" +
+                "var icon=document.getElementById('update-warning-icon');" +
                 "var install=document.getElementById('update-install');" +
-                "if(status)status.textContent=message;" +
+                "if(text)text.textContent=message;" +
+                "if(icon)icon.textContent=warning?'\\u26a0':'';" +
+                "if(status)status.className='update-status'+(warning?' warning':'');" +
                 "if(install)install.style.display=showInstall?'inline-block':'none';" +
                 "}" +
-                "function setAutomaticUpdatesUi(enabled){" +
+                "function setAutomaticUpdatesUi(enabled,disableText,enableText){" +
                 "var button=document.getElementById('automatic-updates-button');" +
                 "if(button){" +
-                "button.textContent=enabled?'Disable automatic updates':'Enable automatic updates';" +
+                "button.textContent=enabled?disableText:enableText;" +
                 "button.setAttribute('data-enabled',enabled?'1':'0');" +
                 "}" +
                 "}" +
-
                 "function updateHomeVisibility(value){" +
                 "var element=document.getElementById('custom-home');" +
                 "if(element){element.className=value==='custom'?'row':'row custom-hidden';}" +
@@ -961,7 +978,10 @@ public class SettingsPage {
                 ": " + BuildConfig.VERSION_NAME +
                 "</div>" +
                 "<div id='update-status' class='update-status'>" +
+                "<span id='update-warning-icon' class='update-warning-icon'></span>" +
+                "<span id='update-status-text'>" +
                 Localization.translate(activity, "settings.update_up_to_date") +
+                "</span>" +
                 "</div>" +
                 "<div class='update-buttons'>" +
                 "<button onclick=\"Android.checkForUpdates()\">" +
@@ -1372,6 +1392,7 @@ public class SettingsPage {
                         "settings.update_available") +
                 ": " +
                 update.version,
+                true,
                 true);
     }
 
@@ -1379,6 +1400,19 @@ public class SettingsPage {
             BrowserTab tab,
             String message,
             boolean showInstall) {
+
+        updateUpdateStatusText(
+                tab,
+                message,
+                showInstall,
+                false);
+    }
+
+    public void updateUpdateStatusText(
+            BrowserTab tab,
+            String message,
+            boolean showInstall,
+            boolean warning) {
 
         if (tab == null ||
                 tab.webView == null) {
@@ -1390,6 +1424,10 @@ public class SettingsPage {
                 javaScriptString(message) +
                 "," +
                 (showInstall
+                        ? "true"
+                        : "false") +
+                "," +
+                (warning
                         ? "true"
                         : "false") +
                 ");",
@@ -1405,11 +1443,25 @@ public class SettingsPage {
             return;
         }
 
+        String disableText =
+                Localization.translate(
+                        activity,
+                        "settings.disable_auto_updates");
+
+        String enableText =
+                Localization.translate(
+                        activity,
+                        "settings.enable_auto_updates");
+
         tab.webView.evaluateJavascript(
                 "setAutomaticUpdatesUi(" +
                 (enabled
                         ? "true"
                         : "false") +
+                "," +
+                javaScriptString(disableText) +
+                "," +
+                javaScriptString(enableText) +
                 ");",
                 null);
     }
