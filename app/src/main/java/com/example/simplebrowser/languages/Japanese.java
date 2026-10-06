@@ -317,4 +317,46 @@ public final class Japanese extends LanguagePack {
         put("demo.dialog", "ダイアログ");
         put("demo.dialog_text", "標準のダイアログ要素");
     }
+        put("common.cancel", "キャンセル");
+        put("common.save", "保存");
+        put("bookmarks.title", "ブックマーク");
+        put("bookmarks.desc", "Simple Browserで保存したページです。");
+        put("bookmarks.search", "ブックマークを検索");
+        put("bookmarks.empty", "ブックマークがありません。");
+        put("bookmarks.open", "開く");
+        put("bookmarks.confirm_delete", "このブックマークを削除しますか？");
+        put("bookmarks.invalid", "ブックマークに追加できるのはWebページだけです。");
+        put("bookmarks.added", "ブックマークを追加しました。");
+        put("passwords.title", "パスワード マネージャー");
+        put("passwords.security_desc", "パスワードはこの端末上で暗号化されます。Androidが対応している場合、開く前に端末のロック解除を求めます。");
+        put("passwords.add", "パスワードを追加");
+        put("passwords.site", "Webサイト");
+        put("passwords.username", "ユーザー名");
+        put("passwords.password", "パスワード");
+        put("passwords.note", "メモ");
+        put("passwords.save", "保存");
+        put("passwords.clear", "クリア");
+        put("passwords.edit", "編集");
+        put("passwords.reveal", "表示");
+        put("passwords.revealed", "パスワード: ");
+        put("passwords.confirm_delete", "この保存したパスワードを削除しますか？");
+        put("passwords.empty", "保存されたパスワードはありません。");
+        put("passwords.error", "暗号化されたパスワードデータベースを読み込めませんでした。");
+        put("passwords.save_failed", "パスワードを保存できませんでした。");
+        put("passwords.unlock_title", "パスワード マネージャーのロック解除");
+        put("passwords.unlock_desc", "端末のPIN、パスワード、パターン、その他の安全なロックを確認してください。");
+        put("passwords.api_limit", "Android 4.4ではシステムの認証確認画面を表示できません。端末のロック解除後にマネージャーを開きます。");
+        put("profiles.title", "プロフィール");
+        put("profiles.desc", "最大%d個の保存プロフィールを作成できます。プロフィールごとに設定、履歴、ブックマーク、Cookie、タブ、ダウンロード履歴、パスワードが分離されます。");
+        put("profiles.create", "プロフィールを作成");
+        put("profiles.guest", "ゲストプロフィール");
+        put("profiles.current", "現在のプロフィール");
+        put("profiles.switch", "切り替え");
+        put("profiles.edit", "編集");
+        put("profiles.guest_confirm", "新しいゲストプロフィールを開始しますか？ここに保存されたデータは一時的で、退出時に消去されます。");
+        put("profiles.delete_confirm", "このプロフィールとすべてのブラウザデータを削除しますか？");
+        put("profiles.name", "プロフィール名");
+        put("profiles.choose_picture", "プロフィール画像を選択");
+        put("profiles.cannot_save", "プロフィールを保存できませんでした。");
+
 }
