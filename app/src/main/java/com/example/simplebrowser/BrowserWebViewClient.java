@@ -65,6 +65,28 @@ public class BrowserWebViewClient
 
         if (url != null &&
                 url.startsWith(
+                        "simplebrowser://password-reveal/")) {
+
+            String encoded =
+                    url.substring(
+                            "simplebrowser://password-reveal/"
+                                    .length());
+
+            try {
+                long id = Long.parseLong(
+                        android.net.Uri.decode(encoded));
+
+                activity.showPasswordEntry(
+                        tab,
+                        id);
+            } catch (Throwable ignored) {
+            }
+
+            return true;
+        }
+
+        if (url != null &&
+                url.startsWith(
                         "simplebrowser://password-site/")) {
 
             String encoded =
