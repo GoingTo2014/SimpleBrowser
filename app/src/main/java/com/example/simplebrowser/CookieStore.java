@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.ValueCallback;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -716,89 +719,165 @@ public final class CookieStore {
                 .apply();
     }
 
-    /** Restores this profile's cookie snapshot into CookieManager. */
+    /** Restores this profile's cookie snapshot after clearing the process-global jar. */
     public synchronized void restoreCookies() {
+        restoreCookies(null);
+    }
 
-        String json =
+    /**
+     * Clears the process-global WebView cookie jar first, then restores only
+     * this profile's saved cookie snapshot. Android 4.4 has no completion
+     * callback for cookie deletion, so the fallback waits before restoring.
+     */
+    public synchronized void restoreCookies(
+            final Runnable completion) {
+
+        final String json =
                 preferences.getString(
                         KEY_SNAPSHOT,
                         "");
 
-        if (json == null ||
-                json.trim().isEmpty()) {
-            return;
-        }
+        clearRuntimeCookies(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        restoreSnapshot(
+                                json,
+                                completion);
+                    }
+                });
+    }
 
-        try {
-            JSONArray snapshot =
-                    new JSONArray(json);
+    private void restoreSnapshot(
+            String json,
+            final Runnable completion) {
 
-            CookieManager manager =
-                    CookieManager.getInstance();
+        if (json != null &&
+                !json.trim().isEmpty()) {
 
-            for (int i = 0;
-                    i < snapshot.length();
-                    i++) {
+            try {
+                JSONArray snapshot =
+                        new JSONArray(json);
 
-                JSONObject item =
-                        snapshot.getJSONObject(i);
+                CookieManager manager =
+                        CookieManager.getInstance();
 
-                String url =
-                        item.optString("url", "");
+                for (int i = 0;
+                        i < snapshot.length();
+                        i++) {
 
-                String cookies =
-                        item.optString("cookies", "");
+                    JSONObject item =
+                            snapshot.getJSONObject(i);
 
-                if (url.isEmpty() ||
-                        cookies.isEmpty()) {
-                    continue;
-                }
+                    String url =
+                            item.optString("url", "");
 
-                for (String part :
-                        cookies.split(";")) {
+                    String cookies =
+                            item.optString("cookies", "");
 
-                    String cookie =
-                            part.trim();
-
-                    if (cookie.indexOf('=') <= 0) {
+                    if (url.isEmpty() ||
+                            cookies.isEmpty()) {
                         continue;
                     }
 
-                    try {
-                        manager.setCookie(
-                                url,
-                                cookie);
-                    } catch (Throwable ignored) {
+                    for (String part :
+                            cookies.split(";")) {
+
+                        String cookie =
+                                part.trim();
+
+                        if (cookie.indexOf('=') <= 0) {
+                            continue;
+                        }
+
+                        try {
+                            manager.setCookie(
+                                    url,
+                                    cookie);
+                        } catch (Throwable ignored) {
+                        }
                     }
                 }
-            }
 
-            syncCookies();
-        } catch (Throwable ignored) {
+                syncCookies();
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (completion != null) {
+            new Handler(
+                    Looper.getMainLooper())
+                    .postDelayed(
+                            completion,
+                            Build.VERSION.SDK_INT < 21
+                                    ? 500
+                                    : 80);
         }
     }
 
     public static void clearRuntimeCookies() {
+        clearRuntimeCookies(null);
+    }
+
+    /**
+     * Clears Android's process-global WebView cookies. API 21+ exposes a
+     * completion callback; Android 4.4 does not.
+     */
+    public static void clearRuntimeCookies(
+            final Runnable completion) {
 
         try {
-            CookieManager manager =
+
+            final CookieManager manager =
                     CookieManager.getInstance();
 
-            manager.removeAllCookie();
-
             if (Build.VERSION.SDK_INT >= 21) {
-                manager.removeSessionCookie();
+
+                manager.removeAllCookies(
+                        new ValueCallback<Boolean>() {
+                            @Override
+                            public void onReceiveValue(
+                                    Boolean value) {
+
+                                try {
+                                    manager.flush();
+                                } catch (Throwable ignored) {
+                                }
+
+                                if (completion != null) {
+                                    completion.run();
+                                }
+                            }
+                        });
+
+                return;
             }
+
+            manager.removeAllCookie();
 
             try {
                 CookieSyncManager.getInstance()
                         .sync();
             } catch (Throwable ignored) {
             }
+
+            if (completion != null) {
+                new Handler(
+                        Looper.getMainLooper())
+                        .postDelayed(
+                                completion,
+                                500);
+            }
+
         } catch (Throwable ignored) {
+
+            if (completion != null) {
+                new Handler(
+                        Looper.getMainLooper())
+                        .post(completion);
+            }
         }
     }
-
     public List<CookieValue> parseCookies(
             String raw) {
 
