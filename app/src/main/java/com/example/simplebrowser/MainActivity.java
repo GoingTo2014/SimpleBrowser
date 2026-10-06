@@ -1875,14 +1875,23 @@ public class MainActivity extends Activity {
     }
 
     public void switchProfile(String profileId) {
-        if (profileId == null) return;
+        if (profileId == null ||
+                profileId.trim().isEmpty() ||
+                profileSwitching) {
+            return;
+        }
 
         if (tabManager != null &&
                 tabManager.isGuestMode()) {
 
             exitGuestProfile(
-                    () -> performProfileSwitch(
-                            profileId));
+                    () -> {
+
+                        if (!isFinishing()) {
+                            performProfileSwitch(
+                                    profileId);
+                        }
+                    });
 
             return;
         }
@@ -2045,6 +2054,10 @@ public class MainActivity extends Activity {
     private void performProfileSwitch(
             String targetProfileId) {
 
+        if (profileSwitching) {
+            return;
+        }
+
         String current =
                 ProfileManager.getActiveProfileId(this);
 
@@ -2081,16 +2094,32 @@ public class MainActivity extends Activity {
                 cookieStore.snapshotCookies();
             }
 
+            /*
+             * Main owns the default WebView process. User-created profiles
+             * each own one dedicated process.
+             *
+             * The previous implementation sent every target through
+             * getProfileProcessActivity(), but Main deliberately has slot 0
+             * and therefore returned null. That made switching back to Main
+             * silently fail.
+             */
             Class<? extends MainActivity>
                     targetActivity =
-                    getProfileProcessActivity(
-                            targetProfileId);
+                    ProfileManager.MAIN_ID.equals(
+                            targetProfileId)
+                            ? MainActivity.class
+                            : getProfileProcessActivity(
+                                    targetProfileId);
 
             if (targetActivity == null) {
                 profileSwitching = false;
                 return;
             }
 
+            /*
+             * Persist the target before launching it. The target process must
+             * know its profile before MainActivity touches WebView.
+             */
             ProfileManager.setActiveProfileId(
                     this,
                     targetProfileId);
@@ -2101,19 +2130,24 @@ public class MainActivity extends Activity {
                                 this,
                                 targetActivity);
 
+                /*
+                 * Make the target Activity the deterministic root of the
+                 * browser task. This prevents an old profile Activity from
+                 * remaining underneath it and makes a switch a single action.
+                 */
                 intent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK |
                         Intent.FLAG_ACTIVITY_NO_ANIMATION);
 
                 startActivity(intent);
                 overridePendingTransition(0, 0);
 
                 /*
-                 * Do not finishAffinity() and do not killProcess(). Finishing
-                 * this Activity leaves the newly-started target Activity as
-                 * the task's visible root while its own process owns the
-                 * target profile's WebView directory.
+                 * CLEAR_TASK owns the old Activity handoff. Never force-kill a
+                 * modern profile process; Android may keep it cached so its
+                 * isolated WebView directory remains available.
                  */
-                finish();
 
             } catch (Throwable error) {
 
@@ -2394,16 +2428,34 @@ public class MainActivity extends Activity {
             BrowserTab tab,
             String url) {
 
-        if (url == null ||
-                !url.startsWith(
-                        "simplebrowser://profile/")) {
+        if (url == null) {
+            return false;
+        }
+
+        String prefix =
+                "simplebrowser://profile/";
+
+        String route =
+                BrowserPage.toPublicRoute(url);
+
+        if (route != null &&
+                route.startsWith(
+                        BrowserPage.PROFILES +
+                        "/action/")) {
+
+            prefix =
+                    BrowserPage.PROFILES +
+                    "/action/";
+
+            url = route;
+
+        } else if (!url.startsWith(prefix)) {
             return false;
         }
 
         String remainder =
                 url.substring(
-                        "simplebrowser://profile/"
-                                .length());
+                        prefix.length());
 
         int slash =
                 remainder.indexOf('/');
