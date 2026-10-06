@@ -1,27 +1,3 @@
 SimpleBrowser release trigger for profiles, bookmarks, password manager and update flow.
-Retry after fixing localization placement.
-Retry after fixing JavaScript escaping.
-Retry after fixing language-pack braces.
-Retry after merging the existing activity-result handler.
-Publish again with corrected changelog formatting.
-Profile/bookmark/password/settings fixes release.
-Final persistence and profile fixes.
-Retry release after language-pack constructor fix.
-Retry after final Java quote escaping fix.
-Final behavior review: respect JavaScript setting.
-Final profile-count and Guest Profile visibility fixes.
-Profile cookies, media permissions, advanced settings, logs and new languages review.
-Fix password bridge syntax after build review.
-Fix new-profile naming default and final localization review.
-Fix profile update variable shadowing after compiler review.
-Final documentation wording review completed.
-Final built-in button color audit completed.
-Final review: full-screen tabs, profile Web Storage isolation, privacy confirmations, menu cleanup, password capture investigation, and complete translations.
-Final review: tab overview, profile storage isolation, password capture, privacy confirmations, advanced controls, shared WebView stores, and complete translations.
-Fix duplicate BrowserSettings cache setter after final compile review.
-Final compile trigger after storage/password/privacy/menu/translation fixes.
-Final trigger: full-screen tabs, profile storage isolation, password capture, privacy confirmation, advanced controls, security reset, and complete translations.
-Final release trigger after password capture and storage hardening.
-Trigger profile Web Storage persistence release.
-Release build after profile-storage, guest-mode, tab-grid, and password-manager fixes
-Fix compile errors from browser session/tab overview integration
+Final profile storage isolation release trigger.
+Stable release trigger for the current main build.
