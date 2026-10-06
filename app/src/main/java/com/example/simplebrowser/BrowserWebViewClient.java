@@ -350,8 +350,19 @@ public class BrowserWebViewClient
 
         } else {
 
-            tab.favicon = null;
-            activity.updateTabIcon(tab, null);
+            String nextUrl =
+                    url == null
+                            ? ""
+                            : url;
+
+            boolean urlChanged =
+                    tab.url != null &&
+                    !tab.url.equals(nextUrl);
+
+            if (urlChanged) {
+                tab.favicon = null;
+                activity.updateTabIcon(tab, null);
+            }
 
             if (tab.settingsPage ||
                     tab.defaultPage ||
@@ -366,9 +377,7 @@ public class BrowserWebViewClient
                 activity.removeInternalPageState(tab);
             }
 
-            tab.url = url == null ? "" : url;
-            tab.favicon = null;
-            activity.updateTabIcon(tab, null);
+            tab.url = nextUrl;
             tab.loading = true;
             tab.sslError = false;
         }
