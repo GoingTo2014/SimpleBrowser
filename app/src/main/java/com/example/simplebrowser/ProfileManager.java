@@ -567,12 +567,9 @@ public final class ProfileManager {
             }
         }
 
-        try {
-            android.webkit.CookieManager
-                    .getInstance()
-                    .removeAllCookie();
-        } catch (Throwable ignored) {
-        }
+        PasswordStore.deleteCryptoKey(
+                context,
+                profileId);
     }
 
     public static String encodeBitmap(
