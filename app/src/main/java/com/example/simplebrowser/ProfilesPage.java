@@ -5,9 +5,9 @@ import java.util.List;
 /**
  * Built-in profile selector and manager.
  *
- * Profile actions use internal navigation URLs instead of JavaScript bridges,
- * which makes them work reliably on the older WebView versions supported by
- * Simple Browser.
+ * Profile management keeps normal internal navigation as a fallback, while
+ * switching uses a narrow bridge so the action is immediate and reliable
+ * across WebView callback variations.
  */
 public final class ProfilesPage {
 
