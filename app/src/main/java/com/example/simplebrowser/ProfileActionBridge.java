@@ -12,10 +12,13 @@ import android.webkit.JavascriptInterface;
 public final class ProfileActionBridge {
 
     private final MainActivity activity;
+    private final BrowserTab tab;
 
     public ProfileActionBridge(
-            MainActivity activity) {
+            MainActivity activity,
+            BrowserTab tab) {
         this.activity = activity;
+        this.tab = tab;
     }
 
     @JavascriptInterface
@@ -23,6 +26,8 @@ public final class ProfileActionBridge {
             final String profileId) {
 
         if (activity == null ||
+                tab == null ||
+                !tab.profilesPage ||
                 profileId == null ||
                 profileId.trim().isEmpty()) {
             return;
