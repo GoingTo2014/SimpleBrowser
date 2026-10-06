@@ -201,9 +201,8 @@ public final class ProfilesPage {
             html.append("<div class='actions'>");
 
             if (!current) {
-                html.append(actionLink(
-                        "simplebrowser://profile/switch/" +
-                                attribute(profile.id),
+                html.append(switchLink(
+                        profile.id,
                         t("profiles.switch"),
                         button));
             }
@@ -254,6 +253,38 @@ public final class ProfilesPage {
         return Localization.translateHtml(
                 activity,
                 html.toString());
+    }
+
+    private String switchLink(
+            String profileId,
+            String label,
+            int ignoredButtonColor) {
+
+        String safeId =
+                escapeJavaScript(
+                        profileId);
+
+        return "<a class='button' href='https://browser.local/profiles/action/switch/" +
+                attribute(profileId) +
+                "' onclick=\"ProfileActions.switchProfile('" +
+                safeId +
+                "');return false;\">" +
+                escape(label) +
+                "</a>";
+    }
+
+    private String escapeJavaScript(
+            String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n");
     }
 
     private String actionLink(
