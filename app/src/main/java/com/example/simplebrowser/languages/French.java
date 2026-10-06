@@ -316,8 +316,7 @@ public final class French extends LanguagePack {
         put("demo.form_output", "Sortie du formulaire");
         put("demo.dialog", "Boîte de dialogue");
         put("demo.dialog_text", "Élément de dialogue standard");
-    }
-        put("common.cancel", "Annuler");
+put("common.cancel", "Annuler");
         put("common.save", "Enregistrer");
         put("bookmarks.title", "Favoris");
         put("bookmarks.desc", "Pages que vous avez enregistrées dans Simple Browser.");
@@ -358,5 +357,6 @@ public final class French extends LanguagePack {
         put("profiles.name", "Nom du profil");
         put("profiles.choose_picture", "Choisir une photo de profil");
         put("profiles.cannot_save", "Impossible d'enregistrer le profil.");
-
+    }
+    }
 }
