@@ -317,4 +317,46 @@ public final class French extends LanguagePack {
         put("demo.dialog", "Boîte de dialogue");
         put("demo.dialog_text", "Élément de dialogue standard");
     }
+        put("common.cancel", "Annuler");
+        put("common.save", "Enregistrer");
+        put("bookmarks.title", "Favoris");
+        put("bookmarks.desc", "Pages que vous avez enregistrées dans Simple Browser.");
+        put("bookmarks.search", "Rechercher dans les favoris");
+        put("bookmarks.empty", "Aucun favori trouvé.");
+        put("bookmarks.open", "Ouvrir");
+        put("bookmarks.confirm_delete", "Supprimer ce favori ?");
+        put("bookmarks.invalid", "Seules les pages web peuvent être ajoutées aux favoris.");
+        put("bookmarks.added", "Favori ajouté.");
+        put("passwords.title", "Gestionnaire de mots de passe");
+        put("passwords.security_desc", "Les mots de passe sont chiffrés sur cet appareil. Lorsque Android le permet, le verrouillage de l'appareil est demandé avant l'ouverture de ce gestionnaire.");
+        put("passwords.add", "Ajouter un mot de passe");
+        put("passwords.site", "Site web");
+        put("passwords.username", "Nom d'utilisateur");
+        put("passwords.password", "Mot de passe");
+        put("passwords.note", "Note");
+        put("passwords.save", "Enregistrer");
+        put("passwords.clear", "Effacer");
+        put("passwords.edit", "Modifier");
+        put("passwords.reveal", "Afficher");
+        put("passwords.revealed", "Mot de passe : ");
+        put("passwords.confirm_delete", "Supprimer ce mot de passe enregistré ?");
+        put("passwords.empty", "Aucun mot de passe enregistré.");
+        put("passwords.error", "Impossible de lire la base de données chiffrée des mots de passe.");
+        put("passwords.save_failed", "Impossible d'enregistrer le mot de passe.");
+        put("passwords.unlock_title", "Déverrouiller le gestionnaire de mots de passe");
+        put("passwords.unlock_desc", "Confirmez le code PIN, mot de passe, schéma ou autre verrouillage sécurisé de votre appareil.");
+        put("passwords.api_limit", "Android 4.4 ne peut pas afficher l'écran système de confirmation des identifiants. Le gestionnaire sera ouvert lorsque l'appareil sera déjà déverrouillé.");
+        put("profiles.title", "Profils");
+        put("profiles.desc", "Créez jusqu'à %d profils permanents. Chaque profil possède ses propres réglages, historique, favoris, cookies, onglets, historique des téléchargements et mots de passe.");
+        put("profiles.create", "Créer un profil");
+        put("profiles.guest", "Profil invité");
+        put("profiles.current", "Profil actuel");
+        put("profiles.switch", "Changer");
+        put("profiles.edit", "Modifier");
+        put("profiles.guest_confirm", "Démarrer un nouveau Profil invité ? Tout y est temporaire et sera effacé lorsque vous le quitterez.");
+        put("profiles.delete_confirm", "Supprimer ce profil et toutes ses données de navigation ?");
+        put("profiles.name", "Nom du profil");
+        put("profiles.choose_picture", "Choisir une photo de profil");
+        put("profiles.cannot_save", "Impossible d'enregistrer le profil.");
+
 }
