@@ -2589,12 +2589,27 @@ public class MainActivity extends Activity {
     public void restoreWebStorage(
             BrowserTab tab,
             String url) {
+        restoreWebStorage(
+                tab,
+                url,
+                null);
+    }
+
+    public void restoreWebStorage(
+            BrowserTab tab,
+            String url,
+            final Runnable completion) {
 
         if (tab == null ||
                 tab.webView == null ||
                 tab.isIncognito ||
                 !browserSettings.isStorageEnabled() ||
                 webStorageStore == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
             return;
         }
 
@@ -2603,6 +2618,11 @@ public class MainActivity extends Activity {
 
         if (origin == null ||
                 !webStorageStore.has(origin)) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
             return;
         }
 
@@ -2624,13 +2644,21 @@ public class MainActivity extends Activity {
         try {
             tab.webView.evaluateJavascript(
                     script,
-                    null);
+                    value -> {
+                        if (completion != null) {
+                            completion.run();
+                        }
+                    });
         } catch (Throwable ignored) {
             try {
                 tab.webView.loadUrl(
                         "javascript:" +
                         script);
             } catch (Throwable ignoredAgain) {
+            }
+
+            if (completion != null) {
+                completion.run();
             }
         }
     }
