@@ -1793,7 +1793,7 @@ public class MainActivity extends Activity {
                 () -> CookieStore.clearRuntimeCookies(
                         () -> {
 
-                            Runnable finish =
+                            Runnable restoreStorage =
                                     () -> {
 
                                         tabManager.exitGuestMode();
@@ -1810,10 +1810,16 @@ public class MainActivity extends Activity {
                                         }
                                     };
 
-                            // Rehydrate normal WebViews while they are still
-                            // hidden/paused, before exposing the normal session.
-                            restoreWebStorageForNormalTabs(
-                                    finish);
+                            Runnable finish =
+                                    () -> restoreWebStorageForNormalTabs(
+                                            restoreStorage);
+
+                            if (cookieStore != null) {
+                                cookieStore.restoreCookies(
+                                        finish);
+                            } else {
+                                finish.run();
+                            }
                         }));
     }
 
