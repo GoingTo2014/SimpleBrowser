@@ -985,6 +985,24 @@ public class SettingsPage {
                         activity,
                         "Hindi") +
                 "</option>" +
+                "<option value='ru'" +
+                (Localization.RUSSIAN.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">Russian</option>" +
+                "<option value='de'" +
+                (Localization.GERMAN.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">German</option>" +
+                "<option value='ar'" +
+                (Localization.ARABIC.equals(
+                        settings.getLanguage())
+                        ? " selected"
+                        : "") +
+                ">Arabic</option>" +
                 "</select>" +
                 "</div>" +
 
