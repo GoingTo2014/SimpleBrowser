@@ -393,8 +393,14 @@ public class TabManager {
         tab.faviconView.setScaleType(
                 ImageView.ScaleType.CENTER_INSIDE);
 
+        tab.faviconView.setPadding(
+                dp(5),
+                dp(5),
+                dp(5),
+                dp(5));
+
         tab.faviconView.setVisibility(
-                View.GONE);
+                View.VISIBLE);
 
         tab.faviconView.setContentDescription(
                 "Website icon");
@@ -975,6 +981,16 @@ public class TabManager {
 
         tab.closeButton.setColorFilter(
                 textColor);
+
+        android.graphics.drawable.Drawable currentDrawable =
+                tab.faviconView == null
+                        ? null
+                        : tab.faviconView.getDrawable();
+
+        if (currentDrawable instanceof TabLoadingDrawable) {
+            ((TabLoadingDrawable) currentDrawable).setColor(
+                    textColor);
+        }
     }
 
     public void updateTabAppearanceColors() {
@@ -1030,6 +1046,7 @@ public class TabManager {
             previewStore.remove(
                     tab.previewKey);
 
+            stopTabLoadingIcon(tab);
             tab.webView.stopLoading();
             tab.webView.destroy();
 
@@ -1071,6 +1088,7 @@ public class TabManager {
         previewStore.remove(
                 tab.previewKey);
 
+        stopTabLoadingIcon(tab);
         tab.webView.stopLoading();
         tab.webView.destroy();
 
@@ -1641,6 +1659,85 @@ public class TabManager {
         tab.titleView.setText(title);
     }
 
+    public void updateTabLoadingState(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.faviconView == null) {
+            return;
+        }
+
+        int color =
+                tab.titleView == null
+                        ? Color.WHITE
+                        : tab.titleView
+                                .getTextColors()
+                                .getDefaultColor();
+
+        android.graphics.drawable.Drawable currentDrawable =
+                tab.faviconView.getDrawable();
+
+        if (tab.loading) {
+
+            TabLoadingDrawable spinner;
+
+            if (currentDrawable instanceof TabLoadingDrawable) {
+                spinner =
+                        (TabLoadingDrawable) currentDrawable;
+            } else {
+                spinner =
+                        new TabLoadingDrawable(color);
+
+                tab.faviconView.setImageDrawable(
+                        spinner);
+            }
+
+            spinner.setColor(color);
+            tab.faviconView.setVisibility(
+                    View.VISIBLE);
+            spinner.start();
+
+            return;
+        }
+
+        stopTabLoadingIcon(tab);
+
+        Bitmap favicon =
+                tab.favicon;
+
+        if (favicon != null &&
+                !favicon.isRecycled()) {
+
+            tab.faviconView.setImageBitmap(
+                    favicon);
+
+        } else {
+
+            tab.faviconView.setImageDrawable(
+                    null);
+        }
+
+        // Keep this view visible so the tab title never moves.
+        tab.faviconView.setVisibility(
+                View.VISIBLE);
+    }
+
+    private void stopTabLoadingIcon(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.faviconView == null) {
+            return;
+        }
+
+        android.graphics.drawable.Drawable drawable =
+                tab.faviconView.getDrawable();
+
+        if (drawable instanceof TabLoadingDrawable) {
+            ((TabLoadingDrawable) drawable).stop();
+        }
+    }
+
     public void updateTabIcon(
             BrowserTab tab,
             Bitmap favicon) {
@@ -1650,26 +1747,7 @@ public class TabManager {
         }
 
         tab.favicon = favicon;
-
-        if (tab.faviconView == null) {
-            return;
-        }
-
-        if (favicon != null &&
-                !favicon.isRecycled()) {
-
-            tab.faviconView.setImageBitmap(
-                    favicon);
-            tab.faviconView.setVisibility(
-                    View.VISIBLE);
-
-        } else {
-
-            tab.faviconView.setImageDrawable(
-                    null);
-            tab.faviconView.setVisibility(
-                    View.GONE);
-        }
+        updateTabLoadingState(tab);
     }
 
     public void updateTitles() {
