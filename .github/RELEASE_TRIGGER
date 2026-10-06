@@ -17,3 +17,4 @@ Fix profile update variable shadowing after compiler review.
 Final documentation wording review completed.
 Final built-in button color audit completed.
 Final review: full-screen tabs, profile Web Storage isolation, privacy confirmations, menu cleanup, password capture investigation, and complete translations.
+Final review: tab overview, profile storage isolation, password capture, privacy confirmations, advanced controls, shared WebView stores, and complete translations.
