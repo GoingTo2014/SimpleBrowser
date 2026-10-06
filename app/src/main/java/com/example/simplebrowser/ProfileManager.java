@@ -134,7 +134,74 @@ public final class ProfileManager {
                     id);
         }
 
-        return id.trim();
+        id = id.trim();
+
+        if (!MAIN_ID.equals(id) &&
+                !isKnownPersistentProfile(
+                        context,
+                        id)) {
+
+            id = MAIN_ID;
+
+            writeActiveProfileFile(
+                    context,
+                    id);
+
+            preferences(context).edit()
+                    .putString(
+                            KEY_ACTIVE,
+                            id)
+                    .commit();
+        }
+
+        return id;
+    }
+
+    public static synchronized boolean isKnownPersistentProfile(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return false;
+        }
+
+        if (MAIN_ID.equals(profileId)) {
+            return true;
+        }
+
+        String json =
+                readStateFile(
+                        context,
+                        PROFILE_REGISTRY_FILE);
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            JSONArray array =
+                    new JSONArray(json);
+
+            for (int i = 0;
+                    i < array.length();
+                    i++) {
+
+                if (profileId.equals(
+                        array.getJSONObject(i)
+                                .optString(
+                                        "id",
+                                        ""))) {
+                    return true;
+                }
+            }
+
+        } catch (Throwable ignored) {
+        }
+
+        return false;
     }
 
     public static synchronized void setProcessProfileId(
