@@ -317,6 +317,18 @@ public class BrowserSettings {
                 true);
     }
 
+    public boolean isWideViewportEnabled() {
+        return preferences.getBoolean(
+                "wide_viewport",
+                true);
+    }
+
+    public boolean isOfflineModeEnabled() {
+        return preferences.getBoolean(
+                "offline_mode",
+                false);
+    }
+
     public void setInt(
             String name,
             int value) {
