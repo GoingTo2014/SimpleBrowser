@@ -66,7 +66,10 @@ public class BrowserSettings {
                 Localization.FRENCH.equals(language) ||
                 Localization.JAPANESE.equals(language) ||
                 Localization.CHINESE.equals(language) ||
-                Localization.HINDI.equals(language)
+                Localization.HINDI.equals(language) ||
+                Localization.RUSSIAN.equals(language) ||
+                Localization.GERMAN.equals(language) ||
+                Localization.ARABIC.equals(language)
                         ? language
                         : Localization.SYSTEM;
 
@@ -254,6 +257,68 @@ public class BrowserSettings {
         return preferences.getBoolean(
                 "webview_debugging",
                 false);
+    }
+
+    public boolean isCameraEnabled() {
+        return preferences.getBoolean(
+                "camera",
+                true);
+    }
+
+    public boolean isMicrophoneEnabled() {
+        return preferences.getBoolean(
+                "microphone",
+                true);
+    }
+
+    public boolean isSaveFormDataEnabled() {
+        return preferences.getBoolean(
+                "save_form_data",
+                true);
+    }
+
+    public boolean isThirdPartyCookiesEnabled() {
+        return preferences.getBoolean(
+                "third_party_cookies",
+                true);
+    }
+
+    public boolean isMixedContentEnabled() {
+        return preferences.getBoolean(
+                "mixed_content",
+                false);
+    }
+
+    public boolean isFileAccessFromFileUrlsEnabled() {
+        return preferences.getBoolean(
+                "file_access_from_file_urls",
+                false);
+    }
+
+    public boolean isUniversalAccessFromFileUrlsEnabled() {
+        return preferences.getBoolean(
+                "universal_access_from_file_urls",
+                false);
+    }
+
+    public String getCacheMode() {
+        return preferences.getString(
+                "cache_mode",
+                "default");
+    }
+
+    public void setCacheMode(String mode) {
+        String value =
+                "no_cache".equals(mode) ||
+                "cache_only".equals(mode)
+                        ? mode
+                        : "default";
+
+        preferences.edit()
+                .putString(
+                        "cache_mode",
+                        value)
+                .apply();
     }
 
     public boolean isAutomaticUpdatesEnabled() {
