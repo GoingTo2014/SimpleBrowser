@@ -95,6 +95,12 @@ public class MainActivity extends Activity {
     private static final int LOCATION_PERMISSION_REQUEST =
             1501;
 
+    private static final int MEDIA_PERMISSION_REQUEST =
+            1502;
+
+    private android.webkit.PermissionRequest pendingMediaPermissionRequest;
+    private String[] pendingMediaPermissionResources;
+
     @Override
     protected void onCreate(
             Bundle savedInstanceState) {
@@ -2515,6 +2521,37 @@ public class MainActivity extends Activity {
         tab.webView.reload();
     }
 
+    private java.util.List<String> getOpenWebUrls() {
+
+        java.util.ArrayList<String> urls =
+                new java.util.ArrayList<>();
+
+        if (tabManager == null) {
+            return urls;
+        }
+
+        for (BrowserTab current :
+                tabManager.getTabs()) {
+
+            if (current == null ||
+                    current.isIncognito ||
+                    current.webView == null) {
+                continue;
+            }
+
+            String url =
+                    current.webView.getUrl();
+
+            if (url != null &&
+                    (url.startsWith("http://") ||
+                     url.startsWith("https://"))) {
+                urls.add(url);
+            }
+        }
+
+        return urls;
+    }
+
     public void clearBrowserHistory() {
 
         if (browserHistory != null) {
@@ -3032,6 +3069,190 @@ public class MainActivity extends Activity {
                 LOCATION_PERMISSION_REQUEST);
     }
 
+    @android.annotation.TargetApi(21)
+    public void handleWebPermissionRequest(
+            android.webkit.PermissionRequest request) {
+
+        if (request == null ||
+                Build.VERSION.SDK_INT < 21) {
+            return;
+        }
+
+        String[] requested =
+                request.getResources();
+
+        java.util.ArrayList<String> allowed =
+                new java.util.ArrayList<>();
+
+        if (requested != null) {
+            for (String resource : requested) {
+
+                if (android.webkit.PermissionRequest
+                        .RESOURCE_VIDEO_CAPTURE
+                        .equals(resource) &&
+                        browserSettings.isCameraEnabled()) {
+                    allowed.add(resource);
+
+                } else if (
+                        android.webkit.PermissionRequest
+                                .RESOURCE_AUDIO_CAPTURE
+                                .equals(resource) &&
+                        browserSettings.isMicrophoneEnabled()) {
+                    allowed.add(resource);
+                }
+            }
+        }
+
+        if (allowed.isEmpty()) {
+            request.deny();
+            return;
+        }
+
+        String[] resources =
+                allowed.toArray(
+                        new String[allowed.size()]);
+
+        if (Build.VERSION.SDK_INT >= 23) {
+
+            java.util.ArrayList<String> missing =
+                    new java.util.ArrayList<>();
+
+            for (String resource : resources) {
+
+                if (android.webkit.PermissionRequest
+                        .RESOURCE_VIDEO_CAPTURE
+                        .equals(resource) &&
+                        checkSelfPermission(
+                                Manifest.permission.CAMERA) !=
+                                PackageManager.PERMISSION_GRANTED) {
+                    if (!missing.contains(
+                            Manifest.permission.CAMERA)) {
+                        missing.add(
+                                Manifest.permission.CAMERA);
+                    }
+
+                } else if (
+                        android.webkit.PermissionRequest
+                                .RESOURCE_AUDIO_CAPTURE
+                                .equals(resource) &&
+                        checkSelfPermission(
+                                Manifest.permission.RECORD_AUDIO) !=
+                                PackageManager.PERMISSION_GRANTED) {
+                    if (!missing.contains(
+                            Manifest.permission.RECORD_AUDIO)) {
+                        missing.add(
+                                Manifest.permission.RECORD_AUDIO);
+                    }
+                }
+            }
+
+            if (!missing.isEmpty()) {
+                pendingMediaPermissionRequest = request;
+                pendingMediaPermissionResources = resources;
+
+                requestPermissions(
+                        missing.toArray(
+                                new String[missing.size()]),
+                        MEDIA_PERMISSION_REQUEST);
+                return;
+            }
+        }
+
+        showMediaPermissionDialog(
+                request,
+                resources);
+    }
+
+    @android.annotation.TargetApi(21)
+    private void showMediaPermissionDialog(
+            final android.webkit.PermissionRequest request,
+            final String[] resources) {
+
+        if (request == null ||
+                resources == null ||
+                resources.length == 0) {
+            if (request != null) {
+                request.deny();
+            }
+            return;
+        }
+
+        boolean camera = false;
+        boolean microphone = false;
+
+        for (String resource : resources) {
+            if (android.webkit.PermissionRequest
+                    .RESOURCE_VIDEO_CAPTURE
+                    .equals(resource)) {
+                camera = true;
+            }
+
+            if (android.webkit.PermissionRequest
+                    .RESOURCE_AUDIO_CAPTURE
+                    .equals(resource)) {
+                microphone = true;
+            }
+        }
+
+        StringBuilder message =
+                new StringBuilder(
+                        Localization.translate(
+                                this,
+                                "permissions.website_request"));
+
+        message.append("\n\n");
+
+        if (camera) {
+            message.append(
+                    Localization.translate(
+                            this,
+                            "permissions.camera"));
+        }
+
+        if (camera && microphone) {
+            message.append(", ");
+        }
+
+        if (microphone) {
+            message.append(
+                    Localization.translate(
+                            this,
+                            "permissions.microphone"));
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "permissions.title"))
+                .setMessage(message.toString())
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.deny"),
+                        (dialog, which) ->
+                                request.deny())
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "common.allow"),
+                        (dialog, which) ->
+                                request.grant(resources))
+                .setOnCancelListener(
+                        dialog -> request.deny())
+                .show();
+    }
+
+    @android.annotation.TargetApi(21)
+    public void handleWebPermissionRequestCanceled(
+            android.webkit.PermissionRequest request) {
+
+        if (request == pendingMediaPermissionRequest) {
+            pendingMediaPermissionRequest = null;
+            pendingMediaPermissionResources = null;
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(
             int requestCode,
@@ -3042,6 +3263,50 @@ public class MainActivity extends Activity {
                 requestCode,
                 permissions,
                 grantResults);
+
+        if (requestCode ==
+                MEDIA_PERMISSION_REQUEST) {
+
+            android.webkit.PermissionRequest request =
+                    pendingMediaPermissionRequest;
+
+            String[] resources =
+                    pendingMediaPermissionResources;
+
+            pendingMediaPermissionRequest = null;
+            pendingMediaPermissionResources = null;
+
+            if (request == null ||
+                    resources == null) {
+                return;
+            }
+
+            boolean allGranted = true;
+
+            if (permissions != null) {
+                for (int i = 0;
+                        i < permissions.length;
+                        i++) {
+                    if (grantResults.length <= i ||
+                            grantResults[i] !=
+                                    PackageManager
+                                            .PERMISSION_GRANTED) {
+                        allGranted = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!allGranted) {
+                request.deny();
+            } else {
+                showMediaPermissionDialog(
+                        request,
+                        resources);
+            }
+
+            return;
+        }
 
         if (requestCode !=
                 LOCATION_PERMISSION_REQUEST) {
