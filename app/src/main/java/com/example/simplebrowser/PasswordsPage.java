@@ -312,9 +312,8 @@ public final class PasswordsPage {
         return "'" +
                 value.replace("\\", "\\\\")
                         .replace("'", "\\'")
-                        .replace("", "\r")
-                        .replace("
-", "\n") +
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n") +
                 "'";
     }
 
