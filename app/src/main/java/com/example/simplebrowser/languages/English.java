@@ -359,4 +359,23 @@ put("common.cancel", "Cancel");
         put("profiles.choose_picture", "Choose profile picture");
         put("profiles.cannot_save", "Could not save the profile.");
     }
+        put("Bookmark", "Bookmark");
+        put("passwords.import", "Import");
+        put("passwords.export", "Export");
+        put("passwords.all_sites", "All websites");
+        put("passwords.saved_one", "saved password");
+        put("passwords.saved_many", "saved passwords");
+        put("passwords.no_entries", "No saved passwords for this website.");
+        put("passwords.export_title", "Export passwords");
+        put("passwords.export_password", "Export password (6+ characters)");
+        put("passwords.import_title", "Import passwords");
+        put("passwords.save_prompt_title", "Save password?");
+        put("passwords.save_prompt", "Simple Browser detected a submitted password. Save it to the password manager?");
+        put("passwords.not_now", "Not now");
+        put("passwords.save_password", "Save password");
+        put("passwords.exported", "Encrypted password backup exported.");
+        put("passwords.imported", "Passwords imported:");
+        put("passwords.export_failed", "Could not export the encrypted password backup.");
+        put("passwords.import_failed", "Could not import the encrypted password backup.");
+
 }
