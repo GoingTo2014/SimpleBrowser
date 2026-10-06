@@ -316,8 +316,7 @@ public final class Chinese extends LanguagePack {
         put("demo.form_output", "表单输出");
         put("demo.dialog", "对话框");
         put("demo.dialog_text", "默认对话框元素");
-    }
-        put("common.cancel", "取消");
+put("common.cancel", "取消");
         put("common.save", "保存");
         put("bookmarks.title", "书签");
         put("bookmarks.desc", "你在 Simple Browser 中保存的页面。");
@@ -358,5 +357,6 @@ public final class Chinese extends LanguagePack {
         put("profiles.name", "配置文件名称");
         put("profiles.choose_picture", "选择配置文件图片");
         put("profiles.cannot_save", "无法保存配置文件。");
-
+    }
+    }
 }
