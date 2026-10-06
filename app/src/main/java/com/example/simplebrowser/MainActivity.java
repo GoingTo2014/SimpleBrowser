@@ -43,6 +43,9 @@ import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
 
+    private static final String PROFILE_PROCESS_PROFILE_ID_EXTRA =
+            "simplebrowser.profile_id";
+
     private EditText urlBox;
     private ProgressBar progressBar;
     private LinearLayout toolbar;
@@ -288,6 +291,10 @@ public class MainActivity extends Activity {
             forward.setClass(
                     this,
                     target);
+
+            forward.putExtra(
+                    PROFILE_PROCESS_PROFILE_ID_EXTRA,
+                    activeProfileId);
 
             forward.addFlags(
                     Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -2138,6 +2145,10 @@ public class MainActivity extends Activity {
                         new Intent(
                                 this,
                                 targetActivity);
+
+                intent.putExtra(
+                        PROFILE_PROCESS_PROFILE_ID_EXTRA,
+                        targetProfileId);
 
                 /*
                  * Make the target Activity the deterministic root of the
