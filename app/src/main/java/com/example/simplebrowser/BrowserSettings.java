@@ -265,6 +265,105 @@ public class BrowserSettings {
                 true);
     }
 
+    public boolean isJavaScriptCanOpenWindowsAutomaticallyEnabled() {
+        return preferences.getBoolean(
+                "js_open_windows",
+                false);
+    }
+
+    public boolean isJavaScriptCanOpenWindowsAutomatically() {
+        return isJavaScriptCanOpenWindowsAutomaticallyEnabled();
+    }
+
+    public boolean isLoadWithOverviewMode() {
+        return preferences.getBoolean(
+                "overview_mode",
+                false);
+    }
+
+    public int getTextZoom() {
+        return clampInt(
+                preferences.getInt(
+                        "text_zoom",
+                        100),
+                50,
+                200);
+    }
+
+    public int getMinimumFontSize() {
+        return clampInt(
+                preferences.getInt(
+                        "minimum_font_size",
+                        8),
+                1,
+                24);
+    }
+
+    public boolean isWebSqlEnabled() {
+        return preferences.getBoolean(
+                "web_sql",
+                true);
+    }
+
+    public boolean isSafeBrowsingEnabled() {
+        return preferences.getBoolean(
+                "safe_browsing",
+                true);
+    }
+
+    public boolean isHardwareAccelerationEnabled() {
+        return preferences.getBoolean(
+                "hardware_acceleration",
+                true);
+    }
+
+    public boolean isDoNotTrackEnabled() {
+        return preferences.getBoolean(
+                "do_not_track",
+                false);
+    }
+
+    public boolean isBlockThirdPartyStorage() {
+        return preferences.getBoolean(
+                "block_third_party_storage",
+                false);
+    }
+
+    public void setInt(
+            String name,
+            int value) {
+
+        preferences.edit()
+                .putInt(name, value)
+                .apply();
+    }
+
+    public void setCacheMode(String mode) {
+        String value =
+                "no_cache".equals(mode) ||
+                "cache_only".equals(mode)
+                        ? mode
+                        : "default";
+
+        preferences.edit()
+                .putString(
+                        "cache_mode",
+                        value)
+                .apply();
+    }
+
+    private int clampInt(
+            int value,
+            int minimum,
+            int maximum) {
+
+        return Math.max(
+                minimum,
+                Math.min(
+                        maximum,
+                        value));
+    }
+
     public boolean isMicrophoneEnabled() {
         return preferences.getBoolean(
                 "microphone",
