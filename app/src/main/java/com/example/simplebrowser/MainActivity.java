@@ -7,6 +7,10 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.app.AlertDialog;
+import android.app.KeyguardManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -32,6 +36,7 @@ import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URLEncoder;
 
 public class MainActivity extends Activity {
@@ -42,6 +47,12 @@ public class MainActivity extends Activity {
     private PopupWindow browserMenu;
 
     private BrowserSettings browserSettings;
+    private ProfileManager profileManager;
+    private BookmarkStore bookmarkStore;
+    private PasswordStore passwordStore;
+    private BookmarksPage bookmarksPage;
+    private PasswordsPage passwordsPage;
+    private ProfilesPage profilesPage;
     private TabManager tabManager;
     private SettingsPage settingsPage;
     private SecurityManager securityManager;
@@ -56,6 +67,18 @@ public class MainActivity extends Activity {
     private CookiesPage cookiesPage;
     private DemoPage demoPage;
     private UpdateManager updateManager;
+
+    private static final int PASSWORD_AUTH_REQUEST = 2001;
+    private static final int PROFILE_IMAGE_REQUEST = 2002;
+
+    private boolean passwordManagerAuthenticated;
+    private boolean awaitingPasswordAuthentication;
+    private boolean profileSwitching;
+    private BrowserTab pendingPasswordTab;
+    private BrowserTab pendingProfileEditorTab;
+    private String pendingProfileEditorId;
+    private String pendingProfileEditorName;
+    private String pendingProfileEditorPfp;
 
     private static final int INCOGNITO_CHROME =
             Color.rgb(32, 33, 36);
@@ -76,6 +99,9 @@ public class MainActivity extends Activity {
             Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        profileManager =
+                new ProfileManager(this);
 
         browserSettings =
                 new BrowserSettings(this);
@@ -157,8 +183,15 @@ public class MainActivity extends Activity {
         errorPage =
                 new ErrorPage(this);
 
+        bookmarkStore = new BookmarkStore(this);
+        passwordStore = new PasswordStore(this);
+        bookmarksPage = new BookmarksPage(this, bookmarkStore);
+        passwordsPage = new PasswordsPage(this, passwordStore);
+        profilesPage = new ProfilesPage(this, profileManager);
+
         cookieStore =
                 new CookieStore(this);
+        cookieStore.restoreCookies();
 
         cookiesPage =
                 new CookiesPage(
@@ -572,6 +605,29 @@ public class MainActivity extends Activity {
         menu.setBackgroundColor(
                 menuBackground);
 
+        addMenuActionButton(menu, "Bookmarks", () -> {
+            if (browserMenu != null) browserMenu.dismiss();
+            BrowserTab tab = getActiveTab();
+            if (tab != null) showBookmarks(tab, "");
+        }, accent, readable);
+
+        addMenuActionButton(menu, "Add bookmark", () -> {
+            if (browserMenu != null) browserMenu.dismiss();
+            addCurrentPageBookmark();
+        }, accent, readable);
+
+        addMenuActionButton(menu, "Password manager", () -> {
+            if (browserMenu != null) browserMenu.dismiss();
+            BrowserTab tab = getActiveTab();
+            if (tab != null) showPasswordManager(tab);
+        }, accent, readable);
+
+        addMenuActionButton(menu, "Profiles", () -> {
+            if (browserMenu != null) browserMenu.dismiss();
+            BrowserTab tab = getActiveTab();
+            if (tab != null) showProfiles(tab);
+        }, accent, readable);
+
         addMenuActionButton(
                 menu,
                 "History",
@@ -740,8 +796,14 @@ public class MainActivity extends Activity {
                         this,
                         text));
         button.setAllCaps(false);
-        button.setTextColor(readable);
-        button.setBackgroundColor(accent);
+        int buttonColor =
+                ColorUtils.ensureContrast(
+                        ColorUtils.darken(accent, 0.22f),
+                        Color.WHITE,
+                        3.0d);
+        button.setTextColor(
+                ColorUtils.getReadableTextColor(buttonColor));
+        button.setBackgroundColor(buttonColor);
         button.setGravity(
                 android.view.Gravity.RIGHT |
                 android.view.Gravity.CENTER_VERTICAL);
@@ -1047,6 +1109,229 @@ public class MainActivity extends Activity {
                     android.widget.Toast.LENGTH_SHORT)
                     .show();
         }
+    }
+
+    public void showBookmarks(BrowserTab tab, String query) {
+        if (tab == null) return;
+        removeInternalPageState(tab);
+        bookmarksPage.show(tab, query);
+        tabManager.selectTab(tab);
+    }
+
+    public void addCurrentPageBookmark() {
+        BrowserTab tab = getActiveTab();
+        if (tab == null || tab.webView == null) return;
+        String url = tab.webView.getUrl();
+        if (url == null ||
+                (!url.startsWith("http://") && !url.startsWith("https://"))) {
+            android.widget.Toast.makeText(this,
+                    Localization.translate(this, "bookmarks.invalid"),
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        bookmarkStore.addOrUpdate(url, tab.title, tab.favicon);
+        android.widget.Toast.makeText(this,
+                Localization.translate(this, "bookmarks.added"),
+                android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    public void showProfiles(BrowserTab tab) {
+        if (tab == null) return;
+        removeInternalPageState(tab);
+        profilesPage.show(tab);
+        tabManager.selectTab(tab);
+    }
+
+    public void showPasswordManager(BrowserTab tab) {
+        if (tab == null) return;
+        if (passwordManagerAuthenticated) {
+            showPasswordManagerPage(tab);
+            return;
+        }
+        KeyguardManager keyguard =
+                (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        boolean secure = keyguard != null && keyguard.isKeyguardSecure();
+        if (secure && Build.VERSION.SDK_INT >= 21) {
+            try {
+                Intent intent = keyguard.createConfirmDeviceCredentialIntent(
+                        Localization.translate(this, "passwords.unlock_title"),
+                        Localization.translate(this, "passwords.unlock_desc"));
+                if (intent != null) {
+                    pendingPasswordTab = tab;
+                    awaitingPasswordAuthentication = true;
+                    startActivityForResult(intent, PASSWORD_AUTH_REQUEST);
+                    return;
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        if (secure && Build.VERSION.SDK_INT < 21) {
+            android.widget.Toast.makeText(this,
+                    Localization.translate(this, "passwords.api_limit"),
+                    android.widget.Toast.LENGTH_LONG).show();
+        }
+        passwordManagerAuthenticated = true;
+        showPasswordManagerPage(tab);
+    }
+
+    private void showPasswordManagerPage(BrowserTab tab) {
+        passwordsPage.show(tab);
+        tabManager.selectTab(tab);
+    }
+
+    public void showPasswordManagerError(String message) {
+        android.widget.Toast.makeText(this, message,
+                android.widget.Toast.LENGTH_LONG).show();
+    }
+
+    public void switchProfile(String profileId) {
+        if (profileId == null) return;
+        performProfileSwitch(profileId);
+    }
+
+    public void enterGuestProfile(BrowserTab tab) {
+        performProfileSwitch(ProfileManager.createGuestSession());
+    }
+
+    private void performProfileSwitch(String targetProfileId) {
+        String current = ProfileManager.getActiveProfileId(this);
+        if (targetProfileId == null || current.equals(targetProfileId)) return;
+        if (!ProfileManager.isGuest(targetProfileId) &&
+                profileManager.getProfile(this, targetProfileId) == null) return;
+
+        profileSwitching = true;
+        saveTabs();
+        if (cookieStore != null) cookieStore.snapshotCookies();
+        CookieStore.clearRuntimeCookies();
+
+        if (browserHistory != null) browserHistory.close();
+        if (downloadHistory != null) downloadHistory.close();
+        if (bookmarkStore != null) bookmarkStore.close();
+        if (passwordStore != null) passwordStore.close();
+
+        if (ProfileManager.isGuest(current)) {
+            ProfileManager.deleteProfileData(this, current);
+        }
+
+        ProfileManager.setActiveProfileId(this, targetProfileId);
+        recreate();
+    }
+
+    public void showProfileEditor(BrowserTab tab, String profileId) {
+        ProfileManager.Profile profile = profileId == null
+                ? null : profileManager.getProfile(this, profileId);
+        pendingProfileEditorTab = tab;
+        pendingProfileEditorId = profileId;
+        pendingProfileEditorName = profile == null
+                ? "Profile " + Math.max(1, profileManager.getPersistentProfileCount(this))
+                : profile.name;
+        pendingProfileEditorPfp = profile == null ? "" : profile.pfpBase64;
+        showProfileEditorDialog();
+    }
+
+    private void showProfileEditorDialog() {
+        final LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(20), dp(8), dp(20), 0);
+
+        final ImageView preview = new ImageView(this);
+        preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        LinearLayout.LayoutParams imageParams =
+                new LinearLayout.LayoutParams(dp(88), dp(88));
+        imageParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        layout.addView(preview, imageParams);
+
+        final EditText name = new EditText(this);
+        name.setSingleLine(true);
+        name.setText(pendingProfileEditorName);
+        name.setHint(Localization.translate(this, "profiles.name"));
+        layout.addView(name, new LinearLayout.LayoutParams(-1, dp(52)));
+
+        renderProfilePreview(preview, pendingProfileEditorName, pendingProfileEditorPfp);
+
+        Button choose = new Button(this);
+        choose.setAllCaps(false);
+        choose.setText(Localization.translate(this, "profiles.choose_picture"));
+        layout.addView(choose, new LinearLayout.LayoutParams(-1, dp(46)));
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(pendingProfileEditorId == null
+                        ? Localization.translate(this, "profiles.create")
+                        : Localization.translate(this, "profiles.edit"))
+                .setView(layout)
+                .setNegativeButton(Localization.translate(this, "common.cancel"), null)
+                .setPositiveButton(Localization.translate(this, "common.save"), null)
+                .create();
+
+        choose.setOnClickListener(v -> {
+            pendingProfileEditorName = name.getText().toString();
+            dialog.dismiss();
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            try {
+                startActivityForResult(Intent.createChooser(intent,
+                        Localization.translate(this, "profiles.choose_picture")),
+                        PROFILE_IMAGE_REQUEST);
+            } catch (Exception ignored) {
+            }
+        });
+
+        dialog.setOnShowListener(ignored -> {
+            Button save = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            save.setOnClickListener(v -> {
+                String cleanName = name.getText().toString().trim();
+                if (cleanName.isEmpty()) cleanName = "Profile";
+                boolean ok;
+                if (pendingProfileEditorId == null) {
+                    ok = profileManager.createProfile(this, cleanName,
+                            pendingProfileEditorPfp) != null;
+                } else {
+                    ok = profileManager.updateProfile(this, pendingProfileEditorId,
+                            cleanName, pendingProfileEditorPfp);
+                }
+                if (!ok) {
+                    showPasswordManagerError(Localization.translate(this, "profiles.cannot_save"));
+                    return;
+                }
+                dialog.dismiss();
+                if (pendingProfileEditorTab != null &&
+                        pendingProfileEditorTab.profilesPage) {
+                    profilesPage.show(pendingProfileEditorTab);
+                    tabManager.selectTab(pendingProfileEditorTab);
+                }
+            });
+        });
+
+        dialog.show();
+    }
+
+    private void renderProfilePreview(ImageView image, String name, String pfp) {
+        Bitmap bitmap = ProfileManager.decodeBitmap(pfp);
+        if (bitmap != null) {
+            image.setImageBitmap(bitmap);
+            return;
+        }
+        int size = 96;
+        Bitmap generated = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(generated);
+        int background = ColorUtils.darken(getAccentColor(), 0.20f);
+        canvas.drawColor(background);
+        android.graphics.Paint paint = new android.graphics.Paint(
+                android.graphics.Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(ColorUtils.getReadableTextColor(background));
+        paint.setTextSize(34f);
+        paint.setTextAlign(android.graphics.Paint.Align.CENTER);
+        String initials = "?";
+        if (name != null && !name.trim().isEmpty()) {
+            String[] parts = name.trim().split("\\s+");
+            initials = String.valueOf(Character.toUpperCase(parts[0].charAt(0)));
+            if (parts.length > 1) {
+                initials += Character.toUpperCase(parts[parts.length - 1].charAt(0));
+            }
+        }
+        canvas.drawText(initials, size / 2f, 60f, paint);
+        image.setImageBitmap(generated);
     }
 
     public void openUrlOrSearch(
