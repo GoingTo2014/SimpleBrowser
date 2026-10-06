@@ -390,6 +390,20 @@ public class BrowserWebViewClient
         if (!BrowserPage.isInternalUrl(url) &&
                 !tab.errorPage) {
 
+            view.removeJavascriptInterface(
+                    "PasswordCapture");
+
+            view.getSettings()
+                    .setJavaScriptEnabled(true);
+
+            view.addJavascriptInterface(
+                    new PasswordCaptureBridge(
+                            activity,
+                            tab),
+                    "PasswordCapture");
+
+            injectPasswordSubmitWatcher(view);
+
             tab.url = url;
             tab.loading = false;
 
@@ -430,6 +444,38 @@ public class BrowserWebViewClient
                         : BrowserPage.toPublicRoute(url) != null
                         ? BrowserPage.toPublicRoute(url)
                         : url);
+    }
+
+    private void injectPasswordSubmitWatcher(
+            WebView view) {
+
+        String script =
+                "(function(){" +
+                "try{" +
+                "var forms=document.getElementsByTagName('form');" +
+                "for(var i=0;i<forms.length;i++){" +
+                "var f=forms[i];" +
+                "if(f.__simpleBrowserPasswordWatcher)return;" +
+                "f.__simpleBrowserPasswordWatcher=true;" +
+                "f.addEventListener('submit',function(){" +
+                "try{" +
+                "var p=this.querySelector('input[type=password]');" +
+                "if(!p||!p.value)return;" +
+                "var u=this.querySelector('input[name*=user i],input[type=email],input[name*=email i],input[autocomplete=username]');" +
+                "var user=u?u.value:'';" +
+                "PasswordCapture.submitted(location.href,user,p.value);" +
+                "}catch(e){}" +
+                "},false);" +
+                "}" +
+                "}catch(e){}" +
+                "})();";
+
+        try {
+            view.loadUrl(
+                    "javascript:" +
+                    script);
+        } catch (Throwable ignored) {
+        }
     }
 
     @Override
