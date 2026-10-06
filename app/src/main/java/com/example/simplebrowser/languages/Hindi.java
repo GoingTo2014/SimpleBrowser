@@ -316,8 +316,7 @@ public final class Hindi extends LanguagePack {
         put("demo.form_output", "फ़ॉर्म आउटपुट");
         put("demo.dialog", "डायलॉग");
         put("demo.dialog_text", "डिफ़ॉल्ट डायलॉग तत्व");
-    }
-        put("common.cancel", "रद्द करें");
+put("common.cancel", "रद्द करें");
         put("common.save", "सहेजें");
         put("bookmarks.title", "बुकमार्क");
         put("bookmarks.desc", "Simple Browser में आपके द्वारा सहेजे गए पेज।");
@@ -358,5 +357,6 @@ public final class Hindi extends LanguagePack {
         put("profiles.name", "प्रोफ़ाइल नाम");
         put("profiles.choose_picture", "प्रोफ़ाइल चित्र चुनें");
         put("profiles.cannot_save", "प्रोफ़ाइल सहेजी नहीं जा सकी।");
-
+    }
+    }
 }
