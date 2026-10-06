@@ -106,7 +106,7 @@ public class BrowserChromeClient
     public boolean onShowFileChooser(
             WebView webView,
             ValueCallback<Uri[]> filePathCallback,
-            FileChooserParams fileChooserParams) {
+            WebChromeClient.FileChooserParams fileChooserParams) {
 
         String[] acceptTypes =
                 fileChooserParams == null
@@ -116,7 +116,7 @@ public class BrowserChromeClient
         boolean allowMultiple =
                 fileChooserParams != null &&
                 fileChooserParams.getMode() ==
-                        FileChooserParams.MODE_OPEN_MULTIPLE;
+                        WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
 
         return activity.openWebFileChooser(
                 filePathCallback,
