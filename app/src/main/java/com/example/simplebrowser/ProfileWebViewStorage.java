@@ -24,6 +24,8 @@ import java.io.IOException;
  */
 public final class ProfileWebViewStorage {
 
+    // Storage boundary implementation kept independent of the UI/profile stores.
+
     private static final String BACKUP_ROOT =
             "webview_profiles";
 
