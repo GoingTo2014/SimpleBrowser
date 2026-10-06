@@ -677,23 +677,66 @@ public class MainActivity extends Activity {
                 accent,
                 readable);
 
-        addMenuActionButton(menu, "Bookmarks", () -> {
-            if (browserMenu != null) browserMenu.dismiss();
-            BrowserTab tab = getActiveTab();
-            if (tab != null) showBookmarks(tab, "");
-        }, accent, readable);
+        addMenuActionButton(
+                menu,
+                "Settings",
+                () -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
 
-        addMenuActionButton(menu, "Password manager", () -> {
-            if (browserMenu != null) browserMenu.dismiss();
-            BrowserTab tab = getActiveTab();
-            if (tab != null) showPasswordManager(tab);
-        }, accent, readable);
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showSettings(
+                                tab,
+                                "general");
+                    }
+                },
+                accent,
+                readable);
+
+        addMenuActionButton(
+                menu,
+                "Bookmarks",
+                () -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showBookmarks(tab, "");
+                    }
+                },
+                accent,
+                readable);
+
+        addMenuActionButton(
+                menu,
+                "Password manager",
+                () -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showPasswordManager(tab);
+                    }
+                },
+                accent,
+                readable);
 
         addMenuActionButton(
                 menu,
                 "History",
                 () -> {
-
                     if (browserMenu != null) {
                         browserMenu.dismiss();
                     }
@@ -712,7 +755,6 @@ public class MainActivity extends Activity {
                 menu,
                 "Downloads",
                 () -> {
-
                     if (browserMenu != null) {
                         browserMenu.dismiss();
                     }
@@ -733,7 +775,6 @@ public class MainActivity extends Activity {
                         ? "Exit Incognito Mode"
                         : "Enter Incognito Mode",
                 () -> {
-
                     if (browserMenu != null) {
                         browserMenu.dismiss();
                     }
@@ -745,34 +786,6 @@ public class MainActivity extends Activity {
                                 browserSettings.getHomePage());
                     }
                 },
-                accent,
-                readable);
-
-        addMenuSectionButton(
-                menu,
-                "General",
-                "general",
-                accent,
-                readable);
-
-        addMenuSectionButton(
-                menu,
-                "Websites",
-                "websites",
-                accent,
-                readable);
-
-        addMenuSectionButton(
-                menu,
-                "Appearance",
-                "appearance",
-                accent,
-                readable);
-
-        addMenuSectionButton(
-                menu,
-                "Privacy & Security",
-                "privacy-security",
                 accent,
                 readable);
 
