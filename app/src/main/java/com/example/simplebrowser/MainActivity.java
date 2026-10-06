@@ -2660,6 +2660,27 @@ public class MainActivity extends Activity {
                     tab,
                     favicon);
         }
+
+        if (tab != null &&
+                favicon != null &&
+                !favicon.isRecycled() &&
+                bookmarkStore != null &&
+                tab.webView != null) {
+
+            String url =
+                    tab.webView.getUrl();
+
+            if (url != null &&
+                    (url.startsWith("http://") ||
+                     url.startsWith("https://"))) {
+
+                bookmarkStore.updateFavicon(
+                        url,
+                        favicon);
+            }
+        }
+
+        updateBookmarkButton(tab);
     }
 
     public void setBrowserPageIcon(
@@ -2800,6 +2821,9 @@ public class MainActivity extends Activity {
                 R.id.settings,
                 BrowserIconDrawable.MORE,
                 readable);
+
+        updateBookmarkButton(
+                tab);
 
         ImageButton tabOverview =
                 findViewById(R.id.tab_overview);
