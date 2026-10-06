@@ -721,7 +721,15 @@ public class SettingsPage {
                 "}" +
                 "function refreshLogs(){" +
                 "var e=document.getElementById('logs');" +
-                "if(e)e.value=Android.getLogs();" +
+                "var f=document.getElementById('log-filter');" +
+                "var c=document.getElementById('log-count');" +
+                "var value=f?f.value:'';" +
+                "if(e)e.value=Android.getLogs(value);" +
+                "if(c)c.textContent=Android.getLogCount(value)+' entries';" +
+                "}" +
+                "function copyLogs(){" +
+                "var f=document.getElementById('log-filter');" +
+                "Android.copyLogs(f?f.value:'');" +
                 "}" +
                 "function showWebViewInfo(){Android.showWebViewInfo();}" +
                 "function updateUserAgentVisibility(value){" +
@@ -1154,18 +1162,25 @@ public class SettingsPage {
 
                 "<div class='row'>" +
                 "<div class='title'>Developer logs</div>" +
-                "<div class='description'>Network requests, navigation changes, load errors, and JavaScript console messages. Logs are in memory only and capped automatically.</div>" +
+                "<div class='description'>Navigation, load errors, JavaScript console output, and browser diagnostics. Logs stay in memory and keep the newest entries.</div>" +
+                "<div style='margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;'>" +
+                "<input id='log-filter' type='text' placeholder='Filter logs' onkeyup='refreshLogs()' style='flex:1;min-width:160px;margin-top:0;'>" +
+                "<span id='log-count' style='font-size:12px;color:" +
+                secondaryTextHex +
+                ";'></span>" +
+                "</div>" +
                 "<textarea id='logs' readonly " +
-                "style='width:100%;height:300px;box-sizing:border-box;margin-top:10px;padding:10px;font-family:monospace;font-size:12px;background:" +
+                "style='width:100%;height:320px;box-sizing:border-box;margin-top:10px;padding:10px;font-family:monospace;font-size:12px;background:" +
                 cardBackgroundHex +
                 ";color:" +
                 cardTextHex +
                 ";border:1px solid " +
                 accentBorderHex +
-                ";'></textarea>" +
-                "<div style='margin-top:10px;display:flex;gap:8px;'>" +
+                ";white-space:pre;overflow:auto;'></textarea>" +
+                "<div style='margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;'>" +
                 "<button onclick='refreshLogs()'>Refresh logs</button>" +
-                "<button onclick=\"Android.clearLogs();refreshLogs()\">Clear logs</button>" +
+                "<button onclick='copyLogs()'>Copy logs</button>" +
+                "<button onclick="Android.clearLogs();refreshLogs()">Clear logs</button>" +
                 "</div>" +
                 "</div>" +
 
@@ -1188,7 +1203,53 @@ public class SettingsPage {
                 "<input type='text' value='" +
                 htmlAttribute(
                         settings.getCustomUserAgent()) +
-                "' onchange=\"Android.setCustomUserAgent(this.value)\">" +
+                "' onchange="Android.setCustomUserAgent(this.value)">" +
+                "</div>" +
+
+                settingRow(
+                        "Save form data",
+                        "Allow WebView to remember form data",
+                        "save_form_data",
+                        settings.isSaveFormDataEnabled()) +
+
+                settingRow(
+                        "Third-party cookies",
+                        "Allow third-party websites to store cookies",
+                        "third_party_cookies",
+                        settings.isThirdPartyCookiesEnabled()) +
+
+                settingRow(
+                        "Mixed content",
+                        "Allow HTTP resources inside HTTPS pages",
+                        "mixed_content",
+                        settings.isMixedContentEnabled()) +
+
+                settingRow(
+                        "File URL access",
+                        "Allow file URLs to access other file URLs",
+                        "file_access_from_file_urls",
+                        settings.isFileAccessFromFileUrlsEnabled()) +
+
+                settingRow(
+                        "Universal file URL access",
+                        "Allow file URLs to access content from other origins",
+                        "universal_access_from_file_urls",
+                        settings.isUniversalAccessFromFileUrlsEnabled()) +
+
+                "<div class='row'>" +
+                "<div class='title'>Cache mode</div>" +
+                "<div class='description'>Choose how WebView reads website resources from its cache.</div>" +
+                "<select onchange="Android.setCacheMode(this.value)">" +
+                "<option value='default'" +
+                ("default".equals(settings.getCacheMode()) ? " selected" : "") +
+                ">Normal</option>" +
+                "<option value='no_cache'" +
+                ("no_cache".equals(settings.getCacheMode()) ? " selected" : "") +
+                ">No cache</option>" +
+                "<option value='cache_only'" +
+                ("cache_only".equals(settings.getCacheMode()) ? " selected" : "") +
+                ">Cache only</option>" +
+                "</select>" +
                 "</div>" +
 
                 "<div class='row switchrow'>" +
@@ -1579,8 +1640,22 @@ public class SettingsPage {
         }
 
         @JavascriptInterface
-        public String getLogs() {
-            return BrowserLogger.getText();
+        public String getLogs(
+                String filter) {
+            return BrowserLogger.getText(filter);
+        }
+
+        @JavascriptInterface
+        public int getLogCount(
+                String filter) {
+            return BrowserLogger.getCount(filter);
+        }
+
+        @JavascriptInterface
+        public void copyLogs(
+                String filter) {
+            activity.runOnUiThread(
+                    () -> activity.copyLogsToClipboard(filter));
         }
 
         @JavascriptInterface
@@ -1718,6 +1793,16 @@ public class SettingsPage {
 
             settings.setCustomSearchUrl(value);
             settings.setSearchEngine("custom");
+        }
+
+        @JavascriptInterface
+        public void setCacheMode(
+                String mode) {
+
+            settings.setCacheMode(mode);
+
+            activity.runOnUiThread(
+                    activity::applyWebsiteSettings);
         }
 
         @JavascriptInterface
