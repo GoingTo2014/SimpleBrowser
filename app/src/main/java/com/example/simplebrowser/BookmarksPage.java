@@ -1,7 +1,6 @@
 package com.example.simplebrowser;
 
 import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
 
 import java.util.List;
 
@@ -16,7 +15,6 @@ public final class BookmarksPage {
     public BookmarksPage(
             MainActivity activity,
             BookmarkStore store) {
-
         this.activity = activity;
         this.store = store;
     }
@@ -25,9 +23,7 @@ public final class BookmarksPage {
             BrowserTab tab,
             String query) {
 
-        if (tab == null) {
-            return;
-        }
+        if (tab == null) return;
 
         tab.settingsPage = false;
         tab.defaultPage = false;
@@ -39,49 +35,43 @@ public final class BookmarksPage {
         tab.errorPage = false;
         tab.bookmarksPage = true;
         tab.url = BrowserPage.BOOKMARKS;
+        tab.loading = false;
         tab.title =
                 Localization.translate(
                         activity,
                         "Bookmarks");
 
-        String html =
-                createHtml(
-                        query == null
-                                ? ""
-                                : query);
-
-        tab.webView.removeJavascriptInterface("BookmarksPage");
-        tab.webView.getSettings().setJavaScriptEnabled(true);
-        tab.webView.addJavascriptInterface(new Bridge(tab), "BookmarksPage");
+        tab.webView.removeJavascriptInterface(
+                "BookmarksPage");
+        tab.webView.getSettings()
+                .setJavaScriptEnabled(true);
+        tab.webView.addJavascriptInterface(
+                new Bridge(tab),
+                "BookmarksPage");
 
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.BOOKMARKS,
-                html,
+                createHtml(query == null ? "" : query),
                 BrowserPage.BOOKMARKS);
 
         activity.setBrowserPageIcon(
                 tab,
-                BrowserIconDrawable.HOME);
-
+                BrowserIconDrawable.BOOKMARK);
         activity.updateTabTitle(tab);
         activity.updateSecurity(tab);
-        activity.settingsLoaded(tab);
+        activity.updateNavigationButtonsForTabs();
     }
 
-    public void remove(
-            BrowserTab tab) {
-
-        if (tab == null) {
-            return;
+    public void remove(BrowserTab tab) {
+        if (tab != null) {
+            tab.webView.removeJavascriptInterface(
+                    "BookmarksPage");
+            tab.bookmarksPage = false;
         }
-
-        tab.webView.removeJavascriptInterface("BookmarksPage");
-        tab.bookmarksPage = false;
     }
 
-    private String createHtml(
-            String query) {
+    private String createHtml(String query) {
 
         int accent =
                 ColorUtils.parseColor(
@@ -93,13 +83,13 @@ public final class BookmarksPage {
                 ColorUtils.mix(
                         accent,
                         android.graphics.Color.WHITE,
-                        0.94f);
+                        0.95f);
 
         int card =
                 ColorUtils.mix(
                         accent,
                         android.graphics.Color.WHITE,
-                        0.90f);
+                        0.91f);
 
         int text =
                 ColorUtils.getReadableTextColor(card);
@@ -107,15 +97,15 @@ public final class BookmarksPage {
         int secondary =
                 ColorUtils.ensureContrast(
                         android.graphics.Color.rgb(
-                                90, 90, 90),
+                                95, 95, 95),
                         card,
                         4.5d);
 
         int button =
                 ColorUtils.ensureContrast(
                         ColorUtils.darken(
-                        accent,
-                        0.10f),
+                                accent,
+                                0.10f),
                         card,
                         3.0d);
 
@@ -124,42 +114,58 @@ public final class BookmarksPage {
 
         html.append("<!DOCTYPE html><html><head>");
         html.append("<meta name='viewport' content='width=device-width,initial-scale=1'>");
-        html.append("<style>*{box-sizing:border-box}html,body{margin:0;padding:0;background:");
+        html.append("<style>");
+        html.append("*{box-sizing:border-box}");
+        html.append("html,body{margin:0;padding:0;background:");
         html.append(ColorUtils.toHex(content));
         html.append(";color:");
         html.append(ColorUtils.toHex(text));
-        html.append(";font-family:sans-serif}body{padding:16px;max-width:900px;margin:auto}");
-        html.append("h1{margin:0 0 4px;font-size:26px}.desc{color:");
+        html.append(";font-family:sans-serif}");
+        html.append("body{padding:16px;max-width:920px;margin:auto}");
+        html.append("h1{margin:0 0 4px;font-size:26px}");
+        html.append(".desc{color:");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";font-size:13px;margin-bottom:14px}.search{width:100%;padding:9px;border:1px solid ");
+        html.append(";font-size:13px;line-height:1.45;margin-bottom:14px}");
+        html.append(".search{width:100%;padding:10px;border:1px solid ");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";background:");
+        html.append(";border-radius:6px;background:");
         html.append(ColorUtils.toHex(card));
         html.append(";color:");
         html.append(ColorUtils.toHex(text));
-        html.append("}.card{background:");
+        html.append(";margin-bottom:10px}");
+        html.append(".item{display:flex;align-items:center;gap:12px;background:");
         html.append(ColorUtils.toHex(card));
         html.append(";border:1px solid ");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";border-radius:8px;padding:12px;margin-top:10px}.title{font-weight:bold;font-size:15px}");
-        html.append(".url{font-size:12px;overflow-wrap:anywhere;color:");
+        html.append(";border-radius:9px;padding:12px;margin-top:9px}");
+        html.append(".favicon{width:42px;height:42px;border-radius:8px;object-fit:contain;flex:none}");
+        html.append(".fallback{width:42px;height:42px;border-radius:8px;background:");
+        html.append(ColorUtils.toHex(button));
+        html.append(";color:");
+        html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
+        html.append(";display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;flex:none}");
+        html.append(".main{min-width:0;flex:1}.title{font-size:15px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}");
+        html.append(".url{font-size:12px;color:");
         html.append(ColorUtils.toHex(secondary));
-        html.append(";margin-top:3px}.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}");
+        html.append(";overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}");
+        html.append(".actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}");
         html.append("button{border:1px solid ");
         html.append(ColorUtils.toHex(button));
         html.append(";background:");
         html.append(ColorUtils.toHex(button));
         html.append(";color:");
         html.append(ColorUtils.toHex(ColorUtils.getReadableTextColor(button)));
-        html.append(";border-radius:5px;padding:9px 12px;font-weight:bold}");
-        html.append("@media(max-width:420px){body{padding:10px}.actions button{flex:1 1 120px}}");
+        html.append(";border-radius:5px;padding:8px 11px;font-weight:bold}");
+        html.append("@media(max-width:480px){body{padding:10px}.item{align-items:flex-start}.actions{width:100%}.actions button{flex:1 1 100px}}");
         html.append("</style></head><body>");
+
         html.append("<h1>");
         html.append(escape(t("bookmarks.title")));
         html.append("</h1>");
         html.append("<div class='desc'>");
         html.append(escape(t("bookmarks.desc")));
         html.append("</div>");
+
         html.append("<input class='search' type='search' placeholder='");
         html.append(escape(t("bookmarks.search")));
         html.append("' value='");
@@ -170,7 +176,7 @@ public final class BookmarksPage {
                 store.getEntries(query);
 
         if (entries.isEmpty()) {
-            html.append("<div class='card'>");
+            html.append("<div class='item'>");
             html.append(escape(t("bookmarks.empty")));
             html.append("</div>");
         }
@@ -178,7 +184,22 @@ public final class BookmarksPage {
         for (BookmarkStore.Entry entry :
                 entries) {
 
-            html.append("<div class='card'>");
+            html.append("<div class='item'>");
+
+            if (entry.favicon != null &&
+                    entry.favicon.length > 0) {
+                html.append("<img class='favicon' src='");
+                html.append(escape(
+                        BookmarkStore.faviconDataUri(
+                                entry.favicon)));
+                html.append("'>");
+            } else {
+                html.append("<div class='fallback'>");
+                html.append(escape(initial(entry.title)));
+                html.append("</div>");
+            }
+
+            html.append("<div class='main'>");
             html.append("<div class='title'>");
             html.append(escape(entry.title));
             html.append("</div>");
@@ -186,23 +207,27 @@ public final class BookmarksPage {
             html.append(escape(entry.url));
             html.append("</div>");
             html.append("<div class='actions'>");
+
             html.append("<button onclick='openBookmark(");
             html.append(entry.id);
             html.append(")'>");
             html.append(escape(t("bookmarks.open")));
             html.append("</button>");
+
             html.append("<button onclick='deleteBookmark(");
             html.append(entry.id);
             html.append(")'>");
             html.append(escape(t("common.delete")));
             html.append("</button>");
-            html.append("</div></div>");
+
+            html.append("</div></div></div>");
         }
 
         html.append("<script>");
         html.append("function search(v){BookmarksPage.search(v)}");
         html.append("function openBookmark(id){BookmarksPage.open(id)}");
-        html.append("function deleteBookmark(id){if(confirm(");
+        html.append("function deleteBookmark(id){");
+        html.append("if(confirm(");
         html.append(js(t("bookmarks.confirm_delete")));
         html.append(")){BookmarksPage.deleteBookmark(id)}}");
         html.append("</script></body></html>");
@@ -212,21 +237,23 @@ public final class BookmarksPage {
                 html.toString());
     }
 
-    private String t(String key) {
-        return Localization.translate(
-                activity,
-                key);
+    private String initial(String title) {
+        if (title == null ||
+                title.trim().isEmpty()) {
+            return "?";
+        }
+        return String.valueOf(
+                Character.toUpperCase(
+                        title.trim().charAt(0)));
     }
 
     private String escape(String value) {
-        if (value == null) {
-            return "";
-        }
+        if (value == null) return "";
         return value
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+                .replace(""", "&quot;");
     }
 
     private String attribute(String value) {
@@ -235,16 +262,19 @@ public final class BookmarksPage {
     }
 
     private String js(String value) {
-        if (value == null) {
-            return "''";
-        }
-
+        if (value == null) return "''";
         return "'" +
                 value.replace("\\", "\\\\")
                         .replace("'", "\\'")
                         .replace("\r", "\\r")
                         .replace("\n", "\\n") +
                 "'";
+    }
+
+    private String t(String key) {
+        return Localization.translate(
+                activity,
+                key);
     }
 
     public final class Bridge {
@@ -266,14 +296,12 @@ public final class BookmarksPage {
             BookmarkStore.Entry entry =
                     store.get(id);
 
-            if (entry == null) {
-                return;
+            if (entry != null) {
+                activity.runOnUiThread(
+                        () -> activity.openUrlOrSearchForTab(
+                                tab,
+                                entry.url));
             }
-
-            activity.runOnUiThread(
-                    () -> activity.openUrlOrSearchForTab(
-                            tab,
-                            entry.url));
         }
 
         @JavascriptInterface
