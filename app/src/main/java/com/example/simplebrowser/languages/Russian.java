@@ -164,5 +164,102 @@ public final class Russian extends LanguagePack {
         put("permissions.website_request", "Сайт запрашивает доступ к:");
         put("permissions.camera", "Камере");
         put("permissions.microphone", "Микрофону");
+
+        put("settings.update_auto_desc", "Автоматически проверять новые версии Simple Browser при запуске и при открытии Настройки > Общие.");
+        put("settings.update_verification_failed", "Не удалось проверить обновление.");
+        put("settings.update_opening_installer", "Обновление загружено. Открытие установщика...");
+        put("settings.update_allow_install", "Разрешите Simple Browser устанавливать обновления, затем вернитесь в Simple Browser.");
+        put("settings.update_installer_error", "Не удалось открыть установщик Android.");
+        put("settings.update_github_http_error", "GitHub вернул HTTP %s.");
+        put("settings.update_download_http_error", "Загрузка обновления завершилась с HTTP %s.");
+        put("settings.update_hash_mismatch", "Проверка обновления не пройдена: хэш APK не совпадает с релизом GitHub.");
+        put("settings.update_package_mismatch", "Проверка обновления не пройдена: имя пакета не совпадает.");
+        put("settings.update_certificate_missing", "Проверка обновления не пройдена: сертификат подписи отсутствует.");
+        put("settings.update_certificate_mismatch", "Проверка обновления не пройдена: сертификат подписи не совпадает с установленным приложением.");
+        put("settings.update_prepare_failed", "Не удалось подготовить загруженное обновление.");
+        put("settings.update_connection_error", "Не удалось подключиться к GitHub.");
+        put("settings.restore_tabs_desc", "Снова открывать обычные вкладки при запуске Simple Browser.");
+        put("settings.complete_url", "Используйте полный URL, например https://example.com/");
+        put("settings.search_insert", "Используйте %s вместо поискового текста.");
+        put("settings.logs_desc", "Навигация, ошибки загрузки, сообщения JavaScript и диагностика браузера. Журналы хранятся в памяти и сохраняют последние записи.");
+        put("settings.user_agent_desc", "Выберите, как сайты определяют этот браузер.");
+        put("settings.custom_user_agent_desc", "Введите полный User-Agent.");
+        put("settings.webview_debug_desc", "Разрешить инструментам разработчика Chrome проверять WebView Simple Browser.");
+        put("settings.webview_cache_desc", "Очистить кэш ресурсов сайтов во всех открытых вкладках.");
+        put("settings.current_webview_desc", "Просмотреть URL и User-Agent активной вкладки.");
+        put("settings.browser_color_desc", "Изменяет цвет панели, вкладок, меню и встроенных настроек.");
+        put("settings.language_desc", "Выберите язык браузера.");
+        put("settings.log_filter", "Фильтр журналов");
+        put("settings.log_entries", "записей");
+        put("settings.blank_page", "Пустая страница");
+        put("settings.default_page", "Страница по умолчанию");
+        put("settings.custom", "Пользовательский");
+
+        put("history.incognito_desc", "История просмотра не сохраняется в режиме инкогнито.");
+        put("history.empty_private", "При приватном просмотре здесь ничего не отображается.");
+        put("history.empty", "Записей истории нет.");
+        put("history.cleared", "История очищена");
+
+        put("downloads.incognito_desc", "История загрузок не сохраняется в режиме инкогнито.");
+        put("downloads.status_unavailable", "Статус недоступен");
+        put("downloads.record_unavailable", "Запись загрузки недоступна");
+        put("downloads.completed", "Завершено");
+        put("downloads.failed", "Ошибка");
+        put("downloads.downloading", "Загрузка");
+        put("downloads.history_cleared", "История загрузок очищена");
+        put("downloads.not_ready", "Загрузка ещё не готова");
+        put("downloads.no_app", "Нет приложения, которое может открыть эту загрузку");
+        put("downloads.unknown_type", "Неизвестный тип");
+        put("downloads.search", "Поиск загрузок");
+        put("downloads.download", "Скачать");
+
+        put("cookies.incognito_data", "Данные cookie временные в режиме инкогнито.");
+        put("cookies.incognito_empty", "Управление cookie недоступно в режиме инкогнито.");
+        put("cookies.discovery", "Сайты с cookie обнаруживаются по посещённым сайтам и открытым вкладкам.");
+        put("cookies.empty", "Известных cookie нет.");
+        put("cookies.edit_title", "Изменить cookie: ");
+        put("cookies.change_failed", "Не удалось изменить cookie");
+        put("cookies.delete_failed", "Не удалось удалить cookie");
+        put("cookies.some_delete_failed", "Не все cookie сайта удалось удалить");
+
+        put("common.copied", "Скопировано");
+        put("common.no_share_app", "Нет приложения для отправки");
+        put("common.download_started", "Загрузка начата: ");
+        put("common.download_failed", "Не удалось начать загрузку");
+        put("common.stop_loading", "Остановить загрузку");
+        put("common.unknown", "Неизвестно");
+        put("common.queued", "В очереди");
+        put("common.paused", "Приостановлено");
+        put("common.waiting", "Ожидание");
+        put("common.tab_overview", "Обзор вкладок");
+
+        put("settings.browser_settings", "Настройки браузера");
+        put("settings.webview_cache_cleared", "Кэш WebView очищен");
+        put("settings.browsing_data_cleared", "Данные просмотра очищены");
+
+        put("bookmarks.invalid", "Добавлять в закладки можно только веб-страницы.");
+
+        put("passwords.add", "Добавить пароль");
+        put("passwords.save", "Сохранить");
+        put("passwords.clear", "Очистить");
+        put("passwords.edit", "Изменить");
+        put("passwords.revealed", "Пароль: ");
+        put("passwords.error", "Не удалось прочитать зашифрованную базу паролей.");
+        put("passwords.save_failed", "Не удалось сохранить пароль.");
+        put("passwords.api_limit", "Android 4.4 не может показать системное окно подтверждения учетных данных.");
+        put("passwords.export_title", "Экспорт паролей");
+        put("passwords.export_password", "Пароль экспорта (6+ символов)");
+        put("passwords.import_title", "Импорт паролей");
+        put("passwords.exported", "Зашифрованная резервная копия экспортирована.");
+        put("passwords.imported", "Пароли импортированы:");
+        put("passwords.export_failed", "Не удалось экспортировать зашифрованную резервную копию.");
+        put("passwords.import_failed", "Не удалось импортировать зашифрованную резервную копию.");
+
+        put("profiles.guest_confirm", "Начать новый гостевой профиль? Все его данные временные и будут удалены при выходе.");
+        put("profiles.delete_confirm", "Удалить этот профиль и все его данные браузера?");
+        put("profiles.name", "Имя профиля");
+        put("profiles.choose_picture", "Выбрать изображение профиля");
+        put("profiles.cannot_save", "Не удалось сохранить профиль.");
+
     }
 }
