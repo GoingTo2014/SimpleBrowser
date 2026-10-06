@@ -2164,10 +2164,20 @@ public class MainActivity extends Activity {
                 overridePendingTransition(0, 0);
 
                 /*
-                 * CLEAR_TASK owns the old Activity handoff. Never force-kill a
-                 * modern profile process; Android may keep it cached so its
-                 * isolated WebView directory remains available.
+                 * Dedicated profile processes are single-profile WebView
+                 * containers. Once their Activity has handed off to another
+                 * profile, terminate that process after the target has been
+                 * started. This prevents Android from reusing a live process
+                 * slot for a different profile later.
                  */
+                if (ProfileManager.isDedicatedProfileProcess()) {
+                    new android.os.Handler(
+                            Looper.getMainLooper())
+                            .postDelayed(
+                                    () -> android.os.Process.killProcess(
+                                            android.os.Process.myPid()),
+                                    300L);
+                }
 
             } catch (Throwable error) {
 
