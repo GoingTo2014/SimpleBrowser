@@ -1,6 +1,7 @@
 package com.example.simplebrowser;
 
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import java.util.List;
 
@@ -42,6 +43,10 @@ public final class ProfilesPage {
                         activity,
                         "Profiles");
 
+        tab.webView.removeJavascriptInterface("ProfilesPage");
+        tab.webView.getSettings().setJavaScriptEnabled(true);
+        tab.webView.addJavascriptInterface(new Bridge(tab), "ProfilesPage");
+
         BrowserPage.load(
                 tab.webView,
                 BrowserPage.PROFILES,
@@ -61,6 +66,7 @@ public final class ProfilesPage {
             BrowserTab tab) {
 
         if (tab != null) {
+            tab.webView.removeJavascriptInterface("ProfilesPage");
             tab.profilesPage = false;
         }
     }
@@ -233,15 +239,15 @@ public final class ProfilesPage {
 
         html.append("</div>");
         html.append("<script>");
-        html.append("function createProfile(){Android.createProfile()}");
+        html.append("function createProfile(){ProfilesPage.createProfile()}");
         html.append("function createGuest(){if(confirm(");
         html.append(js(t("profiles.guest_confirm")));
-        html.append(")){Android.createGuest()}}");
-        html.append("function switchProfile(id){Android.switchProfile(id)}");
-        html.append("function editProfile(id){Android.editProfile(id)}");
+        html.append(")){ProfilesPage.createGuest()}}");
+        html.append("function switchProfile(id){ProfilesPage.switchProfile(id)}");
+        html.append("function editProfile(id){ProfilesPage.editProfile(id)}");
         html.append("function deleteProfile(id){if(confirm(");
         html.append(js(t("profiles.delete_confirm")));
-        html.append(")){Android.deleteProfile(id)}}");
+        html.append(")){ProfilesPage.deleteProfile(id)}}");
         html.append("</script></body></html>");
 
         return Localization.translateHtml(
