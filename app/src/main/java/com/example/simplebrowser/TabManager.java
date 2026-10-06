@@ -1799,9 +1799,12 @@ public class TabManager {
                         : browserSettings
                                 .isSaveFormDataEnabled());
 
-        if (tab.isIncognito) {
-            webSettings.setSavePassword(false);
-        }
+        /*
+         * Simple Browser has its own encrypted password manager. Keep
+         * WebView's legacy credential database disabled so credentials do
+         * not end up in a second, process-global password store.
+         */
+        webSettings.setSavePassword(false);
 
         webSettings.setSupportMultipleWindows(
                 browserSettings
