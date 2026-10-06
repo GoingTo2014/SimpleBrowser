@@ -32,6 +32,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
@@ -3633,6 +3634,22 @@ public class MainActivity extends Activity {
 
             return;
         }
+
+        if (requestCode != 1401 ||
+                resultCode != RESULT_OK ||
+                data == null ||
+                data.getData() == null) {
+            return;
+        }
+
+        BrowserTab tab =
+                getActiveTab();
+
+        if (tab != null) {
+            loadTabUrl(
+                    tab,
+                    data.getData().toString());
+        }
     }
 
     @Override
@@ -3728,34 +3745,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onActivityResult(
-            int requestCode,
-            int resultCode,
-            Intent data) {
-
-        super.onActivityResult(
-                requestCode,
-                resultCode,
-                data);
-
-        if (requestCode != 1401 ||
-                resultCode != RESULT_OK ||
-                data == null ||
-                data.getData() == null) {
-            return;
-        }
-
-        BrowserTab tab =
-                getActiveTab();
-
-        if (tab != null) {
-            loadTabUrl(
-                    tab,
-                    data.getData().toString());
-        }
-    }
-
     public void chooseDefaultBrowser() {
 
         Intent intent =
@@ -3785,6 +3774,9 @@ public class MainActivity extends Activity {
                  tab.historyPage ||
                  tab.downloadsPage ||
                  tab.cookiesPage ||
+                 tab.bookmarksPage ||
+                 tab.passwordsPage ||
+                 tab.profilesPage ||
                  BrowserPage.DEMO.equals(
                          tab.url) ||
                  tab.errorPage)) {
