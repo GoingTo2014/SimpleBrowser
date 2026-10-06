@@ -430,6 +430,14 @@ put("common.cancel", "キャンセル");
         put("common.deny", "拒否");
         put("strings.test.example", "文字列の例");
         put("privacy.clear_storage", "サイトのストレージを消去");
+        put("Settings", "設定");
+        put("settings.wide_viewport", "ワイドビューポート");
+        put("settings.wide_viewport_desc", "ウェブサイトが設定したビューポートを使用し、レスポンシブページがレイアウトを選択できるようにします。");
+        put("settings.offline_mode", "オフラインモード");
+        put("settings.offline_mode_desc", "WebView のネットワーク読み込みをブロックします。キャッシュされたページは表示できます。");
+        put("privacy.clear_security_title", "セキュリティ設定を消去しますか？");
+        put("privacy.clear_security_message", "SSL 証明書の判断、保存された位置情報権限、クライアント証明書の判断を消去します。パスワードは削除されません。");
+        put("privacy.security_decisions_cleared", "セキュリティ設定を消去しました");
     }
 
 }
