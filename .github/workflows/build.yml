@@ -43,7 +43,17 @@ jobs:
           SIMPLEBROWSER_STORE_PASSWORD: ${{ secrets.SIMPLEBROWSER_STORE_PASSWORD }}
           SIMPLEBROWSER_KEY_ALIAS: ${{ secrets.SIMPLEBROWSER_KEY_ALIAS }}
           SIMPLEBROWSER_KEY_PASSWORD: ${{ secrets.SIMPLEBROWSER_KEY_PASSWORD }}
-        run: gradle assembleRelease --no-daemon
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
+
+      - name: Upload Gradle build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleBrowser-gradle-build-log
+          path: ${{ runner.temp }}/gradle-build.log
+          if-no-files-found: warn
 
       - name: Verify APK signature
         run: |
