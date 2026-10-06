@@ -1738,6 +1738,7 @@ public class MainActivity extends Activity {
         }
 
         clearRuntimeWebStorage();
+        clearSharedWebViewDatabaseData();
 
         CookieStore.clearRuntimeCookies(
                 new Runnable() {
@@ -2804,6 +2805,20 @@ public class MainActivity extends Activity {
             snapshotWebStorageForTab(
                     tab,
                     done);
+        }
+    }
+
+    public void clearSharedWebViewDatabaseData() {
+
+        try {
+            android.webkit.WebViewDatabase database =
+                    android.webkit.WebViewDatabase.getInstance(
+                            this);
+
+            database.clearFormData();
+            database.clearHttpAuthUsernamePassword();
+
+        } catch (Throwable ignored) {
         }
     }
 
