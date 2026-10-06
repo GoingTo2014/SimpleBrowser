@@ -1,3 +1,4 @@
 SimpleBrowser release trigger for profiles, bookmarks, password manager and update flow.
 Retry after fixing localization placement.
 Retry after fixing JavaScript escaping.
+Retry after fixing language-pack braces.
