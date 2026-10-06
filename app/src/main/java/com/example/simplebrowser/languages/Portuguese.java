@@ -441,7 +441,13 @@ put("common.cancel", "Cancelar");
         put("privacy.clear_security", "Limpar decisões de segurança");
         put("tab.guest_tabs", "Abas de convidado");
         put("guest.enter", "Entrar no modo convidado");
-        put("guest.exit", "Sair do modo convidado");
+        put("guest.exit", "Sair do modo convidado");        put("app.name", "Simple Browser");
+        put("settings.update_title", "Atualização disponível");
+        put("settings.update_later", "Mais tarde");
+        put("settings.update_now", "Atualizar agora");
+        put("common.close", "Fechar");
+        put("common.close_tab", "Fechar aba");
+
     }
 
 }
