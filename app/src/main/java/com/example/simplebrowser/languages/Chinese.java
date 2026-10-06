@@ -441,7 +441,13 @@ put("common.cancel", "取消");
         put("privacy.clear_security", "清除安全决定");
         put("tab.guest_tabs", "访客标签页");
         put("guest.enter", "进入访客模式");
-        put("guest.exit", "退出访客模式");
+        put("guest.exit", "退出访客模式");        put("app.name", "Simple Browser");
+        put("settings.update_title", "有可用更新");
+        put("settings.update_later", "稍后");
+        put("settings.update_now", "立即更新");
+        put("common.close", "关闭");
+        put("common.close_tab", "关闭标签页");
+
     }
 
 }
