@@ -949,12 +949,17 @@ public class TabManager {
         }
 
         int accent =
-                ColorUtils.parseColor(
-                        activity
-                                .getBrowserSettings()
-                                .getAccentColor(),
-                        Color.rgb(
-                                63, 81, 181));
+                tab.isIncognito
+                        ? Color.rgb(
+                                48,
+                                49,
+                                52)
+                        : ColorUtils.parseColor(
+                                activity
+                                        .getBrowserSettings()
+                                        .getAccentColor(),
+                                Color.rgb(
+                                        63, 81, 181));
 
         int inactiveBackground =
                 ColorUtils.darken(
@@ -995,6 +1000,9 @@ public class TabManager {
 
     public void updateTabAppearanceColors() {
 
+        BrowserTab current =
+                activeTab;
+
         int accent =
                 current != null &&
                         current.isIncognito
@@ -1007,9 +1015,6 @@ public class TabManager {
                                         .getBrowserSettings()
                                         .getAccentColor(),
                                 Color.WHITE);
-
-        BrowserTab current =
-                activeTab;
 
         int tabBarBackground =
                 current != null &&
