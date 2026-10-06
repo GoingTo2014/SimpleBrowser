@@ -318,4 +318,46 @@ public final class English extends LanguagePack {
         put("demo.dialog", "Dialog");
         put("demo.dialog_text", "Default dialog element");
     }
+        put("common.cancel", "Cancel");
+        put("common.save", "Save");
+        put("bookmarks.title", "Bookmarks");
+        put("bookmarks.desc", "Pages you saved in Simple Browser.");
+        put("bookmarks.search", "Search bookmarks");
+        put("bookmarks.empty", "No bookmarks found.");
+        put("bookmarks.open", "Open");
+        put("bookmarks.confirm_delete", "Delete this bookmark?");
+        put("bookmarks.invalid", "Only web pages can be bookmarked.");
+        put("bookmarks.added", "Bookmark added.");
+        put("passwords.title", "Password manager");
+        put("passwords.security_desc", "Passwords are encrypted on this device. Your device lock is required before opening this manager when supported by Android.");
+        put("passwords.add", "Add password");
+        put("passwords.site", "Website");
+        put("passwords.username", "Username");
+        put("passwords.password", "Password");
+        put("passwords.note", "Note");
+        put("passwords.save", "Save");
+        put("passwords.clear", "Clear");
+        put("passwords.edit", "Edit");
+        put("passwords.reveal", "Reveal");
+        put("passwords.revealed", "Password: ");
+        put("passwords.confirm_delete", "Delete this saved password?");
+        put("passwords.empty", "No passwords saved.");
+        put("passwords.error", "Could not read the encrypted password database.");
+        put("passwords.save_failed", "Could not save the password.");
+        put("passwords.unlock_title", "Unlock password manager");
+        put("passwords.unlock_desc", "Confirm your device PIN, password, pattern, or other secure lock.");
+        put("passwords.api_limit", "Android 4.4 cannot show the system credential confirmation screen. The manager will open after the device is already unlocked.");
+        put("profiles.title", "Profiles");
+        put("profiles.desc", "Create up to %d persistent profiles. Each profile has its own settings, history, bookmarks, cookies, tabs, downloads history, and passwords.");
+        put("profiles.create", "Create profile");
+        put("profiles.guest", "Guest Profile");
+        put("profiles.current", "Current profile");
+        put("profiles.switch", "Switch");
+        put("profiles.edit", "Edit");
+        put("profiles.guest_confirm", "Start a new Guest Profile? Everything in it is temporary and will be wiped when you leave it.");
+        put("profiles.delete_confirm", "Delete this profile and all of its browser data?");
+        put("profiles.name", "Profile name");
+        put("profiles.choose_picture", "Choose profile picture");
+        put("profiles.cannot_save", "Could not save the profile.");
+
 }
