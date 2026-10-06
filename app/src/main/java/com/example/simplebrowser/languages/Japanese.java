@@ -441,7 +441,13 @@ put("common.cancel", "キャンセル");
         put("privacy.clear_security", "セキュリティ設定を消去");
         put("tab.guest_tabs", "ゲストタブ");
         put("guest.enter", "ゲストモードに入る");
-        put("guest.exit", "ゲストモードを終了");
+        put("guest.exit", "ゲストモードを終了");        put("app.name", "Simple Browser");
+        put("settings.update_title", "アップデートがあります");
+        put("settings.update_later", "後で");
+        put("settings.update_now", "今すぐ更新");
+        put("common.close", "閉じる");
+        put("common.close_tab", "タブを閉じる");
+
     }
 
 }
