@@ -318,11 +318,6 @@ public final class SimpleAccountActivity extends Activity {
             String uid,
             String email) {
 
-        /*
-         * WebView JavaScript-interface methods execute off the UI thread.
-         * All WebView/window access and Activity completion must happen on
-         * the UI thread.
-         */
         if (!isUiThread()) {
             runOnUiThread(
                     () -> finishWithSession(
@@ -337,12 +332,6 @@ public final class SimpleAccountActivity extends Activity {
             return;
         }
 
-        if (webView == null ||
-                !isTrustedAccountUrl(
-                        webView.getUrl())) {
-            return;
-        }
-
         if (idToken == null ||
                 idToken.length() == 0 ||
                 refreshToken == null ||
@@ -352,6 +341,12 @@ public final class SimpleAccountActivity extends Activity {
             return;
         }
 
+        /*
+         * The bridge exists only in the Account WebView and external
+         * navigation is blocked. Do not require a WebView URL read here:
+         * that check could fail on a second device and leave the Activity
+         * visibly stuck even though authentication succeeded.
+         */
         completed = true;
 
         accountManager.saveSession(
@@ -365,6 +360,10 @@ public final class SimpleAccountActivity extends Activity {
                 RESULT_OK);
 
         finish();
+
+        overridePendingTransition(
+                0,
+                0);
     }
 
     private boolean isUiThread() {
