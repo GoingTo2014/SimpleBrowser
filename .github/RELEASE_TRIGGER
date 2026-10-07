@@ -44,3 +44,4 @@ Fix Account Continue handoff 2026-10-07T04:05:20.066Z
 Fix Account sync UI, profile sync and error placement 2026-10-07T04:16:50.529Z
 Fix cross-process profile names and foreground sync 2026-10-07T04:25:21.479Z
 Finalize cross-process profile sync and foreground sync 2026-10-07T04:26:26.264Z
+Fix active-profile concurrent sync 2026-10-07T04:37:27.775Z
