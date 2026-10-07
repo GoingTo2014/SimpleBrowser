@@ -1212,16 +1212,14 @@ public final class SimpleSyncManager {
                         context,
                         profileId);
 
-        if (isProfileDirty(
-                context,
-                profileId)) {
-            return true;
-        }
-
         /*
+         * The snapshot is the authoritative local baseline. Do not rely on
+         * SharedPreferences dirty flags here because profile processes can
+         * have independently cached copies of those preferences.
+         *
          * A missing snapshot is not itself a local edit. Existing installs
-         * must first establish a cloud baseline before local content can be
-         * considered divergent.
+         * first establish a cloud baseline before local content is treated as
+         * divergent.
          */
         if (savedSnapshot == null ||
                 savedSnapshot.trim().isEmpty()) {
