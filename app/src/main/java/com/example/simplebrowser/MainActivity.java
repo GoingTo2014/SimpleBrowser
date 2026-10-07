@@ -949,13 +949,20 @@ public class MainActivity extends Activity {
                 () -> {
                     applyBrowserAppearance();
                     applyWebsiteSettings();
-                    refreshSettingsAccountPage();
 
                     BrowserTab tab =
                             getActiveTab();
 
                     if (tab != null &&
+                            tab.settingsPage) {
+
+                        showSettings(
+                                tab,
+                                tab.settingsSection);
+
+                    } else if (tab != null &&
                             tab.profilesPage) {
+
                         profilesPage.show(tab);
                     }
                 });
