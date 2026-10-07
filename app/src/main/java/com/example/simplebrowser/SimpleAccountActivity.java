@@ -318,12 +318,28 @@ public final class SimpleAccountActivity extends Activity {
             String uid,
             String email) {
 
+        /*
+         * WebView JavaScript-interface methods execute off the UI thread.
+         * All WebView/window access and Activity completion must happen on
+         * the UI thread.
+         */
+        if (!isUiThread()) {
+            runOnUiThread(
+                    () -> finishWithSession(
+                            idToken,
+                            refreshToken,
+                            uid,
+                            email));
+            return;
+        }
+
         if (completed) {
             return;
         }
 
-        if (!isTrustedAccountUrl(
-                webView.getUrl())) {
+        if (webView == null ||
+                !isTrustedAccountUrl(
+                        webView.getUrl())) {
             return;
         }
 
@@ -345,13 +361,15 @@ public final class SimpleAccountActivity extends Activity {
                 refreshToken,
                 3600L);
 
-        runOnUiThread(
-                () -> {
-                    setResult(
-                            RESULT_OK);
+        setResult(
+                RESULT_OK);
 
-                    finish();
-                });
+        finish();
+    }
+
+    private boolean isUiThread() {
+        return android.os.Looper.myLooper() ==
+                android.os.Looper.getMainLooper();
     }
 
     private int dp(int value) {
@@ -460,11 +478,12 @@ public final class SimpleAccountActivity extends Activity {
                 final String uid,
                 final String email) {
 
-            finishWithSession(
-                    idToken,
-                    refreshToken,
-                    uid,
-                    email);
+            runOnUiThread(
+                    () -> finishWithSession(
+                            idToken,
+                            refreshToken,
+                            uid,
+                            email));
         }
 
         @JavascriptInterface
