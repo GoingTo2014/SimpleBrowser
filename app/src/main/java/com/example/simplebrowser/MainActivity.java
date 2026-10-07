@@ -949,6 +949,7 @@ public class MainActivity extends Activity {
                 () -> {
                     applyBrowserAppearance();
                     applyWebsiteSettings();
+                    refreshLocalizedChrome();
 
                     BrowserTab tab =
                             getActiveTab();
