@@ -459,6 +459,9 @@ put("common.cancel", "Cancel");
         put("account.sign_out", "Sign Out");
         put("account.signed_out", "Signed out of Simple Account.");
         put("account.open_failed", "Could not open Simple Account.");
+        put("account.sync_now", "Sync now");
+        put("account.sync_complete", "Simple Account sync complete.");
+        put("account.sync_failed", "Simple Account sync failed.");
 
     }
 
