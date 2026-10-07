@@ -118,8 +118,8 @@
         <activity
             android:name=".SimpleAccountActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Material.Light.Dialog"
-            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
+            android:theme="@style/BrowserTheme"
+            android:windowSoftInputMode="adjustResize|stateUnspecified"
             android:hardwareAccelerated="true" />
 
         <activity
