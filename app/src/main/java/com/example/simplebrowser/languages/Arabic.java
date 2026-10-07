@@ -463,4 +463,22 @@ public final class Arabic extends LanguagePack {
         put("settings.update_now", "التحديث الآن");
         put("common.close", "إغلاق");
         put("common.close_tab", "إغلاق علامة التبويب");    }
+        put("account.title", "Simple Account");
+        put("account.settings", "الحساب");
+        put("account.sign_in", "تسجيل الدخول");
+        put("account.sign_in_heading", "تسجيل الدخول إلى Simple Account");
+        put("account.sign_in_benefits", "مزايا تسجيل الدخول:");
+        put("account.benefit_profiles", "مزامنة ملفات تعريف المتصفح وإعداداتها");
+        put("account.benefit_configuration", "الحفاظ على إعدادات المتصفح على جميع الأجهزة");
+        put("account.benefit_services", "يمكن لخدمات Simple الأخرى استخدام الحساب نفسه");
+        put("account.sync_desc", "حافظ على مزامنة ملفات تعريف وإعدادات Simple Browser بين الأجهزة.");
+        put("account.signed_in", "تم تسجيل الدخول");
+        put("account.signed_in_as", "تم تسجيل الدخول باسم");
+        put("account.sign_out", "تسجيل الخروج");
+        put("account.signed_out", "تم تسجيل الخروج من Simple Account.");
+        put("account.open_failed", "تعذر فتح Simple Account.");
+        put("account.sync_now", "المزامنة الآن");
+        put("account.sync_complete", "اكتملت مزامنة Simple Account.");
+        put("account.sync_failed", "فشلت مزامنة Simple Account.");
+
 }
