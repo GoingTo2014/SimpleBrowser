@@ -451,6 +451,7 @@ put("common.cancel", "Cancel");
         put("settings.update_title", "Update available");
         put("settings.update_later", "Later");
         put("settings.update_now", "Update now");
+        put("settings.update_notes", "What's new");
         put("common.close", "Close");
         put("common.close_tab", "Close tab");
         put("account.title", "Simple Account");
