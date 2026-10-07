@@ -629,6 +629,9 @@ public final class ProfileManager {
                         cleanName);
 
         saveProfile(context, profile);
+        SimpleSyncManager.markProfileChanged(
+                context,
+                profile.id);
 
         return profile;
     }
@@ -665,6 +668,11 @@ public final class ProfileManager {
                             KEY_MAIN_NAME,
                             cleanName)
                     .apply();
+
+            SimpleSyncManager.markProfileChanged(
+                    context,
+                    MAIN_ID);
+
             return true;
         }
 
@@ -733,7 +741,142 @@ public final class ProfileManager {
                         updatedProfiles)
                 .apply();
 
+        SimpleSyncManager.markProfileChanged(
+                context,
+                profileId);
+
         return true;
+    }
+
+    /**
+     * Creates or updates a profile from trusted Simple Account sync data.
+     * It preserves the cloud profile ID instead of generating a new one.
+     */
+    public synchronized boolean upsertSyncedProfile(
+            Context context,
+            String profileId,
+            String name) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty() ||
+                isGuest(profileId) ||
+                profileId.length() > 100 ||
+                !profileId.matches(
+                        "[A-Za-z0-9_-]+")) {
+            return false;
+        }
+
+        String cleanName =
+                name == null
+                        ? ""
+                        : name.trim();
+
+        if (cleanName.isEmpty()) {
+            cleanName =
+                    MAIN_ID.equals(profileId)
+                            ? "Profile 1"
+                            : "Profile";
+        }
+
+        if (cleanName.length() > 40) {
+            cleanName =
+                    cleanName.substring(
+                            0,
+                            40);
+        }
+
+        if (MAIN_ID.equals(profileId)) {
+            preferences(context).edit()
+                    .putString(
+                            KEY_MAIN_NAME,
+                            cleanName)
+                    .apply();
+            return true;
+        }
+
+        List<Profile> profiles =
+                getProfiles(context);
+
+        for (Profile profile : profiles) {
+            if (profile.id.equals(profileId)) {
+
+                if (profile.name.equals(
+                        cleanName)) {
+                    return false;
+                }
+
+                updateProfileRegistryName(
+                        context,
+                        profileId,
+                        cleanName);
+
+                return true;
+            }
+        }
+
+        if (profiles.size() - 1 >=
+                PROFILE_LIMIT) {
+            return false;
+        }
+
+        saveProfile(
+                context,
+                new Profile(
+                        profileId,
+                        cleanName));
+
+        return true;
+    }
+
+    private void updateProfileRegistryName(
+            Context context,
+            String profileId,
+            String name) {
+
+        List<Profile> profiles =
+                getProfiles(context);
+
+        JSONArray array =
+                new JSONArray();
+
+        for (Profile profile : profiles) {
+
+            if (MAIN_ID.equals(profile.id)) {
+                continue;
+            }
+
+            String profileName =
+                    profile.id.equals(profileId)
+                            ? name
+                            : profile.name;
+
+            try {
+                array.put(
+                        new JSONObject()
+                                .put(
+                                        "id",
+                                        profile.id)
+                                .put(
+                                        "name",
+                                        profileName));
+            } catch (Exception ignored) {
+            }
+        }
+
+        String updatedProfiles =
+                array.toString();
+
+        writeStateFile(
+                context,
+                PROFILE_REGISTRY_FILE,
+                updatedProfiles);
+
+        preferences(context).edit()
+                .putString(
+                        KEY_PROFILES,
+                        updatedProfiles)
+                .apply();
     }
 
     private String getMainProfileName(
@@ -866,11 +1009,11 @@ public final class ProfileManager {
                 context,
                 profileId);
 
-        deleteProfileData(
+        SimpleSyncManager.markProfileDeleted(
                 context,
                 profileId);
 
-        releaseProcessSlot(
+        deleteProfileData(
                 context,
                 profileId);
 
