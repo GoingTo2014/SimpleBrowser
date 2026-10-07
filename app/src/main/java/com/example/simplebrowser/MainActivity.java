@@ -6071,13 +6071,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    private static final long ACTIVE_ACCOUNT_SYNC_INTERVAL_MS =
+            10L * 1000L;
+
+    private static final long FULL_ACCOUNT_SYNC_INTERVAL_MS =
+            5L * 60L * 1000L;
+
     private boolean foregroundSyncStarted;
 
     private final android.os.Handler accountSyncHandler =
             new android.os.Handler(
                     Looper.getMainLooper());
 
-    private final Runnable accountSyncRunnable =
+    /*
+     * Full collection sync keeps all profiles, deletions, and profile
+     * creation/removal state reconciled without repeatedly reading every
+     * profile every few seconds.
+     */
+    private final Runnable accountFullSyncRunnable =
             new Runnable() {
                 @Override
                 public void run() {
@@ -6114,7 +6125,65 @@ public class MainActivity extends Activity {
 
                     accountSyncHandler.postDelayed(
                             this,
-                            60L * 1000L);
+                            FULL_ACCOUNT_SYNC_INTERVAL_MS);
+                }
+            };
+
+    /*
+     * The active profile is checked independently using a single Firestore
+     * document. This makes edits made while both devices are inside the same
+     * profile propagate quickly without turning the entire profile collection
+     * into a high-frequency polling query.
+     */
+    private final Runnable accountActiveSyncRunnable =
+            new Runnable() {
+                @Override
+                public void run() {
+
+                    if (!foregroundSyncStarted ||
+                            isFinishing() ||
+                            isChangingConfigurations()) {
+                        return;
+                    }
+
+                    if (simpleAccountManager == null) {
+                        simpleAccountManager =
+                                new SimpleAccountManager(
+                                        MainActivity.this);
+                    }
+
+                    if (simpleAccountManager.isSignedIn()) {
+                        SimpleSyncManager.syncActiveProfileAsync(
+                                MainActivity.this,
+                                new SimpleSyncManager.Callback() {
+                                    @Override
+                                    public void onComplete(
+                                            boolean success,
+                                            String message) {
+
+                                        /*
+                                         * Do not rebuild the Account or
+                                         * Settings HTML every ten seconds.
+                                         * Only refresh visible browser UI
+                                         * when the active profile actually
+                                         * changed.
+                                         */
+                                        if (success &&
+                                                foregroundSyncStarted &&
+                                                !"Active profile unchanged."
+                                                        .equals(
+                                                                message)) {
+
+                                            refreshAfterAccountSync();
+                                        }
+                                    }
+                                },
+                                true);
+                    }
+
+                    accountSyncHandler.postDelayed(
+                            this,
+                            ACTIVE_ACCOUNT_SYNC_INTERVAL_MS);
                 }
             };
 
@@ -6132,6 +6201,10 @@ public class MainActivity extends Activity {
             }
 
             if (simpleAccountManager.isSignedIn()) {
+                /*
+                 * Always perform one complete reconciliation when returning
+                 * to the browser, then use the cheaper active-profile poll.
+                 */
                 SimpleSyncManager.syncAsync(
                         this,
                         new SimpleSyncManager.Callback() {
@@ -6139,6 +6212,7 @@ public class MainActivity extends Activity {
                             public void onComplete(
                                     boolean success,
                                     String message) {
+
                                 if (success &&
                                         foregroundSyncStarted) {
                                     refreshAfterAccountSync();
@@ -6149,11 +6223,18 @@ public class MainActivity extends Activity {
             }
 
             accountSyncHandler.removeCallbacks(
-                    accountSyncRunnable);
+                    accountFullSyncRunnable);
+
+            accountSyncHandler.removeCallbacks(
+                    accountActiveSyncRunnable);
 
             accountSyncHandler.postDelayed(
-                    accountSyncRunnable,
-                    60L * 1000L);
+                    accountFullSyncRunnable,
+                    FULL_ACCOUNT_SYNC_INTERVAL_MS);
+
+            accountSyncHandler.postDelayed(
+                    accountActiveSyncRunnable,
+                    ACTIVE_ACCOUNT_SYNC_INTERVAL_MS);
         }
     }
 
