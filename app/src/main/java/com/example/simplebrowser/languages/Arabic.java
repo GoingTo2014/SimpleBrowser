@@ -461,6 +461,7 @@ public final class Arabic extends LanguagePack {
         put("settings.update_title", "تحديث متاح");
         put("settings.update_later", "لاحقًا");
         put("settings.update_now", "التحديث الآن");
+        put("settings.update_notes", "ما الجديد");
         put("common.close", "إغلاق");
         put("common.close_tab", "إغلاق علامة التبويب");    }
         put("account.title", "Simple Account");
