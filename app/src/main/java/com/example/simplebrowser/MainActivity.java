@@ -4763,6 +4763,11 @@ public class MainActivity extends Activity {
 
         if (!notes.isEmpty()) {
             message.append("\n\n");
+            message.append(
+                    Localization.translate(
+                            this,
+                            "settings.update_notes"));
+            message.append(":\n");
             message.append(notes);
         }
 
