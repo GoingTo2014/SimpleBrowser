@@ -451,4 +451,22 @@ put("common.cancel", "रद्द करें");
     }
 
 
+        put("account.title", "Simple Account");
+        put("account.settings", "खाता");
+        put("account.sign_in", "साइन इन करें");
+        put("account.sign_in_heading", "Simple Account में साइन इन करें");
+        put("account.sign_in_benefits", "साइन इन करने के लाभ:");
+        put("account.benefit_profiles", "ब्राउज़र प्रोफ़ाइल और उनकी सेटिंग सिंक करें");
+        put("account.benefit_configuration", "सभी डिवाइस पर ब्राउज़र कॉन्फ़िगरेशन बनाए रखें");
+        put("account.benefit_services", "अन्य Simple सेवाएँ भी इसी खाते का उपयोग कर सकती हैं");
+        put("account.sync_desc", "डिवाइसों के बीच Simple Browser प्रोफ़ाइल और सेटिंग सिंक रखें।");
+        put("account.signed_in", "साइन इन है");
+        put("account.signed_in_as", "साइन इन किया गया है");
+        put("account.sign_out", "साइन आउट करें");
+        put("account.signed_out", "Simple Account से साइन आउट किया गया।");
+        put("account.open_failed", "Simple Account नहीं खुल सका।");
+        put("account.sync_now", "अभी सिंक करें");
+        put("account.sync_complete", "Simple Account सिंक पूरा हुआ।");
+        put("account.sync_failed", "Simple Account सिंक विफल हुआ।");
+
 }
