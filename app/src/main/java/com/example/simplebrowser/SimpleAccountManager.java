@@ -364,7 +364,7 @@ public final class SimpleAccountManager {
                                     null))
                             .getPrivateKey();
 
-            java.security.Certificate certificate =
+            java.security.cert.Certificate certificate =
                     store.getCertificate(
                             KEY_ALIAS);
 
