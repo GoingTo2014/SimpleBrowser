@@ -269,22 +269,7 @@ public class MainActivity extends Activity {
             return false;
         }
 
-        Class<? extends MainActivity>
-                target =
-                getProfileProcessActivity(
-                        activeProfileId);
-
-        if (target == null) {
-            return false;
-        }
-
         try {
-            /*
-             * This Activity may receive onPause()/onDestroy() immediately
-             * after handing the task to the profile process. Mark the
-             * handoff before launching so lifecycle persistence code never
-             * touches partially initialized browser state.
-             */
             profileSwitching = true;
 
             Intent forward =
@@ -294,7 +279,7 @@ public class MainActivity extends Activity {
 
             forward.setClass(
                     this,
-                    target);
+                    ProfileProcessActivity.class);
 
             forward.putExtra(
                     PROFILE_PROCESS_PROFILE_ID_EXTRA,
@@ -311,37 +296,6 @@ public class MainActivity extends Activity {
         } catch (Throwable ignored) {
             profileSwitching = false;
             return false;
-        }
-    }
-
-    private Class<? extends MainActivity>
-            getProfileProcessActivity(
-                    String profileId) {
-
-        int slot =
-                ProfileManager.getProcessSlot(
-                        this,
-                        profileId);
-
-        switch (slot) {
-            case 1:
-                return ProfileProcess1Activity.class;
-            case 2:
-                return ProfileProcess2Activity.class;
-            case 3:
-                return ProfileProcess3Activity.class;
-            case 4:
-                return ProfileProcess4Activity.class;
-            case 5:
-                return ProfileProcess5Activity.class;
-            case 6:
-                return ProfileProcess6Activity.class;
-            case 7:
-                return ProfileProcess7Activity.class;
-            case 8:
-                return ProfileProcess8Activity.class;
-            default:
-                return null;
         }
     }
 
@@ -2244,51 +2198,160 @@ public class MainActivity extends Activity {
                 cookieStore.snapshotCookies();
             }
 
-            /*
-             * Main owns the default WebView process. User-created profiles
-             * each own one dedicated process.
-             *
-             * The previous implementation sent every target through
-             * getProfileProcessActivity(), but Main deliberately has slot 0
-             * and therefore returned null. That made switching back to Main
-             * silently fail.
-             */
-            Class<? extends MainActivity>
-                    targetActivity =
-                    ProfileManager.MAIN_ID.equals(
-                            targetProfileId)
-                            ? MainActivity.class
-                            : getProfileProcessActivity(
-                                    targetProfileId);
-
-            if (targetActivity == null) {
-                profileSwitching = false;
-                return;
-            }
+            boolean dedicatedProcess =
+                    ProfileManager.isDedicatedProfileProcess();
 
             /*
-             * Persist the target before launching it. The target process must
-             * know its profile before MainActivity touches WebView.
+             * The Main process owns the default WebView directory. Every
+             * user-created profile owns the one reusable :profile process,
+             * configured with that profile's WebView data-directory suffix.
              */
             ProfileManager.setActiveProfileId(
                     this,
                     targetProfileId);
 
+            if (ProfileManager.MAIN_ID.equals(
+                    targetProfileId)) {
+
+                try {
+                    Intent intent =
+                            new Intent(
+                                    this,
+                                    MainActivity.class);
+
+                    intent.addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                    startActivity(intent);
+                    overridePendingTransition(0, 0);
+
+                    if (dedicatedProcess) {
+                        new android.os.Handler(
+                                Looper.getMainLooper())
+                                .postDelayed(
+                                        () -> android.os.Process
+                                                .killProcess(
+                                                        android.os.Process
+                                                                .myPid()),
+                                        300L);
+                    }
+
+                } catch (Throwable error) {
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+                }
+
+                return;
+            }
+
+            /*
+             * If we are already inside :profile, Android would reuse the same
+             * process when starting another ProfileProcessActivity. WebView's
+             * data-directory suffix cannot be changed after WebView has been
+             * initialized, so use the default-process helper to wait for this
+             * process to die and then launch the target profile in a fresh
+             * :profile process.
+             */
+            if (dedicatedProcess) {
+
+                if (!ProfileSwitchService.request(
+                        this,
+                        current,
+                        targetProfileId)) {
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+
+                    return;
+                }
+
+                boolean helperStarted = false;
+
+                try {
+                    Intent switchIntent =
+                            new Intent(
+                                    this,
+                                    ProfileSwitchActivity.class);
+
+                    switchIntent.addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                    startActivity(switchIntent);
+                    overridePendingTransition(0, 0);
+                    helperStarted = true;
+
+                } catch (Throwable ignored) {
+                }
+
+                if (!helperStarted) {
+
+                    ProfileSwitchService
+                            .cancelPendingSwitch(this);
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+
+                    return;
+                }
+
+                new android.os.Handler(
+                        Looper.getMainLooper())
+                        .postDelayed(
+                                () -> android.os.Process
+                                        .killProcess(
+                                                android.os.Process
+                                                        .myPid()),
+                                250L);
+
+                return;
+            }
+
+            /*
+             * Main/default process -> profile process. There is no existing
+             * :profile process to conflict with, so start it directly.
+             */
             try {
                 Intent intent =
                         new Intent(
                                 this,
-                                targetActivity);
+                                ProfileProcessActivity.class);
 
                 intent.putExtra(
                         PROFILE_PROCESS_PROFILE_ID_EXTRA,
                         targetProfileId);
 
-                /*
-                 * Make the target Activity the deterministic root of the
-                 * browser task. This prevents an old profile Activity from
-                 * remaining underneath it and makes a switch a single action.
-                 */
                 intent.addFlags(
                         Intent.FLAG_ACTIVITY_NEW_TASK |
                         Intent.FLAG_ACTIVITY_CLEAR_TASK |
@@ -2296,22 +2359,6 @@ public class MainActivity extends Activity {
 
                 startActivity(intent);
                 overridePendingTransition(0, 0);
-
-                /*
-                 * Dedicated profile processes are single-profile WebView
-                 * containers. Once their Activity has handed off to another
-                 * profile, terminate that process after the target has been
-                 * started. This prevents Android from reusing a live process
-                 * slot for a different profile later.
-                 */
-                if (ProfileManager.isDedicatedProfileProcess()) {
-                    new android.os.Handler(
-                            Looper.getMainLooper())
-                            .postDelayed(
-                                    () -> android.os.Process.killProcess(
-                                            android.os.Process.myPid()),
-                                    300L);
-                }
 
             } catch (Throwable error) {
 
