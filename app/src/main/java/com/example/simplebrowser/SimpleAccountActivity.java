@@ -7,7 +7,9 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.MotionEvent;
-import android.view.inputmethod.InputMethodManager;
+import android.graphics.Rect;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -185,22 +187,18 @@ public final class SimpleAccountActivity extends Activity {
         webView.setFocusable(true);
         webView.setFocusableInTouchMode(true);
 
+        /*
+         * Let Chromium handle HTML input taps itself. On KitKat, manually
+         * calling showSoftInput() after the tap can race Chromium's focus
+         * update and make the IME appear briefly and then disappear.
+         */
         webView.setOnTouchListener(
                 (view, event) -> {
-
                     if (event.getAction() ==
-                            MotionEvent.ACTION_DOWN) {
+                            MotionEvent.ACTION_DOWN &&
+                            !view.hasFocus()) {
                         view.requestFocusFromTouch();
                     }
-
-                    if (event.getAction() ==
-                            MotionEvent.ACTION_UP) {
-
-                        view.postDelayed(
-                                () -> showKeyboardForWebInput(),
-                                100L);
-                    }
-
                     return false;
                 });
 
@@ -237,12 +235,6 @@ public final class SimpleAccountActivity extends Activity {
                     public void onPageFinished(
                             WebView view,
                             String url) {
-
-                        if (isTrustedAccountUrl(url)) {
-                            view.post(
-                                    () -> view.requestFocus(
-                                            View.FOCUS_DOWN));
-                        }
                     }
 
                     @Override
@@ -275,43 +267,6 @@ public final class SimpleAccountActivity extends Activity {
         }
 
         webView.loadUrl(accountUrl);
-    }
-
-    private void showKeyboardForWebInput() {
-
-        if (webView == null ||
-                !webView.hasFocus()) {
-            return;
-        }
-
-        try {
-            WebView.HitTestResult hit =
-                    webView.getHitTestResult();
-
-            if (hit == null ||
-                    hit.getType() !=
-                            WebView.HitTestResult
-                                    .EDIT_TEXT_TYPE) {
-                return;
-            }
-
-            InputMethodManager manager =
-                    (InputMethodManager)
-                            getSystemService(
-                                    INPUT_METHOD_SERVICE);
-
-            if (manager != null) {
-                webView.requestFocus(
-                        View.FOCUS_DOWN);
-
-                manager.restartInput(webView);
-
-                manager.showSoftInput(
-                        webView,
-                        InputMethodManager.SHOW_IMPLICIT);
-            }
-        } catch (Throwable ignored) {
-        }
     }
 
     private boolean handleUrl(
@@ -411,19 +366,88 @@ public final class SimpleAccountActivity extends Activity {
     private static final class AccountWebView
             extends WebView {
 
+        private boolean laidOutOnce;
+
         AccountWebView(
                 android.content.Context context) {
             super(context);
         }
 
-        /*
-         * Android's View focus system otherwise treats a WebView as a
-         * non-editor even while an HTML input is active. Mark it as a text
-         * editor so the framework will create and route an IME connection.
-         */
         @Override
         public boolean onCheckIsTextEditor() {
             return true;
+        }
+
+        @Override
+        protected void onFocusChanged(
+                boolean focused,
+                int direction,
+                Rect previouslyFocusedRect) {
+
+            /*
+             * Android 4.4 WebView can drop native focus while an HTML input
+             * is editing, which immediately kills the IME. Keep the native
+             * WebView editor focused for the lifetime of the page.
+             */
+            super.onFocusChanged(
+                    true,
+                    direction,
+                    previouslyFocusedRect);
+        }
+
+        @Override
+        protected void onLayout(
+                boolean changed,
+                int left,
+                int top,
+                int right,
+                int bottom) {
+
+            /*
+             * The first layout can otherwise trigger the KitKat WebView
+             * focus/IME race. Keep the initial layout pass stable.
+             */
+            if (!laidOutOnce) {
+                super.onLayout(
+                        changed,
+                        left,
+                        top,
+                        right,
+                        bottom);
+                laidOutOnce = true;
+                return;
+            }
+
+            super.onLayout(
+                    changed,
+                    left,
+                    top,
+                    right,
+                    bottom);
+        }
+
+        @Override
+        public InputConnection onCreateInputConnection(
+                EditorInfo outAttrs) {
+
+            InputConnection connection =
+                    super.onCreateInputConnection(
+                            outAttrs);
+
+            if (outAttrs != null) {
+                outAttrs.imeOptions &=
+                        ~EditorInfo.IME_ACTION_GO;
+                outAttrs.imeOptions &=
+                        ~EditorInfo.IME_ACTION_SEARCH;
+                outAttrs.imeOptions &=
+                        ~EditorInfo.IME_ACTION_SEND;
+                outAttrs.imeOptions &=
+                        ~EditorInfo.IME_ACTION_DONE;
+                outAttrs.imeOptions |=
+                        EditorInfo.IME_ACTION_NEXT;
+            }
+
+            return connection;
         }
     }
 
