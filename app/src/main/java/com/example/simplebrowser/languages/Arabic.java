@@ -463,7 +463,7 @@ public final class Arabic extends LanguagePack {
         put("settings.update_now", "التحديث الآن");
         put("settings.update_notes", "ما الجديد");
         put("common.close", "إغلاق");
-        put("common.close_tab", "إغلاق علامة التبويب");    }
+        put("common.close_tab", "إغلاق علامة التبويب");
         put("account.title", "Simple Account");
         put("account.settings", "الحساب");
         put("account.sign_in", "تسجيل الدخول");
@@ -480,6 +480,6 @@ public final class Arabic extends LanguagePack {
         put("account.open_failed", "تعذر فتح Simple Account.");
         put("account.sync_now", "المزامنة الآن");
         put("account.sync_complete", "اكتملت مزامنة Simple Account.");
-        put("account.sync_failed", "فشلت مزامنة Simple Account.");
+        put("account.sync_failed", "فشلت مزامنة Simple Account.");    }
 
 }
