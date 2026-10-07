@@ -35,3 +35,4 @@ Correct remaining MainActivity test launch targets.Simple Account sign-in UI and
 Release build retry after language-pack syntax fix.
 Release retry after translated language-pack closure fix.
 Final Simple Account release build trigger after compiler fixes.
+Account popup fullscreen, keyboard and localization fixes release trigger.
