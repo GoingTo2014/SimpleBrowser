@@ -445,6 +445,7 @@ put("common.cancel", "रद्द करें");
         put("settings.update_title", "अपडेट उपलब्ध है");
         put("settings.update_later", "बाद में");
         put("settings.update_now", "अभी अपडेट करें");
+        put("settings.update_notes", "नया क्या है");
         put("common.close", "बंद करें");
         put("common.close_tab", "टैब बंद करें");
 
