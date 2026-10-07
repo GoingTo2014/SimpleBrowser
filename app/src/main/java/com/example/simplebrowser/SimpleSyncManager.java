@@ -847,17 +847,6 @@ public final class SimpleSyncManager {
                 .apply();
     }
 
-    private static void markLocalSynced(
-            Context context,
-            String profileId,
-            long time) {
-
-        setLocalModified(
-                context,
-                profileId,
-                time);
-    }
-
     private static String putCloudProfile(
             String token,
             String uid,
@@ -1012,6 +1001,11 @@ public final class SimpleSyncManager {
                             "name",
                             "");
 
+            String serverVersion =
+                    document.optString(
+                            "updateTime",
+                            "");
+
             String fallbackId =
                     documentName.substring(
                             documentName.lastIndexOf(
@@ -1037,6 +1031,9 @@ public final class SimpleSyncManager {
                             fields,
                             "settings",
                             "");
+
+            cloud.serverVersion =
+                    serverVersion;
 
             cloud.updatedAt =
                     fieldLong(
@@ -1450,6 +1447,7 @@ public final class SimpleSyncManager {
         String id;
         String name;
         String settings;
+        String serverVersion = "";
         long updatedAt;
         boolean deleted;
     }
