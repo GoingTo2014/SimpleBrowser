@@ -345,6 +345,11 @@ public final class SimpleSyncManager {
         int uploaded = 0;
         int downloaded = 0;
 
+        /*
+         * First reconcile every local persistent profile with its cloud copy.
+         * This uploads profiles that exist only locally and imports settings
+         * for profiles that already exist in the cloud.
+         */
         for (ProfileManager.Profile profile :
                 localProfiles) {
 
@@ -370,21 +375,22 @@ public final class SimpleSyncManager {
 
             if (cloud == null) {
 
+                long uploadTime =
+                        localModified <= 0L
+                                ? System.currentTimeMillis()
+                                : localModified;
+
                 putCloudProfile(
                         token,
                         uid,
                         context,
                         profile,
-                        localModified <= 0L
-                                ? System.currentTimeMillis()
-                                : localModified);
+                        uploadTime);
 
                 markLocalSynced(
                         context,
                         profile.id,
-                        Math.max(
-                                localModified,
-                                System.currentTimeMillis()));
+                        uploadTime);
 
                 uploaded++;
                 continue;
@@ -414,11 +420,6 @@ public final class SimpleSyncManager {
                 continue;
             }
 
-            /*
-             * Profiles from older installations may have no local change
-             * timestamp yet. In that case an existing cloud copy is treated
-             * as authoritative on the first sync.
-             */
             if (localModified > cloud.updatedAt) {
 
                 putCloudProfile(
@@ -445,6 +446,11 @@ public final class SimpleSyncManager {
             }
         }
 
+        /*
+         * Now create every cloud profile that does not exist locally.
+         * Settings are imported independently of whether the profile was
+         * newly created or already existed, so they cannot be skipped.
+         */
         SharedPreferences syncPreferences =
                 context.getApplicationContext()
                         .getSharedPreferences(
@@ -460,9 +466,9 @@ public final class SimpleSyncManager {
 
             if (cloud == null ||
                     cloud.id == null ||
+                    cloud.deleted ||
                     localIds.containsKey(
-                            cloud.id) ||
-                    cloud.deleted) {
+                            cloud.id)) {
                 continue;
             }
 
@@ -476,36 +482,29 @@ public final class SimpleSyncManager {
                 continue;
             }
 
-            if (ProfileManager.MAIN_ID.equals(
-                    cloud.id)) {
-
-                applyCloudMainProfile(
-                        context,
-                        profileManager,
-                        cloud);
-
-                downloaded++;
-                continue;
-            }
-
             if (profileManager
                     .upsertSyncedProfile(
                             context,
                             cloud.id,
                             cloud.name)) {
 
-                importSettings(
-                        context,
-                        cloud.id,
-                        cloud.settings);
-
-                setLocalModified(
-                        context,
-                        cloud.id,
-                        cloud.updatedAt);
-
                 downloaded++;
             }
+
+            /*
+             * Always import the cloud settings after the profile reconciliation
+             * attempt. This also handles an existing profile whose name did
+             * not need changing.
+             */
+            importSettings(
+                    context,
+                    cloud.id,
+                    cloud.settings);
+
+            setLocalModified(
+                    context,
+                    cloud.id,
+                    cloud.updatedAt);
         }
 
         syncDeletionTombstones(
@@ -620,6 +619,10 @@ public final class SimpleSyncManager {
                         cloud.id,
                         cloud.name);
 
+        boolean hadSettings =
+                cloud.settings != null &&
+                !cloud.settings.trim().isEmpty();
+
         importSettings(
                 context,
                 cloud.id,
@@ -630,8 +633,7 @@ public final class SimpleSyncManager {
                 cloud.id,
                 cloud.updatedAt);
 
-        return changed ||
-                cloud.settings != null;
+        return changed || hadSettings;
     }
 
     private static void applyCloudMainProfile(
