@@ -462,6 +462,5 @@ public final class German extends LanguagePack {
         put("settings.update_later", "Später");
         put("settings.update_now", "Jetzt aktualisieren");
         put("common.close", "Schließen");
-        put("common.close_tab", "Tab schließen");
-
+        put("common.close_tab", "Tab schließen");    }
 }
