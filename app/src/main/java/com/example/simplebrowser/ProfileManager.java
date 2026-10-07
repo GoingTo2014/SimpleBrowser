@@ -19,29 +19,12 @@ import java.util.UUID;
 public final class ProfileManager {
 
     public static final String MAIN_ID = "main";
-    public static final int MAX_PROFILES = 8;
+    public static final int PROFILE_LIMIT = 8;
 
     private static final String PREFS = "browser_profiles";
     private static final String KEY_PROFILES = "profiles";
     private static final String KEY_ACTIVE = "active_profile";
     private static final String KEY_MAIN_NAME = "main_name";
-    private static final String KEY_PROCESS_SLOTS =
-            "profile_process_slots";
-
-    /*
-     * SharedPreferences instances are cached independently in each Android
-     * process. Keep the active persistent profile in a tiny atomic file so
-     * process handoffs read the value that was actually written.
-     */
-    private static final String ACTIVE_STATE_FILE =
-            "profile_active.state";
-
-    private static final String PROFILE_REGISTRY_FILE =
-            "profile_registry.state";
-
-    private static final String PROCESS_SLOTS_FILE =
-            "profile_process_slots.state";
-
     private static String guestSessionId;
     private static String processProfileId;
 
@@ -82,16 +65,6 @@ public final class ProfileManager {
                             "[]"));
         }
 
-        if (readStateFile(
-                context,
-                PROCESS_SLOTS_FILE) == null) {
-            writeStateFile(
-                    context,
-                    PROCESS_SLOTS_FILE,
-                    preferences.getString(
-                            KEY_PROCESS_SLOTS,
-                            "{}"));
-        }
     }
 
     public static synchronized String getActiveProfileId(
@@ -483,175 +456,6 @@ public final class ProfileManager {
                 profileId.startsWith("guest_");
     }
 
-    /**
-     * Gives each persistent profile a stable Android process slot.
-     * Main uses the application's default process (slot 0). User-created
-     * profiles occupy slots 1..MAX_PROFILES and retain their slot even when
-     * other profiles are deleted.
-     */
-    public static synchronized int getProcessSlot(
-            Context context,
-            String profileId) {
-
-        if (context == null ||
-                profileId == null ||
-                profileId.trim().isEmpty() ||
-                MAIN_ID.equals(profileId) ||
-                isGuest(profileId)) {
-            return 0;
-        }
-
-        ensureInitialized(context);
-
-        SharedPreferences preferences =
-                preferences(context);
-
-        String json =
-                readStateFile(
-                        context,
-                        PROCESS_SLOTS_FILE);
-
-        if (json == null ||
-                json.trim().isEmpty()) {
-
-            json =
-                    preferences.getString(
-                            KEY_PROCESS_SLOTS,
-                            "{}");
-
-            writeStateFile(
-                    context,
-                    PROCESS_SLOTS_FILE,
-                    json);
-        }
-
-        try {
-            JSONObject slots =
-                    new JSONObject(json);
-
-            int existing =
-                    slots.optInt(
-                            profileId,
-                            0);
-
-            if (existing >= 1 &&
-                    existing <= MAX_PROFILES) {
-                return existing;
-            }
-
-            boolean[] used =
-                    new boolean[MAX_PROFILES + 1];
-
-            java.util.Iterator<String> keys =
-                    slots.keys();
-
-            while (keys.hasNext()) {
-                String key = keys.next();
-                int slot =
-                        slots.optInt(key, 0);
-
-                if (slot >= 1 &&
-                        slot <= MAX_PROFILES) {
-                    used[slot] = true;
-                }
-            }
-
-            for (int slot = 1;
-                    slot <= MAX_PROFILES;
-                    slot++) {
-
-                if (!used[slot] &&
-                        !ProfileProcessRuntime.isSlotOccupied(
-                                context,
-                                slot)) {
-                    slots.put(
-                            profileId,
-                            slot);
-
-                    String updated =
-                            slots.toString();
-
-                    writeStateFile(
-                            context,
-                            PROCESS_SLOTS_FILE,
-                            updated);
-
-                    preferences.edit()
-                            .putString(
-                                    KEY_PROCESS_SLOTS,
-                                    updated)
-                            .commit();
-
-                    return slot;
-                }
-            }
-
-        } catch (Throwable ignored) {
-            /*
-             * Fall through to a deterministic emergency slot. The normal
-             * allocation path above is used for all valid profile sets.
-             */
-        }
-
-        /*
-         * Never return an occupied slot as an emergency fallback. A caller
-         * must fail the switch instead of attaching a new profile to a live
-         * process that owns another WebView data directory.
-         */
-        return 0;
-    }
-
-    public static synchronized void releaseProcessSlot(
-            Context context,
-            String profileId) {
-
-        if (context == null ||
-                profileId == null ||
-                MAIN_ID.equals(profileId) ||
-                isGuest(profileId)) {
-            return;
-        }
-
-        try {
-            SharedPreferences preferences =
-                    preferences(context);
-
-            String json =
-                    readStateFile(
-                            context,
-                            PROCESS_SLOTS_FILE);
-
-            if (json == null ||
-                    json.trim().isEmpty()) {
-                json =
-                        preferences.getString(
-                                KEY_PROCESS_SLOTS,
-                                "{}");
-            }
-
-            JSONObject slots =
-                    new JSONObject(json);
-
-            slots.remove(profileId);
-
-            String updated =
-                    slots.toString();
-
-            writeStateFile(
-                    context,
-                    PROCESS_SLOTS_FILE,
-                    updated);
-
-            preferences.edit()
-                    .putString(
-                            KEY_PROCESS_SLOTS,
-                            updated)
-                    .commit();
-
-        } catch (Throwable ignored) {
-        }
-    }
-
     public List<Profile> getProfiles() {
         return getProfiles(null);
     }
@@ -793,8 +597,8 @@ public final class ProfileManager {
         List<Profile> profiles =
                 getProfiles(context);
 
-        // MAX_PROFILES counts user-created profiles; Main is separate.
-        if (profiles.size() - 1 >= MAX_PROFILES) {
+        // PROFILE_LIMIT counts user-created profiles; Main is separate.
+        if (profiles.size() - 1 >= PROFILE_LIMIT) {
             return null;
         }
 
