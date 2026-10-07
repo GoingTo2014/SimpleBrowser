@@ -16,8 +16,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,6 +51,8 @@ public final class SimpleSyncManager {
     private static final String KEY_PROFILE_DIRTY_PREFIX = "profile_dirty_";
     private static final String KEY_PROFILE_CLOUD_VERSION_PREFIX =
             "profile_cloud_version_";
+    private static final String KEY_PROFILE_SNAPSHOT_PREFIX =
+            "profile_sync_snapshot_";
     private static final String KEY_DELETED = "deleted_profiles";
 
     private static final long AUTO_SYNC_INTERVAL_MS =
@@ -377,9 +381,10 @@ public final class SimpleSyncManager {
         int downloaded = 0;
 
         /*
-         * First reconcile every local persistent profile with its cloud copy.
-         * This uploads profiles that exist only locally and imports settings
-         * for profiles that already exist in the cloud.
+         * Reconcile every local persistent profile first. Local content is
+         * considered dirty by comparing it with the exact snapshot that was
+         * last accepted from Firestore. This catches changes even when a
+         * setter forgot to call markProfileChanged().
          */
         for (ProfileManager.Profile profile :
                 localProfiles) {
@@ -395,121 +400,32 @@ public final class SimpleSyncManager {
                     profile.id,
                     true);
 
-            long localModified =
-                    getLocalModified(
-                            context,
-                            profile.id);
-
-            boolean localDirty =
-                    isProfileDirty(
-                            context,
-                            profile.id);
-
             CloudProfile cloud =
                     cloudProfiles.get(
                             profile.id);
 
-            if (cloud == null) {
-
-                long uploadTime =
-                        localModified <= 0L
-                                ? System.currentTimeMillis()
-                                : localModified;
-
-                String cloudVersion =
-                        putCloudProfile(
-                                token,
-                                uid,
-                                context,
-                                profile,
-                                uploadTime);
-
-                markLocalSynced(
-                        context,
-                        profile.id,
-                        uploadTime,
-                        cloudVersion);
-
-                uploaded++;
-                continue;
-            }
-
-            if (cloud.deleted) {
-
-                if (canDeleteLocally(
-                        context,
-                        profile.id) &&
-                        cloud.updatedAt >= localModified) {
-
-                    if (profileManager
-                            .deleteSyncedProfile(
-                                    context,
-                                    profile.id)) {
-
-                        setLocalModified(
-                                context,
-                                profile.id,
-                                cloud.updatedAt);
-
-                        downloaded++;
-                    }
-                }
-
-                continue;
-            }
-
-            if (localDirty) {
-
-                String cloudVersion =
-                        putCloudProfile(
-                                token,
-                                uid,
-                                context,
-                                profile,
-                                localModified <= 0L
-                                        ? System.currentTimeMillis()
-                                        : localModified);
-
-                markLocalSynced(
-                        context,
-                        profile.id,
-                        localModified <= 0L
-                                ? System.currentTimeMillis()
-                                : localModified,
-                        cloudVersion);
-
-                uploaded++;
-                continue;
-            }
-
-            String lastCloudVersion =
-                    getLastCloudVersion(
+            int result =
+                    reconcileProfile(
                             context,
-                            profile.id);
+                            token,
+                            uid,
+                            profileManager,
+                            profile,
+                            cloud);
 
-            if (!cloud.serverVersion.equals(
-                    lastCloudVersion)) {
-
-                if (applyCloudProfile(
-                        context,
-                        profileManager,
-                        cloud)) {
-                    downloaded++;
-                }
-
-                markLocalSynced(
-                        context,
-                        profile.id,
-                        localModified,
-                        cloud.serverVersion);
-
+            if (result == 1) {
+                uploaded++;
+            } else if (result == 2) {
+                downloaded++;
+            } else if (result == 3) {
+                uploaded++;
+                downloaded++;
             }
         }
 
         /*
-         * Now create every cloud profile that does not exist locally.
-         * Settings are imported independently of whether the profile was
-         * newly created or already existed, so they cannot be skipped.
+         * Create cloud-only persistent profiles locally and import their
+         * settings independently of the profile-name reconciliation.
          */
         SharedPreferences syncPreferences =
                 context.getApplicationContext()
@@ -547,15 +463,9 @@ public final class SimpleSyncManager {
                             context,
                             cloud.id,
                             cloud.name)) {
-
                 downloaded++;
             }
 
-            /*
-             * Always import the cloud settings after the profile reconciliation
-             * attempt. This also handles an existing profile whose name did
-             * not need changing.
-             */
             importSettings(
                     context,
                     cloud.id,
@@ -566,6 +476,11 @@ public final class SimpleSyncManager {
                     cloud.id,
                     0L,
                     cloud.serverVersion);
+
+            saveLocalSnapshot(
+                    context,
+                    profileManager,
+                    cloud.id);
         }
 
         syncDeletionTombstones(
@@ -589,6 +504,475 @@ public final class SimpleSyncManager {
                 " uploaded, " +
                 downloaded +
                 " downloaded.";
+    }
+
+    /*
+     * Synchronizes only the currently active profile. This is intentionally a
+     * single-document read so the active profile can be checked frequently
+     * without reading the entire profile collection every few seconds.
+     */
+    public static void syncActiveProfileAsync(
+            final Context context,
+            final Callback callback,
+            final boolean force) {
+
+        if (context == null) {
+            notifyCallback(
+                    callback,
+                    false,
+                    "No context");
+            return;
+        }
+
+        final Context appContext =
+                context.getApplicationContext();
+
+        SharedPreferences preferences =
+                appContext.getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE);
+
+        long now =
+                System.currentTimeMillis();
+
+        long lastAttempt =
+                preferences.getLong(
+                        KEY_LAST_ATTEMPT,
+                        0L);
+
+        if (!force &&
+                callback == null &&
+                now - lastAttempt <
+                        AUTO_SYNC_INTERVAL_MS) {
+            return;
+        }
+
+        if (!SYNC_RUNNING.compareAndSet(
+                false,
+                true)) {
+            return;
+        }
+
+        preferences.edit()
+                .putLong(
+                        KEY_LAST_ATTEMPT,
+                        now)
+                .apply();
+
+        new Thread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+
+                        boolean success = false;
+                        String message;
+
+                        try {
+                            message =
+                                    syncActiveProfile(
+                                            appContext);
+                            success = true;
+
+                        } catch (Exception exception) {
+                            message =
+                                    exception.getMessage();
+
+                            if (message == null ||
+                                    message.trim().isEmpty()) {
+                                message = "Sync failed";
+                            }
+                        } finally {
+                            SYNC_RUNNING.set(false);
+                        }
+
+                        notifyCallback(
+                                callback,
+                                success,
+                                message);
+                    }
+                },
+                "SimpleBrowserActiveSync")
+                .start();
+    }
+
+    private static String syncActiveProfile(
+            Context context) throws Exception {
+
+        SimpleAccountManager account =
+                new SimpleAccountManager(context);
+
+        if (!account.isSignedIn()) {
+            throw new Exception(
+                    "Sign in to Simple Account first.");
+        }
+
+        String token =
+                account.getValidIdToken();
+
+        if (token == null ||
+                token.trim().isEmpty()) {
+            throw new Exception(
+                    "Simple Account session expired.");
+        }
+
+        try {
+            return performActiveProfileSync(
+                    context,
+                    token,
+                    account.getUid());
+
+        } catch (HttpFailure failure) {
+
+            if (failure.statusCode != 401) {
+                throw failure;
+            }
+
+            try {
+                token =
+                        account.refreshIdToken();
+            } catch (Exception ignored) {
+                throw new Exception(
+                        "Simple Account session expired.");
+            }
+
+            return performActiveProfileSync(
+                    context,
+                    token,
+                    account.getUid());
+        }
+    }
+
+    private static String performActiveProfileSync(
+            Context context,
+            String token,
+            String uid) throws Exception {
+
+        String activeProfileId =
+                ProfileManager.getActiveProfileId(
+                        context);
+
+        if (activeProfileId == null ||
+                activeProfileId.trim().isEmpty() ||
+                ProfileManager.isGuest(
+                        activeProfileId)) {
+            return "Active profile unchanged.";
+        }
+
+        ProfileManager profileManager =
+                new ProfileManager(context);
+
+        ProfileManager.Profile profile =
+                profileManager.getProfile(
+                        context,
+                        activeProfileId);
+
+        if (profile == null) {
+            return "Active profile unchanged.";
+        }
+
+        CloudProfile cloud =
+                getCloudProfile(
+                        token,
+                        uid,
+                        activeProfileId);
+
+        int result =
+                reconcileProfile(
+                        context,
+                        token,
+                        uid,
+                        profileManager,
+                        profile,
+                        cloud);
+
+        if (result == 0) {
+            return "Active profile unchanged.";
+        }
+
+        return "Active profile synced.";
+    }
+
+    private static int reconcileProfile(
+            Context context,
+            String token,
+            String uid,
+            ProfileManager profileManager,
+            ProfileManager.Profile profile,
+            CloudProfile cloud) throws Exception {
+
+        if (profile == null ||
+                profile.id == null ||
+                ProfileManager.isGuest(
+                        profile.id)) {
+            return 0;
+        }
+
+        long localModified =
+                getLocalModified(
+                        context,
+                        profile.id);
+
+        String localSnapshot =
+                buildLocalSnapshot(
+                        context,
+                        profile);
+
+        boolean localDirty =
+                isProfileDirty(
+                        context,
+                        profile.id,
+                        localSnapshot);
+
+        if (cloud == null) {
+
+            long uploadTime =
+                    localModified <= 0L
+                            ? System.currentTimeMillis()
+                            : localModified;
+
+            String cloudVersion =
+                    putCloudProfile(
+                            token,
+                            uid,
+                            context,
+                            profile,
+                            uploadTime);
+
+            markLocalSynced(
+                    context,
+                    profile.id,
+                    uploadTime,
+                    cloudVersion);
+
+            saveLocalSnapshot(
+                    context,
+                    profileManager,
+                    profile.id);
+
+            return 1;
+        }
+
+        if (cloud.deleted) {
+
+            /*
+             * An active profile must never disappear underneath the user.
+             * When it is deleted remotely, its local copy is uploaded again.
+             * Non-active profiles still follow the normal tombstone path.
+             */
+            if (profile.id.equals(
+                    ProfileManager.getActiveProfileId(
+                            context))) {
+
+                long uploadTime =
+                        localModified <= 0L
+                                ? System.currentTimeMillis()
+                                : localModified;
+
+                String cloudVersion =
+                        putCloudProfile(
+                                token,
+                                uid,
+                                context,
+                                profile,
+                                uploadTime);
+
+                markLocalSynced(
+                        context,
+                        profile.id,
+                        uploadTime,
+                        cloudVersion);
+
+                saveLocalSnapshot(
+                        context,
+                        profileManager,
+                        profile.id);
+
+                return 1;
+            }
+
+            if (canDeleteLocally(
+                    context,
+                    profile.id) &&
+                    cloud.updatedAt >= localModified) {
+
+                if (profileManager
+                        .deleteSyncedProfile(
+                                context,
+                                profile.id)) {
+
+                    setLocalModified(
+                            context,
+                            profile.id,
+                            cloud.updatedAt);
+
+                    clearLocalSnapshot(
+                            context,
+                            profile.id);
+
+                    return 2;
+                }
+            }
+
+            return 0;
+        }
+
+        String lastCloudVersion =
+                getLastCloudVersion(
+                        context,
+                        profile.id);
+
+        if (localDirty) {
+
+            /*
+             * When both devices changed the same profile, perform a
+             * three-way merge against the snapshot that local content was
+             * based on. Different setting keys can therefore change on both
+             * devices without one stale copy erasing the other.
+             */
+            if (!lastCloudVersion.isEmpty() &&
+                    !cloud.serverVersion.equals(
+                            lastCloudVersion) &&
+                    !getLastSnapshot(
+                            context,
+                            profile.id).trim().isEmpty()) {
+
+                JSONObject merged =
+                        mergeProfileSnapshots(
+                                getLastSnapshot(
+                                        context,
+                                        profile.id),
+                                localSnapshot,
+                                cloud);
+
+                String mergedName =
+                        merged.optString(
+                                "name",
+                                profile.name);
+
+                JSONObject mergedSettings =
+                        merged.optJSONObject(
+                                "settings");
+
+                if (mergedSettings == null) {
+                    mergedSettings =
+                            new JSONObject();
+                }
+
+                profileManager.upsertSyncedProfile(
+                        context,
+                        profile.id,
+                        mergedName);
+
+                new BrowserSettings(
+                        context,
+                        profile.id)
+                        .replaceSyncJson(
+                                mergedSettings);
+
+                profile =
+                        profileManager.getProfile(
+                                context,
+                                profile.id);
+
+                if (profile == null) {
+                    return 0;
+                }
+            }
+
+            long uploadTime =
+                    localModified <= 0L
+                            ? System.currentTimeMillis()
+                            : localModified;
+
+            String cloudVersion =
+                    putCloudProfile(
+                            token,
+                            uid,
+                            context,
+                            profile,
+                            uploadTime);
+
+            markLocalSynced(
+                    context,
+                    profile.id,
+                    uploadTime,
+                    cloudVersion);
+
+            saveLocalSnapshot(
+                    context,
+                    profileManager,
+                    profile.id);
+
+            return 1;
+        }
+
+        /*
+         * No local edits: accept the cloud copy whenever its Firestore
+         * document version differs from our last accepted version.
+         */
+        if (!cloud.serverVersion.equals(
+                lastCloudVersion)) {
+
+            if (applyCloudProfile(
+                    context,
+                    profileManager,
+                    cloud)) {
+
+                markLocalSynced(
+                        context,
+                        profile.id,
+                        localModified,
+                        cloud.serverVersion);
+
+                saveLocalSnapshot(
+                        context,
+                        profileManager,
+                        profile.id);
+
+                return 2;
+            }
+
+            markLocalSynced(
+                    context,
+                    profile.id,
+                    localModified,
+                    cloud.serverVersion);
+
+            saveLocalSnapshot(
+                    context,
+                    profileManager,
+                    profile.id);
+        }
+
+        /*
+         * Profiles created by older versions can have a cloud version but no
+         * local snapshot yet. Treat the cloud copy as the initial baseline
+         * rather than uploading an unverified local copy over it.
+         */
+        else if (getLastSnapshot(
+                context,
+                profile.id).trim().isEmpty()) {
+
+            applyCloudProfile(
+                    context,
+                    profileManager,
+                    cloud);
+
+            markLocalSynced(
+                    context,
+                    profile.id,
+                    localModified,
+                    cloud.serverVersion);
+
+            saveLocalSnapshot(
+                    context,
+                    profileManager,
+                    profile.id);
+
+            return 2;
+        }
+
+        return 0;
     }
 
     private static void syncDeletionTombstones(
@@ -742,6 +1126,381 @@ public final class SimpleSyncManager {
                         KEY_PROFILE_PREFIX +
                                 profileId,
                         0L);
+    }
+
+    private static boolean isProfileDirty(
+            Context context,
+            String profileId,
+            String localSnapshot) {
+
+        String savedSnapshot =
+                getLastSnapshot(
+                        context,
+                        profileId);
+
+        if (isProfileDirty(
+                context,
+                profileId)) {
+            return true;
+        }
+
+        /*
+         * A missing snapshot is not itself a local edit. Existing installs
+         * must first establish a cloud baseline before local content can be
+         * considered divergent.
+         */
+        if (savedSnapshot == null ||
+                savedSnapshot.trim().isEmpty()) {
+            return false;
+        }
+
+        return !savedSnapshot.equals(
+                localSnapshot == null
+                        ? ""
+                        : localSnapshot);
+    }
+
+    private static String buildLocalSnapshot(
+            Context context,
+            ProfileManager.Profile profile) {
+
+        if (profile == null) {
+            return "";
+        }
+
+        try {
+            JSONObject snapshot =
+                    new JSONObject();
+
+            snapshot.put(
+                    "name",
+                    profile.name == null
+                            ? ""
+                            : profile.name);
+
+            snapshot.put(
+                    "settings",
+                    new JSONObject(
+                            new BrowserSettings(
+                                    context,
+                                    profile.id)
+                                    .exportSyncJson()));
+
+            return snapshot.toString();
+
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static String getLastSnapshot(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return "";
+        }
+
+        return context.getApplicationContext()
+                .getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE)
+                .getString(
+                        KEY_PROFILE_SNAPSHOT_PREFIX +
+                                profileId,
+                        "");
+    }
+
+    private static void saveLocalSnapshot(
+            Context context,
+            ProfileManager profileManager,
+            String profileId) {
+
+        if (context == null ||
+                profileManager == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return;
+        }
+
+        ProfileManager.Profile profile =
+                profileManager.getProfile(
+                        context,
+                        profileId);
+
+        if (profile == null) {
+            return;
+        }
+
+        String snapshot =
+                buildLocalSnapshot(
+                        context,
+                        profile);
+
+        if (snapshot.trim().isEmpty()) {
+            return;
+        }
+
+        context.getApplicationContext()
+                .getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE)
+                .edit()
+                .putString(
+                        KEY_PROFILE_SNAPSHOT_PREFIX +
+                                profileId,
+                        snapshot)
+                .apply();
+    }
+
+    private static void clearLocalSnapshot(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return;
+        }
+
+        context.getApplicationContext()
+                .getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE)
+                .edit()
+                .remove(
+                        KEY_PROFILE_SNAPSHOT_PREFIX +
+                                profileId)
+                .apply();
+    }
+
+    private static JSONObject mergeProfileSnapshots(
+            String baseSnapshot,
+            String localSnapshot,
+            CloudProfile cloud) {
+
+        JSONObject base =
+                parseSnapshot(baseSnapshot);
+
+        JSONObject local =
+                parseSnapshot(localSnapshot);
+
+        JSONObject cloudSettings =
+                parseJsonObject(
+                        cloud == null
+                                ? ""
+                                : cloud.settings);
+
+        JSONObject baseSettings =
+                base.optJSONObject(
+                        "settings");
+
+        if (baseSettings == null) {
+            baseSettings =
+                    new JSONObject();
+        }
+
+        JSONObject localSettings =
+                local.optJSONObject(
+                        "settings");
+
+        if (localSettings == null) {
+            localSettings =
+                    new JSONObject();
+        }
+
+        String baseName =
+                base.optString(
+                        "name",
+                        "");
+
+        String localName =
+                local.optString(
+                        "name",
+                        "");
+
+        String cloudName =
+                cloud == null
+                        ? ""
+                        : cloud.name;
+
+        boolean localNameChanged =
+                !localName.equals(
+                        baseName);
+
+        boolean cloudNameChanged =
+                !cloudName.equals(
+                        baseName);
+
+        String mergedName;
+
+        if (localNameChanged) {
+            mergedName = localName;
+        } else if (cloudNameChanged) {
+            mergedName = cloudName;
+        } else {
+            mergedName = localName;
+        }
+
+        JSONObject mergedSettings =
+                new JSONObject();
+
+        Set<String> keys =
+                new HashSet<>();
+
+        addJsonKeys(
+                keys,
+                baseSettings);
+        addJsonKeys(
+                keys,
+                localSettings);
+        addJsonKeys(
+                keys,
+                cloudSettings);
+
+        for (String key : keys) {
+
+            boolean localChanged =
+                    !jsonValuesEqual(
+                            localSettings,
+                            baseSettings,
+                            key);
+
+            boolean cloudChanged =
+                    !jsonValuesEqual(
+                            cloudSettings,
+                            baseSettings,
+                            key);
+
+            JSONObject source;
+
+            if (localChanged) {
+                source = localSettings;
+            } else if (cloudChanged) {
+                source = cloudSettings;
+            } else {
+                source = baseSettings;
+            }
+
+            if (source.has(key)) {
+                try {
+                    mergedSettings.put(
+                            key,
+                            source.get(key));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        JSONObject result =
+                new JSONObject();
+
+        try {
+            result.put(
+                    "name",
+                    mergedName);
+
+            result.put(
+                    "settings",
+                    mergedSettings);
+        } catch (Exception ignored) {
+        }
+
+        return result;
+    }
+
+    private static JSONObject parseSnapshot(
+            String snapshot) {
+
+        return parseJsonObject(
+                snapshot);
+    }
+
+    private static JSONObject parseJsonObject(
+            String json) {
+
+        if (json == null ||
+                json.trim().isEmpty()) {
+            return new JSONObject();
+        }
+
+        try {
+            return new JSONObject(json);
+        } catch (Exception ignored) {
+            return new JSONObject();
+        }
+    }
+
+    private static void addJsonKeys(
+            Set<String> keys,
+            JSONObject object) {
+
+        if (keys == null ||
+                object == null) {
+            return;
+        }
+
+        JSONArray names =
+                object.names();
+
+        if (names == null) {
+            return;
+        }
+
+        for (int i = 0;
+                i < names.length();
+                i++) {
+
+            String name =
+                    names.optString(
+                            i,
+                            "");
+
+            if (!name.trim().isEmpty()) {
+                keys.add(name);
+            }
+        }
+    }
+
+    private static boolean jsonValuesEqual(
+            JSONObject first,
+            JSONObject second,
+            String key) {
+
+        boolean firstHas =
+                first != null &&
+                first.has(key);
+
+        boolean secondHas =
+                second != null &&
+                second.has(key);
+
+        if (firstHas != secondHas) {
+            return false;
+        }
+
+        if (!firstHas) {
+            return true;
+        }
+
+        Object firstValue =
+                first.opt(key);
+
+        Object secondValue =
+                second.opt(key);
+
+        if (firstValue == null ||
+                JSONObject.NULL.equals(
+                        firstValue)) {
+            return secondValue == null ||
+                    JSONObject.NULL.equals(
+                            secondValue);
+        }
+
+        return firstValue.equals(
+                secondValue);
     }
 
     private static boolean isProfileDirty(
@@ -988,68 +1747,11 @@ public final class SimpleSyncManager {
                 continue;
             }
 
-            JSONObject fields =
-                    document.optJSONObject(
-                            "fields");
-
-            if (fields == null) {
-                continue;
-            }
-
-            String documentName =
-                    document.optString(
-                            "name",
-                            "");
-
-            String serverVersion =
-                    document.optString(
-                            "updateTime",
-                            "");
-
-            String fallbackId =
-                    documentName.substring(
-                            documentName.lastIndexOf(
-                                    '/') + 1);
-
             CloudProfile cloud =
-                    new CloudProfile();
+                    parseCloudDocument(
+                            document);
 
-            cloud.id =
-                    fieldString(
-                            fields,
-                            "profileId",
-                            fallbackId);
-
-            cloud.name =
-                    fieldString(
-                            fields,
-                            "name",
-                            "Profile");
-
-            cloud.settings =
-                    fieldString(
-                            fields,
-                            "settings",
-                            "");
-
-            cloud.serverVersion =
-                    serverVersion;
-
-            cloud.updatedAt =
-                    fieldLong(
-                            fields,
-                            "updatedAt",
-                            0L);
-
-            cloud.deleted =
-                    fieldBoolean(
-                            fields,
-                            "deleted",
-                            false);
-
-            if (cloud.id != null &&
-                    !cloud.id.trim().isEmpty()) {
-
+            if (cloud != null) {
                 result.put(
                         cloud.id,
                         cloud);
@@ -1057,6 +1759,111 @@ public final class SimpleSyncManager {
         }
 
         return result;
+    }
+
+    private static CloudProfile getCloudProfile(
+            String token,
+            String uid,
+            String profileId) throws Exception {
+
+        String url =
+                FIRESTORE_BASE +
+                "/users/" +
+                encode(uid) +
+                "/services/simpleBrowser/profiles/" +
+                encode(profileId);
+
+        try {
+
+            JSONObject document =
+                    requestJson(
+                            "GET",
+                            url,
+                            token,
+                            null);
+
+            return parseCloudDocument(
+                    document);
+
+        } catch (HttpFailure failure) {
+
+            if (failure.statusCode == 404) {
+                return null;
+            }
+
+            throw failure;
+        }
+    }
+
+    private static CloudProfile parseCloudDocument(
+            JSONObject document) {
+
+        if (document == null) {
+            return null;
+        }
+
+        JSONObject fields =
+                document.optJSONObject(
+                        "fields");
+
+        if (fields == null) {
+            return null;
+        }
+
+        String documentName =
+                document.optString(
+                        "name",
+                        "");
+
+        String fallbackId =
+                documentName.substring(
+                        documentName.lastIndexOf(
+                                '/') + 1);
+
+        CloudProfile cloud =
+                new CloudProfile();
+
+        cloud.id =
+                fieldString(
+                        fields,
+                        "profileId",
+                        fallbackId);
+
+        cloud.name =
+                fieldString(
+                        fields,
+                        "name",
+                        "Profile");
+
+        cloud.settings =
+                fieldString(
+                        fields,
+                        "settings",
+                        "");
+
+        cloud.serverVersion =
+                document.optString(
+                        "updateTime",
+                        "");
+
+        cloud.updatedAt =
+                fieldLong(
+                        fields,
+                        "updatedAt",
+                        0L);
+
+        cloud.deleted =
+                fieldBoolean(
+                        fields,
+                        "deleted",
+                        false);
+
+        if (cloud.id == null ||
+                cloud.id.trim().isEmpty()) {
+            return null;
+        }
+
+        return cloud;
     }
 
     private static String commitDocument(
@@ -1395,7 +2202,7 @@ public final class SimpleSyncManager {
                             context,
                             profileId);
 
-            settings.importSyncJson(
+            settings.replaceSyncJson(
                     new JSONObject(
                             settingsJson));
         } catch (Exception ignored) {
