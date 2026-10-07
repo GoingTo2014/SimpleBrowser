@@ -291,12 +291,6 @@ public final class SimpleAccountActivity extends Activity {
                             return;
                         }
 
-                        Uri uri =
-                                Uri.parse(
-                                        error.getDescription() == null
-                                                ? ""
-                                                : view.getUrl());
-
                         String failingUrl =
                                 view.getUrl();
 
