@@ -1,3 +1,10 @@
+Account popup, keyboard and localization fixes
+- Made the Simple Account login popup fill the entire screen.
+- Fixed keyboard/IME focus and resize behavior in the Account WebView.
+- Localized the hosted Simple Account login page for the supported Simple Browser languages.
+- Added all Simple Account browser/settings translations to every bundled language pack.
+- Added a localized "What's new" label to the automatic update dialog and fixed remaining update wording.
+
 Simple Account and localization fixes
 - Made the Simple Account login popup fill the entire screen while remaining a modal popup.
 - Fixed keyboard/IME behavior in the Account WebView so login and account fields can receive touch input and resize with the keyboard.
