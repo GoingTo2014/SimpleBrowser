@@ -119,6 +119,7 @@
             android:name=".SimpleAccountActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Material.Light.Dialog"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
             android:hardwareAccelerated="true" />
 
         <activity
