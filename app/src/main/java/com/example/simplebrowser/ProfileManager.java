@@ -25,6 +25,11 @@ public final class ProfileManager {
     private static final String KEY_PROFILES = "profiles";
     private static final String KEY_ACTIVE = "active_profile";
     private static final String KEY_MAIN_NAME = "main_name";
+    private static final String ACTIVE_STATE_FILE =
+            "profile_active.state";
+
+    private static final String PROFILE_REGISTRY_FILE =
+            "profile_registry.state";
     private static String guestSessionId;
     private static String processProfileId;
 
@@ -1010,6 +1015,80 @@ public final class ProfileManager {
                 profileId);
 
         SimpleSyncManager.markProfileDeleted(
+                context,
+                profileId);
+
+        deleteProfileData(
+                context,
+                profileId);
+
+        return true;
+    }
+
+    /**
+     * Deletes a non-active persistent profile received from cloud sync
+     * without creating a new deletion tombstone.
+     */
+    public synchronized boolean deleteSyncedProfile(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                MAIN_ID.equals(profileId) ||
+                isGuest(profileId) ||
+                profileId.equals(
+                        getActiveProfileId(context))) {
+            return false;
+        }
+
+        List<Profile> profiles =
+                getProfiles(context);
+
+        JSONArray array =
+                new JSONArray();
+
+        boolean removed = false;
+
+        for (Profile profile : profiles) {
+
+            if (MAIN_ID.equals(profile.id)) {
+                continue;
+            }
+
+            if (profile.id.equals(profileId)) {
+                removed = true;
+                continue;
+            }
+
+            try {
+                array.put(
+                        new JSONObject()
+                                .put("id", profile.id)
+                                .put("name", profile.name));
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!removed) {
+            return false;
+        }
+
+        String updatedProfiles =
+                array.toString();
+
+        writeStateFile(
+                context,
+                PROFILE_REGISTRY_FILE,
+                updatedProfiles);
+
+        preferences(context).edit()
+                .putString(
+                        KEY_PROFILES,
+                        updatedProfiles)
+                .apply();
+
+        ProfileProcessRuntime.stopProfileProcess(
                 context,
                 profileId);
 
