@@ -765,7 +765,8 @@ public class SettingsPage {
                 "<div class='nav " +
                 active(currentSection, "account") +
                 "' onclick=\"Android.navigate('account')\">" +
-                "Account</div>" +
+                Localization.translate(activity, "account.settings") +
+                "</div>" +
 
                 "<div class='nav " +
                 active(currentSection, "privacy-security") +
@@ -1082,17 +1083,25 @@ public class SettingsPage {
                         "account") +
                 "'>" +
 
-                "<h2>Account</h2>" +
+                "<h2>" +
+                Localization.translate(
+                        activity,
+                        "account.settings") +
+                "</h2>" +
 
                 "<div class='card'>" +
 
                 (new SimpleAccountManager(activity).isSignedIn()
                         ? "<div class='row'>" +
                           "<div class='title'>" +
-                          Localization.translate(activity, "account.signed_in") +
+                          Localization.translate(
+                                  activity,
+                                  "account.signed_in") +
                           "</div>" +
                           "<div class='description'>" +
-                          Localization.translate(activity, "account.signed_in_as") +
+                          Localization.translate(
+                                  activity,
+                                  "account.signed_in_as") +
                           "</div>" +
                           "<div style='margin-top:8px;font-size:15px;word-break:break-word;'>" +
                           htmlAttribute(
@@ -1106,30 +1115,62 @@ public class SettingsPage {
 
                           "<div class='row'>" +
                           "<div class='title'>" +
-                          Localization.translate(activity, "account.sync_now") +
+                          Localization.translate(
+                                  activity,
+                                  "account.sync_now") +
                           "</div>" +
-                          "<div class='description'>Keep your Simple Browser profiles and settings synchronized across devices.</div>" +
+                          "<div class='description'>" +
+                          Localization.translate(
+                                  activity,
+                                  "account.sync_desc") +
+                          "</div>" +
                           "<button style='margin-top:8px' onclick='Android.accountSync()'>" +
-                          Localization.translate(activity, "account.sync_now") +
+                          Localization.translate(
+                                  activity,
+                                  "account.sync_now") +
                           "</button>" +
                           "</div>" +
 
                           "<div class='row'>" +
                           "<button onclick='Android.accountSignOut()'>" +
-                          Localization.translate(activity, "account.sign_out") +
+                          Localization.translate(
+                                  activity,
+                                  "account.sign_out") +
                           "</button>" +
                           "</div>"
+
                         : "<div class='row'>" +
-                          "<div class='title'>Sign in to Simple Account</div>" +
-                          "<div class='description'>Sync your Simple Browser profiles and settings between your devices and keep your browser preferences with your account.</div>" +
+                          "<div class='title'>" +
+                          Localization.translate(
+                                  activity,
+                                  "account.sign_in_heading") +
+                          "</div>" +
+                          "<div class='description'>" +
+                          Localization.translate(
+                                  activity,
+                                  "account.sync_desc") +
+                          "</div>" +
                           "<div style='margin-top:12px;line-height:1.55;font-size:13px;'>" +
-                          "Benefits of signing in:" +
-                          "<br>&bull; Sync browser profiles and their settings" +
-                          "<br>&bull; Keep your browser configuration across devices" +
-                          "<br>&bull; More Simple services can use the same account" +
+                          Localization.translate(
+                                  activity,
+                                  "account.sign_in_benefits") +
+                          "<br>&bull; " +
+                          Localization.translate(
+                                  activity,
+                                  "account.benefit_profiles") +
+                          "<br>&bull; " +
+                          Localization.translate(
+                                  activity,
+                                  "account.benefit_configuration") +
+                          "<br>&bull; " +
+                          Localization.translate(
+                                  activity,
+                                  "account.benefit_services") +
                           "</div>" +
                           "<button style='margin-top:14px' onclick='Android.accountLogin()'>" +
-                          Localization.translate(activity, "account.sign_in") +
+                          Localization.translate(
+                                  activity,
+                                  "account.sign_in") +
                           "</button>" +
                           "</div>") +
 
