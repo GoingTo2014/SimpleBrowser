@@ -1,3 +1,9 @@
+Simple Account release
+- Added Sign In to the three-dot profile header, opening the Simple Account GitHub Pages login in the existing popup WebView.
+- Added Settings > Account with signed-in account information, Sign Out, Sync now, and an explanation of the benefits of signing in.
+- Added Simple Account profile/settings sync across devices with Firestore REST, including profile creation, renaming, settings changes, and profile deletions.
+- Sign-in now automatically starts the initial browser sync, with throttled background sync while the browser is active.
+
 - Fixed profile switching, editing, and deletion using reliable internal navigation actions.
 - The limit is now 8 user-created profiles in addition to Main, and the active Guest Profile is shown in the profile list.
 - Removed profile pictures for now; profiles display the first letter of their name instead.
