@@ -32,3 +32,4 @@ Normal close and force-stop non-Main profile cold-start regression.
 WebView-free startup router and dedicated-process validation.
 Exercise ProfileRouterActivity in cold-start regression.
 Correct remaining MainActivity test launch targets.Simple Account sign-in UI and profile/settings sync release trigger.
+Release build retry after language-pack syntax fix.
