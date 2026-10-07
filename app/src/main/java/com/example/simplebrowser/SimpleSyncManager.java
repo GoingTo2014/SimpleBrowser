@@ -823,62 +823,136 @@ public final class SimpleSyncManager {
 
         if (localDirty) {
 
-            /*
-             * When both devices changed the same profile, perform a
-             * three-way merge against the snapshot that local content was
-             * based on. Different setting keys can therefore change on both
-             * devices without one stale copy erasing the other.
-             */
-            if (!lastCloudVersion.isEmpty() &&
-                    !cloud.serverVersion.equals(
-                            lastCloudVersion) &&
-                    !getLastSnapshot(
+            String baseSnapshot =
+                    getLastSnapshot(
                             context,
-                            profile.id).trim().isEmpty()) {
+                            profile.id);
 
-                JSONObject merged =
-                        mergeProfileSnapshots(
-                                getLastSnapshot(
-                                        context,
-                                        profile.id),
-                                localSnapshot,
-                                cloud);
+            CloudProfile candidateCloud =
+                    cloud;
 
-                String mergedName =
-                        merged.optString(
-                                "name",
-                                profile.name);
+            /*
+             * Use Firestore's current updateTime as a compare-and-swap
+             * precondition. This prevents two devices that both read version
+             * N from silently overwriting each other.
+             */
+            for (int attempt = 0;
+                    attempt < 3;
+                    attempt++) {
 
-                JSONObject mergedSettings =
-                        merged.optJSONObject(
-                                "settings");
-
-                if (mergedSettings == null) {
-                    mergedSettings =
-                            new JSONObject();
+                if (candidateCloud == null) {
+                    break;
                 }
 
-                profileManager.upsertSyncedProfile(
-                        context,
-                        profile.id,
-                        mergedName);
+                if (!baseSnapshot.trim().isEmpty() &&
+                        !lastCloudVersion.isEmpty() &&
+                        !candidateCloud.serverVersion.equals(
+                                lastCloudVersion)) {
 
-                new BrowserSettings(
-                        context,
-                        profile.id)
-                        .replaceSyncJson(
-                                mergedSettings);
+                    JSONObject merged =
+                            mergeProfileSnapshots(
+                                    baseSnapshot,
+                                    buildLocalSnapshot(
+                                            context,
+                                            profile),
+                                    candidateCloud);
 
-                profile =
-                        profileManager.getProfile(
-                                context,
-                                profile.id);
+                    String mergedName =
+                            merged.optString(
+                                    "name",
+                                    profile.name);
 
-                if (profile == null) {
-                    return 0;
+                    JSONObject mergedSettings =
+                            merged.optJSONObject(
+                                    "settings");
+
+                    if (mergedSettings == null) {
+                        mergedSettings =
+                                new JSONObject();
+                    }
+
+                    profileManager.upsertSyncedProfile(
+                            context,
+                            profile.id,
+                            mergedName);
+
+                    new BrowserSettings(
+                            context,
+                            profile.id)
+                            .replaceSyncJson(
+                                    mergedSettings);
+
+                    profile =
+                            profileManager.getProfile(
+                                    context,
+                                    profile.id);
+
+                    if (profile == null) {
+                        return 0;
+                    }
+                }
+
+                long uploadTime =
+                        localModified <= 0L
+                                ? System.currentTimeMillis()
+                                : localModified;
+
+                try {
+
+                    String cloudVersion =
+                            putCloudProfile(
+                                    token,
+                                    uid,
+                                    context,
+                                    profile,
+                                    uploadTime,
+                                    candidateCloud.serverVersion);
+
+                    markLocalSynced(
+                            context,
+                            profile.id,
+                            uploadTime,
+                            cloudVersion);
+
+                    saveLocalSnapshot(
+                            context,
+                            profileManager,
+                            profile.id);
+
+                    return 1;
+
+                } catch (HttpFailure failure) {
+
+                    if (!isFirestorePreconditionFailure(
+                            failure)) {
+                        throw failure;
+                    }
+
+                    /*
+                     * Someone changed the document after our GET. Read the
+                     * latest copy and repeat the three-way merge against the
+                     * snapshot from which this local edit was made.
+                     */
+                    if (attempt >= 2) {
+                        throw failure;
+                    }
+
+                    candidateCloud =
+                            getCloudProfile(
+                                    token,
+                                    uid,
+                                    profile.id);
+
+                    if (candidateCloud == null) {
+                        break;
+                    }
                 }
             }
 
+            /*
+             * A profile document can disappear between the read and write.
+             * In that case, recreate it from the local copy.
+             */
             long uploadTime =
                     localModified <= 0L
                             ? System.currentTimeMillis()
@@ -1613,6 +1687,23 @@ public final class SimpleSyncManager {
             ProfileManager.Profile profile,
             long updatedAt) throws Exception {
 
+        return putCloudProfile(
+                token,
+                uid,
+                context,
+                profile,
+                updatedAt,
+                "");
+    }
+
+    private static String putCloudProfile(
+            String token,
+            String uid,
+            Context context,
+            ProfileManager.Profile profile,
+            long updatedAt,
+            String expectedCloudVersion) throws Exception {
+
         BrowserSettings settings =
                 new BrowserSettings(
                         context,
@@ -1656,7 +1747,8 @@ public final class SimpleSyncManager {
                 documentPath(
                         uid,
                         profile.id),
-                fields);
+                fields,
+                expectedCloudVersion);
     }
 
     private static void putDeletedCloudProfile(
@@ -1871,6 +1963,19 @@ public final class SimpleSyncManager {
             String documentPath,
             JSONObject fields) throws Exception {
 
+        return commitDocument(
+                token,
+                documentPath,
+                fields,
+                "");
+    }
+
+    private static String commitDocument(
+            String token,
+            String documentPath,
+            JSONObject fields,
+            String expectedCloudVersion) throws Exception {
+
         JSONObject update =
                 new JSONObject();
 
@@ -1888,6 +1993,21 @@ public final class SimpleSyncManager {
         write.put(
                 "update",
                 update);
+
+        if (expectedCloudVersion != null &&
+                !expectedCloudVersion.trim().isEmpty()) {
+
+            JSONObject precondition =
+                    new JSONObject();
+
+            precondition.put(
+                    "updateTime",
+                    expectedCloudVersion);
+
+            write.put(
+                    "currentDocument",
+                    precondition);
+        }
 
         JSONArray writes =
                 new JSONArray();
@@ -1932,6 +2052,21 @@ public final class SimpleSyncManager {
         }
 
         return "";
+    }
+
+    private static boolean isFirestorePreconditionFailure(
+            HttpFailure failure) {
+
+        if (failure == null) {
+            return false;
+        }
+
+        String message =
+                failure.getMessage();
+
+        return failure.statusCode == 400 &&
+                message != null &&
+                message.contains("FAILED_PRECONDITION");
     }
 
     private static JSONObject requestJson(
