@@ -463,4 +463,22 @@ public final class Russian extends LanguagePack {
         put("settings.update_now", "Обновить сейчас");
         put("common.close", "Закрыть");
         put("common.close_tab", "Закрыть вкладку");    }
+        put("account.title", "Simple Account");
+        put("account.settings", "Аккаунт");
+        put("account.sign_in", "Войти");
+        put("account.sign_in_heading", "Войдите в Simple Account");
+        put("account.sign_in_benefits", "Преимущества входа:");
+        put("account.benefit_profiles", "Синхронизация профилей браузера и их настроек");
+        put("account.benefit_configuration", "Сохранение настроек браузера на всех устройствах");
+        put("account.benefit_services", "Другие сервисы Simple могут использовать тот же аккаунт");
+        put("account.sync_desc", "Синхронизируйте профили и настройки Simple Browser между устройствами.");
+        put("account.signed_in", "Выполнен вход");
+        put("account.signed_in_as", "Вы вошли как");
+        put("account.sign_out", "Выйти");
+        put("account.signed_out", "Выполнен выход из Simple Account.");
+        put("account.open_failed", "Не удалось открыть Simple Account.");
+        put("account.sync_now", "Синхронизировать сейчас");
+        put("account.sync_complete", "Синхронизация Simple Account завершена.");
+        put("account.sync_failed", "Сбой синхронизации Simple Account.");
+
 }
