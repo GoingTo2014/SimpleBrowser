@@ -240,6 +240,21 @@ public final class ProfileSwitchService extends Service {
         }
     }
 
+    private static void completeSwap(
+            Context context,
+            String from,
+            String to)
+            throws IOException {
+
+        if (Build.VERSION.SDK_INT < 28) {
+            ProfileWebViewStorage
+                    .swapLegacyProfileData(
+                            context,
+                            from,
+                            to);
+        }
+    }
+
     private void launchBrowserWithRetry(
             String targetProfileId) {
 
