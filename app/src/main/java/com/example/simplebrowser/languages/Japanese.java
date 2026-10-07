@@ -451,4 +451,22 @@ put("common.cancel", "キャンセル");
     }
 
 
+        put("account.title", "Simple Account");
+        put("account.settings", "アカウント");
+        put("account.sign_in", "サインイン");
+        put("account.sign_in_heading", "Simple Account にサインイン");
+        put("account.sign_in_benefits", "サインインするメリット：");
+        put("account.benefit_profiles", "ブラウザのプロフィールと設定を同期");
+        put("account.benefit_configuration", "すべてのデバイスでブラウザ設定を維持");
+        put("account.benefit_services", "他のSimpleサービスでも同じアカウントを使用可能");
+        put("account.sync_desc", "Simple Browser のプロフィールと設定をデバイス間で同期します。");
+        put("account.signed_in", "サインイン済み");
+        put("account.signed_in_as", "サインイン中のアカウント");
+        put("account.sign_out", "サインアウト");
+        put("account.signed_out", "Simple Account からサインアウトしました。");
+        put("account.open_failed", "Simple Account を開けませんでした。");
+        put("account.sync_now", "今すぐ同期");
+        put("account.sync_complete", "Simple Account の同期が完了しました。");
+        put("account.sync_failed", "Simple Account の同期に失敗しました。");
+
 }
