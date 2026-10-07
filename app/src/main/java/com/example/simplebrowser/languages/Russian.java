@@ -462,6 +462,5 @@ public final class Russian extends LanguagePack {
         put("settings.update_later", "Позже");
         put("settings.update_now", "Обновить сейчас");
         put("common.close", "Закрыть");
-        put("common.close_tab", "Закрыть вкладку");
-
+        put("common.close_tab", "Закрыть вкладку");    }
 }
