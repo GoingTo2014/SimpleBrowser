@@ -449,9 +449,6 @@ put("common.cancel", "キャンセル");
         put("common.close", "閉じる");
         put("common.close_tab", "タブを閉じる");
 
-    }
-
-
         put("account.title", "Simple Account");
         put("account.settings", "アカウント");
         put("account.sign_in", "サインイン");
@@ -469,5 +466,9 @@ put("common.cancel", "キャンセル");
         put("account.sync_now", "今すぐ同期");
         put("account.sync_complete", "Simple Account の同期が完了しました。");
         put("account.sync_failed", "Simple Account の同期に失敗しました。");
+
+    }
+
+
 
 }
