@@ -6267,7 +6267,10 @@ public class MainActivity extends Activity {
         foregroundSyncStarted = false;
 
         accountSyncHandler.removeCallbacks(
-                accountSyncRunnable);
+                accountFullSyncRunnable);
+
+        accountSyncHandler.removeCallbacks(
+                accountActiveSyncRunnable);
 
         super.onStop();
     }
