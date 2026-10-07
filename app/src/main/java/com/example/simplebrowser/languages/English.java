@@ -453,6 +453,12 @@ put("common.cancel", "Cancel");
         put("settings.update_now", "Update now");
         put("common.close", "Close");
         put("common.close_tab", "Close tab");
+        put("account.title", "Simple Account");
+        put("account.signed_in", "Signed in");
+        put("account.signed_in_as", "Signed in as");
+        put("account.sign_out", "Sign Out");
+        put("account.signed_out", "Signed out of Simple Account.");
+        put("account.open_failed", "Could not open Simple Account.");
 
     }
 
