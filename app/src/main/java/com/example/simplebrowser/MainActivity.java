@@ -943,6 +943,38 @@ public class MainActivity extends Activity {
                 0);
     }
 
+    void syncSimpleAccount(
+            boolean showResult) {
+
+        SimpleSyncManager.syncAsync(
+                this,
+                showResult
+                        ? new SimpleSyncManager.Callback() {
+                            @Override
+                            public void onComplete(
+                                    boolean success,
+                                    String message) {
+
+                                android.widget.Toast
+                                        .makeText(
+                                                MainActivity.this,
+                                                success
+                                                        ? Localization.translate(
+                                                                MainActivity.this,
+                                                                "account.sync_complete") +
+                                                                "\n" +
+                                                                message
+                                                        : Localization.translate(
+                                                                MainActivity.this,
+                                                                "account.sync_failed"),
+                                                android.widget.Toast
+                                                        .LENGTH_LONG)
+                                        .show();
+                            }
+                        }
+                        : null);
+    }
+
     void signOutSimpleAccount() {
         if (simpleAccountManager == null) {
             simpleAccountManager =
