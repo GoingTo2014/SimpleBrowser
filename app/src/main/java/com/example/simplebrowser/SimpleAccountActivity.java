@@ -171,14 +171,22 @@ public final class SimpleAccountActivity extends Activity {
 
                         window.setLayout(
                                 -1,
-                                (int)
-                                        (getResources()
-                                                .getDisplayMetrics()
-                                                .heightPixels *
-                                                0.88f));
+                                -1);
 
                         window.setGravity(
                                 Gravity.CENTER);
+
+                        window.getDecorView().setPadding(
+                                0,
+                                0,
+                                0,
+                                0);
+
+                        window.setSoftInputMode(
+                                android.view.WindowManager.LayoutParams
+                                        .SOFT_INPUT_ADJUST_RESIZE |
+                                android.view.WindowManager.LayoutParams
+                                        .SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
                         window.setBackgroundDrawable(
                                 new android.graphics.drawable
@@ -193,6 +201,17 @@ public final class SimpleAccountActivity extends Activity {
     private void configureWebView() {
         webView.setBackgroundColor(
                 Color.WHITE);
+
+        webView.setFocusable(true);
+        webView.setFocusableInTouchMode(true);
+        webView.setOnTouchListener(
+                (view, event) -> {
+                    if (event.getAction() ==
+                            android.view.MotionEvent.ACTION_DOWN) {
+                        view.requestFocusFromTouch();
+                    }
+                    return false;
+                });
 
         android.webkit.WebSettings settings =
                 webView.getSettings();
@@ -232,8 +251,27 @@ public final class SimpleAccountActivity extends Activity {
                     }
                 });
 
-        webView.loadUrl(
-                SimpleAccountManager.ACCOUNT_SITE);
+        String accountUrl =
+                SimpleAccountManager.ACCOUNT_SITE;
+
+        try {
+            BrowserSettings browserSettings =
+                    new BrowserSettings(this);
+
+            String language =
+                    browserSettings.getLanguage();
+
+            if (language != null &&
+                    !language.trim().isEmpty() &&
+                    !Localization.SYSTEM.equals(language)) {
+                accountUrl +=
+                        "?lang=" +
+                        android.net.Uri.encode(language);
+            }
+        } catch (Throwable ignored) {
+        }
+
+        webView.loadUrl(accountUrl);
     }
 
     private boolean handleUrl(
