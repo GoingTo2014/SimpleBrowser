@@ -159,7 +159,7 @@ public final class ProfilesPage {
         html.append(escape(String.format(
                 java.util.Locale.US,
                 t("profiles.desc"),
-                ProfileManager.MAX_PROFILES)));
+                ProfileManager.PROFILE_LIMIT)));
         html.append("</div>");
 
         html.append("<div class='toolbar'>");
