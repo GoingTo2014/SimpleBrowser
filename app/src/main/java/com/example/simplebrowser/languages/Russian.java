@@ -463,7 +463,7 @@ public final class Russian extends LanguagePack {
         put("settings.update_now", "Обновить сейчас");
         put("settings.update_notes", "Что нового");
         put("common.close", "Закрыть");
-        put("common.close_tab", "Закрыть вкладку");    }
+        put("common.close_tab", "Закрыть вкладку");
         put("account.title", "Simple Account");
         put("account.settings", "Аккаунт");
         put("account.sign_in", "Войти");
@@ -480,6 +480,6 @@ public final class Russian extends LanguagePack {
         put("account.open_failed", "Не удалось открыть Simple Account.");
         put("account.sync_now", "Синхронизировать сейчас");
         put("account.sync_complete", "Синхронизация Simple Account завершена.");
-        put("account.sync_failed", "Сбой синхронизации Simple Account.");
+        put("account.sync_failed", "Сбой синхронизации Simple Account.");    }
 
 }
