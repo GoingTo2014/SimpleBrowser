@@ -6066,6 +6066,30 @@ public class MainActivity extends Activity {
         }
     }
 
+    private boolean foregroundSyncStarted;
+
+    @Override
+    protected void onStart() {
+
+        super.onStart();
+
+        if (!foregroundSyncStarted) {
+            foregroundSyncStarted = true;
+
+            if (simpleAccountManager == null) {
+                simpleAccountManager =
+                        new SimpleAccountManager(this);
+            }
+
+            if (simpleAccountManager.isSignedIn()) {
+                SimpleSyncManager.syncAsync(
+                        this,
+                        null,
+                        true);
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
 
@@ -6080,17 +6104,14 @@ public class MainActivity extends Activity {
         if (updateManager != null) {
             updateManager.resumePendingInstall();
         }
+    }
 
-        if (simpleAccountManager == null) {
-            simpleAccountManager =
-                    new SimpleAccountManager(this);
-        }
+    @Override
+    protected void onStop() {
 
-        if (simpleAccountManager.isSignedIn()) {
-            SimpleSyncManager.syncAsync(
-                    this,
-                    null);
-        }
+        foregroundSyncStarted = false;
+
+        super.onStop();
     }
 
     @Override
