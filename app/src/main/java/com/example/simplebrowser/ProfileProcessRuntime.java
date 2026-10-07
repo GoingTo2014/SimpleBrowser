@@ -8,16 +8,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 /**
- * Tracks the lifetime of dedicated profile processes.
+ * Tracks the one dedicated profile process used by Android 9+.
  *
- * A profile process can outlive its Activity because Android may cache it.
- * This small on-disk lease prevents a deleted profile's process slot from
- * being reused for another profile while that old process is still alive.
+ * The process is restarted when changing profiles so each profile can use
+ * its own WebView data-directory suffix.
  */
 public final class ProfileProcessRuntime {
 
-    private static final String FILE_PREFIX =
-            "profile_process_runtime_";
+    private static final String STATE_FILE =
+            "profile_process_runtime.state";
 
     private ProfileProcessRuntime() {
     }
@@ -32,44 +31,10 @@ public final class ProfileProcessRuntime {
             return;
         }
 
-        int slot =
-                ProfileManager.getProcessSlot(
-                        context,
-                        profileId);
-
-        if (slot <= 0) {
-            return;
-        }
-
         write(
                 context,
-                slot,
                 profileId,
                 android.os.Process.myPid());
-    }
-
-    public static boolean isSlotOccupied(
-            Context context,
-            int slot) {
-
-        RuntimeState state =
-                read(context, slot);
-
-        if (state == null) {
-            return false;
-        }
-
-        if (!isProcessAlive(state.pid)) {
-            delete(
-                    context,
-                    slot);
-            return false;
-        }
-
-        return processMatchesSlot(
-                context,
-                slot,
-                state.pid);
     }
 
     public static void stopProfileProcess(
@@ -82,32 +47,21 @@ public final class ProfileProcessRuntime {
             return;
         }
 
-        int slot =
-                findMappedSlot(
-                        context,
-                        profileId);
-
-        if (slot <= 0) {
-            return;
-        }
-
         RuntimeState state =
-                read(context, slot);
+                read(context);
 
         if (state == null) {
             return;
         }
 
-        if (!isProcessAlive(state.pid) ||
-                !profileId.equals(state.profileId) ||
-                !processMatchesSlot(
-                        context,
-                        slot,
-                        state.pid)) {
+        if (!profileId.equals(
+                state.profileId)) {
 
-            delete(
-                    context,
-                    slot);
+            return;
+        }
+
+        if (!isProcessAlive(state.pid)) {
+            clear(context);
             return;
         }
 
@@ -121,118 +75,41 @@ public final class ProfileProcessRuntime {
                     state.pid);
         } catch (Throwable ignored) {
         }
-
-        /*
-         * Leave the lease file until the old process is actually gone.
-         * isSlotOccupied() will retire it on the next allocation attempt.
-         */
     }
 
-    private static int findMappedSlot(
-            Context context,
-            String profileId) {
-
-        String json =
-                readProcessSlots(context);
-
-        if (json == null ||
-                json.trim().isEmpty()) {
-            return 0;
-        }
-
-        try {
-            org.json.JSONObject slots =
-                    new org.json.JSONObject(json);
-
-            int slot =
-                    slots.optInt(
-                            profileId,
-                            0);
-
-            return slot >= 1 &&
-                    slot <= ProfileManager.MAX_PROFILES
-                    ? slot
-                    : 0;
-
-        } catch (Throwable ignored) {
-            return 0;
-        }
-    }
-
-    private static String readProcessSlots(
+    public static String getRunningProfileId(
             Context context) {
 
-        if (context == null) {
+        RuntimeState state =
+                read(context);
+
+        if (state == null ||
+                !isProcessAlive(state.pid)) {
+            if (state != null) {
+                clear(context);
+            }
             return null;
         }
 
-        FileInputStream input = null;
-
-        try {
-            AtomicFile file =
-                    new AtomicFile(
-                            new File(
-                                    context.getFilesDir(),
-                                    "profile_process_slots.state"));
-
-            input =
-                    file.openRead();
-
-            java.io.ByteArrayOutputStream output =
-                    new java.io.ByteArrayOutputStream();
-
-            byte[] buffer =
-                    new byte[4096];
-
-            int count;
-
-            while ((count =
-                    input.read(buffer)) != -1) {
-                output.write(
-                        buffer,
-                        0,
-                        count);
-            }
-
-            return new String(
-                    output.toByteArray(),
-                    "UTF-8");
-
-        } catch (Throwable ignored) {
-            return null;
-
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (Throwable ignored) {
-                }
-            }
-        }
+        return state.profileId;
     }
 
     private static File stateFile(
-            Context context,
-            int slot) {
+            Context context) {
 
         return new File(
                 context.getFilesDir(),
-                FILE_PREFIX +
-                slot +
-                ".state");
+                STATE_FILE);
     }
 
     private static void write(
             Context context,
-            int slot,
             String profileId,
             int pid) {
 
         AtomicFile file =
                 new AtomicFile(
-                        stateFile(
-                                context,
-                                slot));
+                        stateFile(context));
 
         FileOutputStream output = null;
 
@@ -240,13 +117,11 @@ public final class ProfileProcessRuntime {
             output =
                     file.startWrite();
 
-            String value =
-                    profileId +
-                    "\n" +
-                    pid;
-
             output.write(
-                    value.getBytes("UTF-8"));
+                    (profileId +
+                     "\n" +
+                     pid)
+                    .getBytes("UTF-8"));
 
             output.flush();
             output.getFD().sync();
@@ -266,17 +141,18 @@ public final class ProfileProcessRuntime {
     }
 
     private static RuntimeState read(
-            Context context,
-            int slot) {
+            Context context) {
+
+        if (context == null) {
+            return null;
+        }
 
         FileInputStream input = null;
 
         try {
             input =
                     new AtomicFile(
-                            stateFile(
-                                    context,
-                                    slot))
+                            stateFile(context))
                             .openRead();
 
             java.io.ByteArrayOutputStream output =
@@ -320,8 +196,11 @@ public final class ProfileProcessRuntime {
             RuntimeState state =
                     new RuntimeState();
 
-            state.profileId = profileId;
-            state.pid = pid;
+            state.profileId =
+                    profileId;
+
+            state.pid =
+                    pid;
 
             return state;
 
@@ -338,15 +217,12 @@ public final class ProfileProcessRuntime {
         }
     }
 
-    private static void delete(
-            Context context,
-            int slot) {
+    private static void clear(
+            Context context) {
 
         try {
             new AtomicFile(
-                    stateFile(
-                            context,
-                            slot))
+                    stateFile(context))
                     .delete();
         } catch (Throwable ignored) {
         }
@@ -359,73 +235,13 @@ public final class ProfileProcessRuntime {
             return false;
         }
 
-        return new File(
-                "/proc/" +
-                pid)
-                .exists();
-    }
-
-    private static boolean processMatchesSlot(
-            Context context,
-            int slot,
-            int pid) {
-
-        File cmdline =
-                new File(
-                        "/proc/" +
-                        pid +
-                        "/cmdline");
-
-        FileInputStream input = null;
-
         try {
-            input =
-                    new FileInputStream(
-                            cmdline);
-
-            java.io.ByteArrayOutputStream output =
-                    new java.io.ByteArrayOutputStream();
-
-            byte[] buffer =
-                    new byte[256];
-
-            int count;
-
-            while ((count =
-                    input.read(buffer)) != -1) {
-                output.write(
-                        buffer,
-                        0,
-                        count);
-            }
-
-            String command =
-                    new String(
-                            output.toByteArray(),
-                            "UTF-8")
-                    .replace(
-                            String.valueOf(
-                                    (char) 0),
-                            "")
-                    .trim();
-
-            String expected =
-                    context.getPackageName() +
-                    ":profile" +
-                    slot;
-
-            return expected.equals(command);
-
+            return new File(
+                    "/proc/" +
+                    pid)
+                    .exists();
         } catch (Throwable ignored) {
             return false;
-
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (Throwable ignored) {
-                }
-            }
         }
     }
 
