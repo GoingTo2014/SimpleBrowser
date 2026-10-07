@@ -976,7 +976,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void showSimpleAccount() {
+    void showSimpleAccount() {
 
         if (simpleAccountManager == null) {
             simpleAccountManager =
@@ -1085,6 +1085,20 @@ public class MainActivity extends Activity {
                 dp(8));
         row.setBackgroundColor(
                 accent);
+        row.setClickable(true);
+        row.setOnClickListener(
+                v -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showProfiles(tab);
+                    }
+                });
 
         TextView avatar =
                 new TextView(this);
