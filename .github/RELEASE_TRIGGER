@@ -46,3 +46,4 @@ Fix cross-process profile names and foreground sync 2026-10-07T04:25:21.479Z
 Finalize cross-process profile sync and foreground sync 2026-10-07T04:26:26.264Z
 Fix active-profile concurrent sync 2026-10-07T04:37:27.775Z
 Harden active-profile Firestore concurrency 2026-10-07T04:47:58.040Z
+Verify snapshot/CAS sync fixes 2026-10-07T04:49:11.418Z
