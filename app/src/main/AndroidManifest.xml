@@ -116,6 +116,12 @@
             android:hardwareAccelerated="true" />
 
         <activity
+            android:name=".SimpleAccountActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Light.Dialog"
+            android:hardwareAccelerated="true" />
+
+        <activity
             android:name=".ProfileSwitchActivity"
             android:process=":profileswitch"
             android:theme="@style/BrowserTheme"
