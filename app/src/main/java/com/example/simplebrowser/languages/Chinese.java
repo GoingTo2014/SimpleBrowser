@@ -451,4 +451,22 @@ put("common.cancel", "取消");
     }
 
 
+        put("account.title", "Simple Account");
+        put("account.settings", "账号");
+        put("account.sign_in", "登录");
+        put("account.sign_in_heading", "登录 Simple Account");
+        put("account.sign_in_benefits", "登录的好处：");
+        put("account.benefit_profiles", "同步浏览器配置文件及其设置");
+        put("account.benefit_configuration", "在所有设备上保留浏览器配置");
+        put("account.benefit_services", "更多 Simple 服务可以使用同一个账号");
+        put("account.sync_desc", "在设备之间同步 Simple Browser 的配置文件和设置。");
+        put("account.signed_in", "已登录");
+        put("account.signed_in_as", "登录身份");
+        put("account.sign_out", "退出登录");
+        put("account.signed_out", "已退出 Simple Account。");
+        put("account.open_failed", "无法打开 Simple Account。");
+        put("account.sync_now", "立即同步");
+        put("account.sync_complete", "Simple Account 同步完成。");
+        put("account.sync_failed", "Simple Account 同步失败。");
+
 }
