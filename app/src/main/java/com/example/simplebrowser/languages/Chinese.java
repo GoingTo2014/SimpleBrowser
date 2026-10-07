@@ -445,6 +445,7 @@ put("common.cancel", "取消");
         put("settings.update_title", "有可用更新");
         put("settings.update_later", "稍后");
         put("settings.update_now", "立即更新");
+        put("settings.update_notes", "更新内容");
         put("common.close", "关闭");
         put("common.close_tab", "关闭标签页");
 
