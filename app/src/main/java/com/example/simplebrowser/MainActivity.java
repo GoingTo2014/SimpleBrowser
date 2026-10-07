@@ -6073,6 +6073,51 @@ public class MainActivity extends Activity {
 
     private boolean foregroundSyncStarted;
 
+    private final android.os.Handler accountSyncHandler =
+            new android.os.Handler(
+                    Looper.getMainLooper());
+
+    private final Runnable accountSyncRunnable =
+            new Runnable() {
+                @Override
+                public void run() {
+
+                    if (!foregroundSyncStarted ||
+                            isFinishing() ||
+                            isChangingConfigurations()) {
+                        return;
+                    }
+
+                    if (simpleAccountManager == null) {
+                        simpleAccountManager =
+                                new SimpleAccountManager(
+                                        MainActivity.this);
+                    }
+
+                    if (simpleAccountManager.isSignedIn()) {
+                        SimpleSyncManager.syncAsync(
+                                MainActivity.this,
+                                new SimpleSyncManager.Callback() {
+                                    @Override
+                                    public void onComplete(
+                                            boolean success,
+                                            String message) {
+
+                                        if (success &&
+                                                foregroundSyncStarted) {
+                                            refreshAfterAccountSync();
+                                        }
+                                    }
+                                },
+                                true);
+                    }
+
+                    accountSyncHandler.postDelayed(
+                            this,
+                            60L * 1000L);
+                }
+            };
+
     @Override
     protected void onStart() {
 
@@ -6094,13 +6139,21 @@ public class MainActivity extends Activity {
                             public void onComplete(
                                     boolean success,
                                     String message) {
-                                if (success) {
+                                if (success &&
+                                        foregroundSyncStarted) {
                                     refreshAfterAccountSync();
                                 }
                             }
                         },
                         true);
             }
+
+            accountSyncHandler.removeCallbacks(
+                    accountSyncRunnable);
+
+            accountSyncHandler.postDelayed(
+                    accountSyncRunnable,
+                    60L * 1000L);
         }
     }
 
@@ -6124,6 +6177,9 @@ public class MainActivity extends Activity {
     protected void onStop() {
 
         foregroundSyncStarted = false;
+
+        accountSyncHandler.removeCallbacks(
+                accountSyncRunnable);
 
         super.onStop();
     }
