@@ -451,4 +451,22 @@ put("common.cancel", "Cancelar");
     }
 
 
+        put("account.title", "Simple Account");
+        put("account.settings", "Conta");
+        put("account.sign_in", "Entrar");
+        put("account.sign_in_heading", "Entre na sua Simple Account");
+        put("account.sign_in_benefits", "Vantagens de entrar:");
+        put("account.benefit_profiles", "Sincronize os perfis do navegador e suas configurações");
+        put("account.benefit_configuration", "Mantenha a configuração do navegador em todos os dispositivos");
+        put("account.benefit_services", "Mais serviços da Simple podem usar a mesma conta");
+        put("account.sync_desc", "Mantenha os perfis e as configurações do Simple Browser sincronizados entre dispositivos.");
+        put("account.signed_in", "Sessão iniciada");
+        put("account.signed_in_as", "Sessão iniciada como");
+        put("account.sign_out", "Sair");
+        put("account.signed_out", "Você saiu da Simple Account.");
+        put("account.open_failed", "Não foi possível abrir a Simple Account.");
+        put("account.sync_now", "Sincronizar agora");
+        put("account.sync_complete", "Sincronização da Simple Account concluída.");
+        put("account.sync_failed", "Falha ao sincronizar a Simple Account.");
+
 }
