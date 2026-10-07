@@ -46,6 +46,9 @@ public final class SimpleSyncManager {
     private static final String KEY_LAST_SYNC = "last_sync";
     private static final String KEY_LAST_ATTEMPT = "last_attempt";
     private static final String KEY_PROFILE_PREFIX = "profile_modified_";
+    private static final String KEY_PROFILE_DIRTY_PREFIX = "profile_dirty_";
+    private static final String KEY_PROFILE_CLOUD_VERSION_PREFIX =
+            "profile_cloud_version_";
     private static final String KEY_DELETED = "deleted_profiles";
 
     private static final long AUTO_SYNC_INTERVAL_MS =
@@ -239,6 +242,10 @@ public final class SimpleSyncManager {
                 .putLong(
                         key,
                         now)
+                .putBoolean(
+                        KEY_PROFILE_DIRTY_PREFIX +
+                                profileId,
+                        true)
                 .apply();
     }
 
@@ -393,6 +400,11 @@ public final class SimpleSyncManager {
                             context,
                             profile.id);
 
+            boolean localDirty =
+                    isProfileDirty(
+                            context,
+                            profile.id);
+
             CloudProfile cloud =
                     cloudProfiles.get(
                             profile.id);
@@ -404,17 +416,19 @@ public final class SimpleSyncManager {
                                 ? System.currentTimeMillis()
                                 : localModified;
 
-                putCloudProfile(
-                        token,
-                        uid,
-                        context,
-                        profile,
-                        uploadTime);
+                String cloudVersion =
+                        putCloudProfile(
+                                token,
+                                uid,
+                                context,
+                                profile,
+                                uploadTime);
 
                 markLocalSynced(
                         context,
                         profile.id,
-                        uploadTime);
+                        uploadTime,
+                        cloudVersion);
 
                 uploaded++;
                 continue;
@@ -444,29 +458,51 @@ public final class SimpleSyncManager {
                 continue;
             }
 
-            if (localModified > cloud.updatedAt) {
+            if (localDirty) {
 
-                putCloudProfile(
-                        token,
-                        uid,
-                        context,
-                        profile,
-                        localModified);
+                String cloudVersion =
+                        putCloudProfile(
+                                token,
+                                uid,
+                                context,
+                                profile,
+                                localModified <= 0L
+                                        ? System.currentTimeMillis()
+                                        : localModified);
 
                 markLocalSynced(
                         context,
                         profile.id,
-                        localModified);
+                        localModified <= 0L
+                                ? System.currentTimeMillis()
+                                : localModified,
+                        cloudVersion);
 
                 uploaded++;
                 continue;
             }
 
-            if (applyCloudProfile(
-                    context,
-                    profileManager,
-                    cloud)) {
-                downloaded++;
+            String lastCloudVersion =
+                    getLastCloudVersion(
+                            context,
+                            profile.id);
+
+            if (!cloud.serverVersion.equals(
+                    lastCloudVersion)) {
+
+                if (applyCloudProfile(
+                        context,
+                        profileManager,
+                        cloud)) {
+                    downloaded++;
+                }
+
+                markLocalSynced(
+                        context,
+                        profile.id,
+                        localModified,
+                        cloud.serverVersion);
+
             }
         }
 
@@ -525,10 +561,11 @@ public final class SimpleSyncManager {
                     cloud.id,
                     cloud.settings);
 
-            setLocalModified(
+            markLocalSynced(
                     context,
                     cloud.id,
-                    cloud.updatedAt);
+                    0L,
+                    cloud.serverVersion);
         }
 
         syncDeletionTombstones(
@@ -652,11 +689,6 @@ public final class SimpleSyncManager {
                 cloud.id,
                 cloud.settings);
 
-        setLocalModified(
-                context,
-                cloud.id,
-                cloud.updatedAt);
-
         return changed || hadSettings;
     }
 
@@ -679,10 +711,11 @@ public final class SimpleSyncManager {
                 ProfileManager.MAIN_ID,
                 cloud.settings);
 
-        setLocalModified(
+        markLocalSynced(
                 context,
                 ProfileManager.MAIN_ID,
-                cloud.updatedAt);
+                0L,
+                cloud.serverVersion);
     }
 
     private static boolean canDeleteLocally(
@@ -709,6 +742,85 @@ public final class SimpleSyncManager {
                         KEY_PROFILE_PREFIX +
                                 profileId,
                         0L);
+    }
+
+    private static boolean isProfileDirty(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return false;
+        }
+
+        return context.getApplicationContext()
+                .getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE)
+                .getBoolean(
+                        KEY_PROFILE_DIRTY_PREFIX +
+                                profileId,
+                        false);
+    }
+
+    private static String getLastCloudVersion(
+            Context context,
+            String profileId) {
+
+        if (context == null ||
+                profileId == null ||
+                profileId.trim().isEmpty()) {
+            return "";
+        }
+
+        return context.getApplicationContext()
+                .getSharedPreferences(
+                        PREFS,
+                        Context.MODE_PRIVATE)
+                .getString(
+                        KEY_PROFILE_CLOUD_VERSION_PREFIX +
+                                profileId,
+                        "");
+    }
+
+    private static void markLocalSynced(
+            Context context,
+            String profileId,
+            long time,
+            String cloudVersion) {
+
+        if (profileId == null ||
+                profileId.trim().isEmpty()) {
+            return;
+        }
+
+        SharedPreferences.Editor editor =
+                context.getApplicationContext()
+                        .getSharedPreferences(
+                                PREFS,
+                                Context.MODE_PRIVATE)
+                        .edit()
+                        .putLong(
+                                KEY_PROFILE_PREFIX +
+                                        profileId,
+                                Math.max(
+                                        0L,
+                                        time))
+                        .putBoolean(
+                                KEY_PROFILE_DIRTY_PREFIX +
+                                        profileId,
+                                false);
+
+        if (cloudVersion != null &&
+                !cloudVersion.trim().isEmpty()) {
+            editor.putString(
+                    KEY_PROFILE_CLOUD_VERSION_PREFIX +
+                            profileId,
+                    cloudVersion);
+        }
+
+        editor.apply();
     }
 
     private static void setLocalModified(
@@ -746,7 +858,7 @@ public final class SimpleSyncManager {
                 time);
     }
 
-    private static void putCloudProfile(
+    private static String putCloudProfile(
             String token,
             String uid,
             Context context,
@@ -791,7 +903,7 @@ public final class SimpleSyncManager {
                 "schemaVersion",
                 integerValue(1L));
 
-        commitDocument(
+        return commitDocument(
                 token,
                 documentPath(
                         uid,
@@ -950,7 +1062,7 @@ public final class SimpleSyncManager {
         return result;
     }
 
-    private static void commitDocument(
+    private static String commitDocument(
             String token,
             String documentPath,
             JSONObject fields) throws Exception {
@@ -985,12 +1097,37 @@ public final class SimpleSyncManager {
                 "writes",
                 writes);
 
-        requestJson(
-                "POST",
-                FIRESTORE_BASE +
-                        ":commit",
-                token,
-                body);
+        JSONObject response =
+                requestJson(
+                        "POST",
+                        FIRESTORE_BASE +
+                                ":commit",
+                        token,
+                        body);
+
+        JSONArray writeResults =
+                response.optJSONArray(
+                        "writeResults");
+
+        if (writeResults != null &&
+                writeResults.length() > 0) {
+
+            JSONObject first =
+                    writeResults.optJSONObject(0);
+
+            if (first != null) {
+                String updateTime =
+                        first.optString(
+                                "updateTime",
+                                "");
+
+                if (!updateTime.isEmpty()) {
+                    return updateTime;
+                }
+            }
+        }
+
+        return "";
     }
 
     private static JSONObject requestJson(
