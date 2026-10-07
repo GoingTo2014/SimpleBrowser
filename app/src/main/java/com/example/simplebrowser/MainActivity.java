@@ -955,6 +955,25 @@ public class MainActivity extends Activity {
                                     boolean success,
                                     String message) {
 
+                                if (success) {
+                                    runOnUiThread(
+                                            () -> {
+                                                /*
+                                                 * Sync imports settings in the
+                                                 * background thread. Refresh
+                                                 * the active profile's browser
+                                                 * UI immediately so appearance
+                                                 * changes do not require a
+                                                 * manual page refresh.
+                                                 */
+                                                applyBrowserAppearance();
+                                                applyWebsiteSettings();
+                                                refreshSettingsAccountPage();
+                                            });
+                                } else {
+                                    refreshSettingsAccountPage();
+                                }
+
                                 android.widget.Toast
                                         .makeText(
                                                 MainActivity.this,
