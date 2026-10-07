@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Synchronizes Simple Browser profile metadata and browser settings through
@@ -50,12 +51,26 @@ public final class SimpleSyncManager {
     private static final long AUTO_SYNC_INTERVAL_MS =
             5L * 60L * 1000L;
 
+    private static final AtomicBoolean SYNC_RUNNING =
+            new AtomicBoolean(false);
+
     private SimpleSyncManager() {
     }
 
     public static void syncAsync(
             final Context context,
             final Callback callback) {
+
+        syncAsync(
+                context,
+                callback,
+                false);
+    }
+
+    public static void syncAsync(
+            final Context context,
+            final Callback callback,
+            final boolean force) {
 
         if (context == null) {
             notifyCallback(
@@ -81,9 +96,16 @@ public final class SimpleSyncManager {
                         KEY_LAST_ATTEMPT,
                         0L);
 
-        if (callback == null &&
+        if (!force &&
+                callback == null &&
                 now - lastAttempt <
                         AUTO_SYNC_INTERVAL_MS) {
+            return;
+        }
+
+        if (!SYNC_RUNNING.compareAndSet(
+                false,
+                true)) {
             return;
         }
 
@@ -114,6 +136,8 @@ public final class SimpleSyncManager {
                                     message.trim().isEmpty()) {
                                 message = "Sync failed";
                             }
+                        } finally {
+                            SYNC_RUNNING.set(false);
                         }
 
                         notifyCallback(
