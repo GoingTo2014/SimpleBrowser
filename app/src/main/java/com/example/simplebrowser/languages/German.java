@@ -463,7 +463,7 @@ public final class German extends LanguagePack {
         put("settings.update_now", "Jetzt aktualisieren");
         put("settings.update_notes", "Was ist neu");
         put("common.close", "Schließen");
-        put("common.close_tab", "Tab schließen");    }
+        put("common.close_tab", "Tab schließen");
         put("account.title", "Simple Account");
         put("account.settings", "Konto");
         put("account.sign_in", "Anmelden");
@@ -480,6 +480,6 @@ public final class German extends LanguagePack {
         put("account.open_failed", "Simple Account konnte nicht geöffnet werden.");
         put("account.sync_now", "Jetzt synchronisieren");
         put("account.sync_complete", "Simple-Account-Synchronisierung abgeschlossen.");
-        put("account.sync_failed", "Simple-Account-Synchronisierung fehlgeschlagen.");
+        put("account.sync_failed", "Simple-Account-Synchronisierung fehlgeschlagen.");    }
 
 }
