@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.view.MotionEvent;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -186,7 +188,7 @@ public final class SimpleAccountActivity extends Activity {
                                 android.view.WindowManager.LayoutParams
                                         .SOFT_INPUT_ADJUST_RESIZE |
                                 android.view.WindowManager.LayoutParams
-                                        .SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                                        .SOFT_INPUT_STATE_UNSPECIFIED);
 
                         window.setBackgroundDrawable(
                                 new android.graphics.drawable
@@ -207,8 +209,13 @@ public final class SimpleAccountActivity extends Activity {
         webView.setOnTouchListener(
                 (view, event) -> {
                     if (event.getAction() ==
-                            android.view.MotionEvent.ACTION_DOWN) {
+                            MotionEvent.ACTION_DOWN) {
                         view.requestFocusFromTouch();
+                    } else if (event.getAction() ==
+                            MotionEvent.ACTION_UP) {
+                        view.postDelayed(
+                                () -> showKeyboardForWebInput(),
+                                80L);
                     }
                     return false;
                 });
@@ -243,6 +250,33 @@ public final class SimpleAccountActivity extends Activity {
                     }
 
                     @Override
+                    public void onPageFinished(
+                            WebView view,
+                            String url) {
+
+                        /*
+                         * Some older WebView builds give the first HTML
+                         * button focus when a dialog-hosted WebView appears.
+                         * Explicitly put initial focus on the email field so
+                         * the login button cannot become the active control.
+                         */
+                        if (isTrustedAccountUrl(url)) {
+                            view.postDelayed(
+                                    () -> {
+                                        try {
+                                            view.loadUrl(
+                                                    "javascript:(function(){"
+                                                    + "var e=document.getElementById('inEmail');"
+                                                    + "if(e){e.focus();}"
+                                                    + "})();");
+                                        } catch (Throwable ignored) {
+                                        }
+                                    },
+                                    120L);
+                        }
+                    }
+
+                    @Override
                     public void onReceivedError(
                             WebView view,
                             int errorCode,
@@ -272,6 +306,41 @@ public final class SimpleAccountActivity extends Activity {
         }
 
         webView.loadUrl(accountUrl);
+    }
+
+    private void showKeyboardForWebInput() {
+
+        if (webView == null ||
+                !webView.hasFocus()) {
+            return;
+        }
+
+        try {
+            WebView.HitTestResult hit =
+                    webView.getHitTestResult();
+
+            if (hit == null ||
+                    hit.getType() !=
+                            WebView.HitTestResult
+                                    .EDIT_TEXT_TYPE) {
+                return;
+            }
+
+            InputMethodManager manager =
+                    (InputMethodManager)
+                            getSystemService(
+                                    INPUT_METHOD_SERVICE);
+
+            if (manager != null) {
+                webView.requestFocus(
+                        View.FOCUS_DOWN);
+
+                manager.showSoftInput(
+                        webView,
+                        InputMethodManager.SHOW_IMPLICIT);
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     private boolean handleUrl(
