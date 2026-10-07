@@ -10,7 +10,7 @@ import android.os.Bundle;
  * carried by the Activity intent so a reused Android process never has to
  * consult another process's cached SharedPreferences to discover its identity.
  */
-public abstract class ProfileProcessActivity
+public final class ProfileProcessActivity
         extends MainActivity {
 
     public static final String EXTRA_PROFILE_ID =
