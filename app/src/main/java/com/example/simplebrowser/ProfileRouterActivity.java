@@ -40,20 +40,9 @@ public final class ProfileRouterActivity extends Activity {
         }
 
         Class<? extends MainActivity> target =
-                getTargetActivity(activeProfileId);
-
-        if (target == null) {
-            /*
-             * A stale profile/slot mapping must never make the launcher
-             * unusable. Main is the safe recovery target.
-             */
-            ProfileManager.setActiveProfileId(
-                    this,
-                    ProfileManager.MAIN_ID);
-            activeProfileId =
-                    ProfileManager.MAIN_ID;
-            target = MainActivity.class;
-        }
+                ProfileManager.MAIN_ID.equals(activeProfileId)
+                        ? MainActivity.class
+                        : ProfileProcessActivity.class;
 
         Intent forward =
                 getIntent() == null
@@ -114,53 +103,4 @@ public final class ProfileRouterActivity extends Activity {
         finish();
     }
 
-    private Class<? extends MainActivity>
-            getTargetActivity(
-                    String profileId) {
-
-        if (ProfileManager.MAIN_ID.equals(
-                profileId)) {
-            return MainActivity.class;
-        }
-
-        /*
-         * Android 4.4-8.1 still uses MainActivity's legacy filesystem-swap
-         * implementation, so keep the persistent profile active there.
-         */
-        if (Build.VERSION.SDK_INT < 28) {
-            return MainActivity.class;
-        }
-
-        if (!ProfileManager.isKnownPersistentProfile(
-                this,
-                profileId)) {
-            return null;
-        }
-
-        int slot =
-                ProfileManager.getProcessSlot(
-                        this,
-                        profileId);
-
-        switch (slot) {
-            case 1:
-                return ProfileProcess1Activity.class;
-            case 2:
-                return ProfileProcess2Activity.class;
-            case 3:
-                return ProfileProcess3Activity.class;
-            case 4:
-                return ProfileProcess4Activity.class;
-            case 5:
-                return ProfileProcess5Activity.class;
-            case 6:
-                return ProfileProcess6Activity.class;
-            case 7:
-                return ProfileProcess7Activity.class;
-            case 8:
-                return ProfileProcess8Activity.class;
-            default:
-                return null;
-        }
-    }
 }
