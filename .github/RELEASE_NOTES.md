@@ -1,3 +1,10 @@
+Simple Account and localization fixes
+- Made the Simple Account login popup fill the entire screen while remaining a modal popup.
+- Fixed keyboard/IME behavior in the Account WebView so login and account fields can receive touch input and resize with the keyboard.
+- Localized the hosted Simple Account sign-in page for the supported Simple Browser languages.
+- Added translations for all Simple Account browser/settings strings in every language pack.
+- Added a localized "What's new" label to the automatic update dialog and fixed the remaining German update wording.
+
 Simple Account release
 - Added Sign In to the three-dot profile header, opening the Simple Account GitHub Pages login in the existing popup WebView.
 - Added Settings > Account with signed-in account information, Sign Out, Sync now, and an explanation of the benefits of signing in.
