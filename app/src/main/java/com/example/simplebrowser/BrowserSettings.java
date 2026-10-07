@@ -131,6 +131,8 @@ public class BrowserSettings {
         preferences.edit()
                 .putString("language", value)
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getHomePage() {
@@ -659,6 +661,62 @@ public class BrowserSettings {
                 }
 
             } catch (Exception ignored) {
+            }
+        }
+
+        editor.apply();
+    }
+
+    /**
+     * Replaces all syncable settings with the supplied cloud snapshot.
+     * Keys absent from the snapshot are removed so deletions/reset values
+     * propagate correctly between devices.
+     */
+    public void replaceSyncJson(
+            JSONObject source) {
+
+        SharedPreferences.Editor editor =
+                preferences.edit();
+
+        for (String key : SYNC_KEYS) {
+            editor.remove(key);
+        }
+
+        if (source != null) {
+            for (String key : SYNC_KEYS) {
+                if (!source.has(key)) {
+                    continue;
+                }
+
+                try {
+                    Object value =
+                            source.get(key);
+
+                    if (value == null ||
+                            JSONObject.NULL.equals(value)) {
+                        continue;
+                    }
+
+                    if (value instanceof Boolean) {
+                        editor.putBoolean(
+                                key,
+                                ((Boolean) value)
+                                        .booleanValue());
+
+                    } else if (value instanceof Number) {
+                        editor.putInt(
+                                key,
+                                ((Number) value)
+                                        .intValue());
+
+                    } else {
+                        editor.putString(
+                                key,
+                                String.valueOf(value));
+                    }
+
+                } catch (Exception ignored) {
+                }
             }
         }
 
