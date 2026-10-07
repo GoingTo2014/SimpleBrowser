@@ -1,8 +1,6 @@
 package com.example.simplebrowser;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,7 +27,6 @@ import java.util.Locale;
 public final class SimpleAccountActivity extends Activity {
 
     private WebView webView;
-    private AlertDialog dialog;
     private SimpleAccountManager accountManager;
     private boolean completed;
 
@@ -135,7 +132,7 @@ public final class SimpleAccountActivity extends Activity {
                         Gravity.CENTER));
 
         webView =
-                new WebView(this);
+                new AccountWebView(this);
 
         configureWebView();
 
@@ -152,52 +149,33 @@ public final class SimpleAccountActivity extends Activity {
                         0,
                         1f));
 
-        dialog =
-                new AlertDialog.Builder(this)
-                        .setView(root)
-                        .create();
+        setContentView(root);
 
-        dialog.setOnDismissListener(
-                d -> {
-                    if (!completed &&
-                            !isFinishing()) {
-                        finish();
-                    }
-                });
+        android.view.Window window =
+                getWindow();
 
-        dialog.setOnShowListener(
-                d -> {
-                    if (dialog.getWindow() != null) {
-                        android.view.Window window =
-                                dialog.getWindow();
+        window.setSoftInputMode(
+                android.view.WindowManager.LayoutParams
+                        .SOFT_INPUT_ADJUST_RESIZE |
+                android.view.WindowManager.LayoutParams
+                        .SOFT_INPUT_STATE_UNSPECIFIED);
 
-                        window.setLayout(
-                                -1,
-                                -1);
+        /*
+         * The old implementation nested an AlertDialog inside this
+         * dialog-themed Activity. That created a separate dialog window for
+         * the WebView and could prevent Android 4.4 from routing IME input
+         * to it. This Activity is now the single Account window.
+         */
+        window.clearFlags(
+                android.view.WindowManager.LayoutParams
+                        .FLAG_ALT_FOCUSABLE_IM |
+                android.view.WindowManager.LayoutParams
+                        .FLAG_NOT_FOCUSABLE);
 
-                        window.setGravity(
-                                Gravity.CENTER);
-
-                        window.getDecorView().setPadding(
-                                0,
-                                0,
-                                0,
-                                0);
-
-                        window.setSoftInputMode(
-                                android.view.WindowManager.LayoutParams
-                                        .SOFT_INPUT_ADJUST_RESIZE |
-                                android.view.WindowManager.LayoutParams
-                                        .SOFT_INPUT_STATE_UNSPECIFIED);
-
-                        window.setBackgroundDrawable(
-                                new android.graphics.drawable
-                                        .ColorDrawable(
-                                                Color.WHITE));
-                    }
-                });
-
-        dialog.show();
+        window.getDecorView().setPadding(0, 0, 0, 0);
+        window.setBackgroundDrawable(
+                new android.graphics.drawable.ColorDrawable(
+                        Color.WHITE));
     }
 
     private void configureWebView() {
@@ -206,17 +184,23 @@ public final class SimpleAccountActivity extends Activity {
 
         webView.setFocusable(true);
         webView.setFocusableInTouchMode(true);
+
         webView.setOnTouchListener(
                 (view, event) -> {
+
                     if (event.getAction() ==
                             MotionEvent.ACTION_DOWN) {
                         view.requestFocusFromTouch();
-                    } else if (event.getAction() ==
+                    }
+
+                    if (event.getAction() ==
                             MotionEvent.ACTION_UP) {
+
                         view.postDelayed(
                                 () -> showKeyboardForWebInput(),
-                                80L);
+                                100L);
                     }
+
                     return false;
                 });
 
@@ -254,25 +238,10 @@ public final class SimpleAccountActivity extends Activity {
                             WebView view,
                             String url) {
 
-                        /*
-                         * Some older WebView builds give the first HTML
-                         * button focus when a dialog-hosted WebView appears.
-                         * Explicitly put initial focus on the email field so
-                         * the login button cannot become the active control.
-                         */
                         if (isTrustedAccountUrl(url)) {
-                            view.postDelayed(
-                                    () -> {
-                                        try {
-                                            view.loadUrl(
-                                                    "javascript:(function(){"
-                                                    + "var e=document.getElementById('inEmail');"
-                                                    + "if(e){e.focus();}"
-                                                    + "})();");
-                                        } catch (Throwable ignored) {
-                                        }
-                                    },
-                                    120L);
+                            view.post(
+                                    () -> view.requestFocus(
+                                            View.FOCUS_DOWN));
                         }
                     }
 
@@ -334,6 +303,8 @@ public final class SimpleAccountActivity extends Activity {
             if (manager != null) {
                 webView.requestFocus(
                         View.FOCUS_DOWN);
+
+                manager.restartInput(webView);
 
                 manager.showSoftInput(
                         webView,
@@ -421,11 +392,6 @@ public final class SimpleAccountActivity extends Activity {
 
         runOnUiThread(
                 () -> {
-                    if (dialog != null &&
-                            dialog.isShowing()) {
-                        dialog.dismiss();
-                    }
-
                     setResult(
                             RESULT_OK);
 
@@ -440,6 +406,25 @@ public final class SimpleAccountActivity extends Activity {
                          .getDisplayMetrics()
                          .density +
                  0.5f);
+    }
+
+    private static final class AccountWebView
+            extends WebView {
+
+        AccountWebView(
+                android.content.Context context) {
+            super(context);
+        }
+
+        /*
+         * Android's View focus system otherwise treats a WebView as a
+         * non-editor even while an HTML input is active. Mark it as a text
+         * editor so the framework will create and route an IME connection.
+         */
+        @Override
+        public boolean onCheckIsTextEditor() {
+            return true;
+        }
     }
 
     private final class AccountBridge {
