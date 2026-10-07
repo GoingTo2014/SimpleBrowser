@@ -449,9 +449,6 @@ put("common.cancel", "取消");
         put("common.close", "关闭");
         put("common.close_tab", "关闭标签页");
 
-    }
-
-
         put("account.title", "Simple Account");
         put("account.settings", "账号");
         put("account.sign_in", "登录");
@@ -469,5 +466,9 @@ put("common.cancel", "取消");
         put("account.sync_now", "立即同步");
         put("account.sync_complete", "Simple Account 同步完成。");
         put("account.sync_failed", "Simple Account 同步失败。");
+
+    }
+
+
 
 }
