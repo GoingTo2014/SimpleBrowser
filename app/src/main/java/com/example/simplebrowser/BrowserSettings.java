@@ -3,12 +3,58 @@ package com.example.simplebrowser;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.json.JSONObject;
+
+import java.util.Map;
+
 public class BrowserSettings {
 
     private static final String PREFS =
             "browser_settings";
 
+    private static final String[] SYNC_KEYS = {
+            "language",
+            "home",
+            "custom_home",
+            "search",
+            "custom_search",
+            "javascript",
+            "popups",
+            "cookies",
+            "storage",
+            "images",
+            "zoom",
+            "geolocation",
+            "media_autoplay",
+            "desktop_mode",
+            "user_agent_profile",
+            "custom_user_agent",
+            "camera",
+            "js_open_windows",
+            "overview_mode",
+            "text_zoom",
+            "minimum_font_size",
+            "web_sql",
+            "safe_browsing",
+            "hardware_acceleration",
+            "wide_viewport",
+            "offline_mode",
+            "cache_mode",
+            "automatic_updates",
+            "restore_tabs",
+            "color",
+            "microphone",
+            "save_form_data",
+            "third_party_cookies",
+            "mixed_content",
+            "file_access_from_file_urls",
+            "universal_access_from_file_urls"
+    };
+
     private final SharedPreferences preferences;
+    private final Context context;
+    private final String profileId;
+
 
     public BrowserSettings(Context context) {
         this(
@@ -20,11 +66,20 @@ public class BrowserSettings {
             Context context,
             String profileId) {
 
+        this.context =
+                context.getApplicationContext();
+
+        this.profileId =
+                profileId == null ||
+                profileId.trim().isEmpty()
+                        ? ProfileManager.MAIN_ID
+                        : profileId;
+
         preferences =
                 context.getSharedPreferences(
                         ProfileManager.scopedPrefsName(
                                 PREFS,
-                                profileId),
+                                this.profileId),
                         Context.MODE_PRIVATE);
 
         /*
@@ -115,6 +170,8 @@ public class BrowserSettings {
                         "home_default_migrated",
                         true)
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getCustomHomePage() {
@@ -133,6 +190,8 @@ public class BrowserSettings {
                                 ? ""
                                 : value.trim())
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getSearchEngine() {
@@ -145,6 +204,8 @@ public class BrowserSettings {
         preferences.edit()
                 .putString("search", value)
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getCustomSearchUrl() {
@@ -163,6 +224,8 @@ public class BrowserSettings {
                                 ? ""
                                 : value.trim())
                 .apply();
+
+        markSyncChanged();
     }
 
     public boolean isJavaScriptEnabled() {
@@ -234,6 +297,8 @@ public class BrowserSettings {
                                 ? UserAgentProfiles.DEFAULT
                                 : profile)
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getCustomUserAgent() {
@@ -251,6 +316,8 @@ public class BrowserSettings {
                                 ? ""
                                 : value.trim())
                 .apply();
+
+        markSyncChanged();
     }
 
     public boolean isWebViewDebuggingEnabled() {
@@ -336,6 +403,8 @@ public class BrowserSettings {
         preferences.edit()
                 .putInt(name, value)
                 .apply();
+
+        markSyncChanged();
     }
 
     public void setCacheMode(String mode) {
@@ -350,6 +419,8 @@ public class BrowserSettings {
                         "cache_mode",
                         value)
                 .apply();
+
+        markSyncChanged();
     }
 
     private int clampInt(
@@ -420,6 +491,8 @@ public class BrowserSettings {
                         "automatic_updates",
                         enabled)
                 .apply();
+
+        markSyncChanged();
     }
 
     public long getLastUpdateCheck() {
@@ -452,6 +525,8 @@ public class BrowserSettings {
                         "restore_tabs",
                         enabled)
                 .apply();
+
+        markSyncChanged();
     }
 
     public String getSavedTabsJson() {
@@ -485,6 +560,8 @@ public class BrowserSettings {
         preferences.edit()
                 .putBoolean(name, value)
                 .apply();
+
+        markSyncChanged();
     }
 
     public void setAccentColor(
@@ -493,11 +570,112 @@ public class BrowserSettings {
         preferences.edit()
                 .putString("color", color)
                 .apply();
+
+        markSyncChanged();
+    }
+
+    /**
+     * Exports user-facing browser settings for Simple Account sync.
+     * Device-specific state such as update timestamps and saved tab state is
+     * intentionally excluded.
+     */
+    public String exportSyncJson() {
+        JSONObject result =
+                new JSONObject();
+
+        Map<String, ?> all =
+                preferences.getAll();
+
+        for (String key : SYNC_KEYS) {
+            if (!all.containsKey(key)) {
+                continue;
+            }
+
+            Object value =
+                    all.get(key);
+
+            try {
+                if (value instanceof Boolean ||
+                        value instanceof String ||
+                        value instanceof Integer ||
+                        value instanceof Long ||
+                        value instanceof Float ||
+                        value instanceof Double) {
+                    result.put(
+                            key,
+                            value);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Imports only known syncable browser settings and preserves unrelated
+     * local preferences.
+     */
+    public void importSyncJson(
+            JSONObject source) {
+
+        if (source == null) {
+            return;
+        }
+
+        SharedPreferences.Editor editor =
+                preferences.edit();
+
+        for (String key : SYNC_KEYS) {
+            if (!source.has(key)) {
+                continue;
+            }
+
+            try {
+                Object value =
+                        source.get(key);
+
+                if (value == null ||
+                        JSONObject.NULL.equals(value)) {
+                    continue;
+                }
+
+                if (value instanceof Boolean) {
+                    editor.putBoolean(
+                            key,
+                            ((Boolean) value)
+                                    .booleanValue());
+
+                } else if (value instanceof Number) {
+                    editor.putInt(
+                            key,
+                            ((Number) value)
+                                    .intValue());
+
+                } else {
+                    editor.putString(
+                            key,
+                            String.valueOf(value));
+                }
+
+            } catch (Exception ignored) {
+            }
+        }
+
+        editor.apply();
+    }
+
+    private void markSyncChanged() {
+        SimpleSyncManager.markProfileChanged(
+                context,
+                profileId);
     }
 
     public void reset() {
         preferences.edit()
                 .clear()
                 .apply();
+
+        markSyncChanged();
     }
 }
