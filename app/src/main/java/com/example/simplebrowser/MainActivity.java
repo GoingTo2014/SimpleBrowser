@@ -943,6 +943,24 @@ public class MainActivity extends Activity {
                 0);
     }
 
+    private void refreshAfterAccountSync() {
+
+        runOnUiThread(
+                () -> {
+                    applyBrowserAppearance();
+                    applyWebsiteSettings();
+                    refreshSettingsAccountPage();
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null &&
+                            tab.profilesPage) {
+                        profilesPage.show(tab);
+                    }
+                });
+    }
+
     void syncSimpleAccount(
             boolean showResult) {
 
@@ -956,20 +974,7 @@ public class MainActivity extends Activity {
                                     String message) {
 
                                 if (success) {
-                                    runOnUiThread(
-                                            () -> {
-                                                /*
-                                                 * Sync imports settings in the
-                                                 * background thread. Refresh
-                                                 * the active profile's browser
-                                                 * UI immediately so appearance
-                                                 * changes do not require a
-                                                 * manual page refresh.
-                                                 */
-                                                applyBrowserAppearance();
-                                                applyWebsiteSettings();
-                                                refreshSettingsAccountPage();
-                                            });
+                                    refreshAfterAccountSync();
                                 } else {
                                     refreshSettingsAccountPage();
                                 }
@@ -6084,7 +6089,16 @@ public class MainActivity extends Activity {
             if (simpleAccountManager.isSignedIn()) {
                 SimpleSyncManager.syncAsync(
                         this,
-                        null,
+                        new SimpleSyncManager.Callback() {
+                            @Override
+                            public void onComplete(
+                                    boolean success,
+                                    String message) {
+                                if (success) {
+                                    refreshAfterAccountSync();
+                                }
+                            }
+                        },
                         true);
             }
         }
