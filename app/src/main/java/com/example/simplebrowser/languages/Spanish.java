@@ -445,6 +445,7 @@ put("common.cancel", "Cancelar");
         put("settings.update_title", "Actualización disponible");
         put("settings.update_later", "Más tarde");
         put("settings.update_now", "Actualizar ahora");
+        put("settings.update_notes", "Novedades");
         put("common.close", "Cerrar");
         put("common.close_tab", "Cerrar pestaña");
 
