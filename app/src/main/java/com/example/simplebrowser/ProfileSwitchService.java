@@ -184,8 +184,7 @@ public final class ProfileSwitchService extends Service {
         }
 
         /*
-         * Wait for the WebView-using process to disappear. On a normal switch
-         * Process.killProcess() makes this condition true almost immediately.
+         * Wait for the WebView-using process to disappear.
          */
         long deadline =
                 System.currentTimeMillis() +
@@ -208,44 +207,63 @@ public final class ProfileSwitchService extends Service {
 
         try {
 
-            completeSwap(
-                    this,
-                    state.from,
-                    state.to);
+            if (Build.VERSION.SDK_INT < 28) {
 
-            clearPending(this);
+                completeSwap(
+                        this,
+                        state.from,
+                        state.to);
 
-            launchBrowserWithRetry();
+                clearPending(this);
+
+                launchBrowserWithRetry(
+                        ProfileManager.MAIN_ID);
+
+            } else {
+
+                /*
+                 * On Android 9+, the profile process must be freshly created
+                 * so WebView can be configured with the target profile's
+                 * data-directory suffix.
+                 */
+                clearPending(this);
+
+                launchBrowserWithRetry(
+                        state.to);
+            }
 
         } catch (Throwable ignored) {
             /*
-             * Keep the state file so MainActivity.recoverIfNeeded() can finish
-             * the operation on a later launch.
+             * Keep the state file so a later launch can recover the legacy
+             * filesystem swap.
              */
         }
     }
 
-    private static void completeSwap(
-            Context context,
-            String from,
-            String to)
-            throws IOException {
+    private void launchBrowserWithRetry(
+            String targetProfileId) {
 
-        if (Build.VERSION.SDK_INT < 28) {
-            ProfileWebViewStorage
-                    .swapLegacyProfileData(
-                            context,
-                            from,
-                            to);
+        Intent intent;
+
+        if (ProfileManager.MAIN_ID.equals(
+                targetProfileId)) {
+
+            intent =
+                    new Intent(
+                            this,
+                            MainActivity.class);
+
+        } else {
+
+            intent =
+                    new Intent(
+                            this,
+                            ProfileProcessActivity.class);
+
+            intent.putExtra(
+                    ProfileProcessActivity.EXTRA_PROFILE_ID,
+                    targetProfileId);
         }
-    }
-
-    private void launchBrowserWithRetry() {
-
-        Intent intent =
-                new Intent(
-                        this,
-                        MainActivity.class);
 
         intent.addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK |
@@ -261,6 +279,7 @@ public final class ProfileSwitchService extends Service {
                 startActivity(intent);
                 return;
             } catch (Throwable ignored) {
+
                 if (attempt == 9) {
                     return;
                 }
