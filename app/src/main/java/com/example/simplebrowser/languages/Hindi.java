@@ -449,9 +449,6 @@ put("common.cancel", "रद्द करें");
         put("common.close", "बंद करें");
         put("common.close_tab", "टैब बंद करें");
 
-    }
-
-
         put("account.title", "Simple Account");
         put("account.settings", "खाता");
         put("account.sign_in", "साइन इन करें");
@@ -469,5 +466,9 @@ put("common.cancel", "रद्द करें");
         put("account.sync_now", "अभी सिंक करें");
         put("account.sync_complete", "Simple Account सिंक पूरा हुआ।");
         put("account.sync_failed", "Simple Account सिंक विफल हुआ।");
+
+    }
+
+
 
 }
