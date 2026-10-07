@@ -124,7 +124,8 @@ public class SettingsPage {
     private String normalizeSection(
             String section) {
 
-        if ("websites".equals(section) ||
+        if ("account".equals(section) ||
+                "websites".equals(section) ||
                 "appearance".equals(section) ||
                 "privacy-security"
                         .equals(section) ||
@@ -762,6 +763,11 @@ public class SettingsPage {
                 "General</div>" +
 
                 "<div class='nav " +
+                active(currentSection, "account") +
+                "' onclick="Android.navigate('account')">" +
+                "Account</div>" +
+
+                "<div class='nav " +
                 active(currentSection, "privacy-security") +
                 "' onclick=\"Android.navigate('privacy-security')\">" +
                 "Privacy &amp; Security</div>" +
@@ -1066,6 +1072,66 @@ public class SettingsPage {
                 Localization.translate(activity, "settings.update_auto_desc") +
                 "</div>" +
                 "</div>" +
+
+                "</div>" +
+                "</div>" +
+
+                "<div id='section-account' class='section " +
+                sectionActive(
+                        currentSection,
+                        "account") +
+                "'>" +
+
+                "<h2>Account</h2>" +
+
+                "<div class='card'>" +
+
+                (new SimpleAccountManager(activity).isSignedIn()
+                        ? "<div class='row'>" +
+                          "<div class='title'>" +
+                          Localization.translate(activity, "account.signed_in") +
+                          "</div>" +
+                          "<div class='description'>" +
+                          Localization.translate(activity, "account.signed_in_as") +
+                          "</div>" +
+                          "<div style='margin-top:8px;font-size:15px;word-break:break-word;'>" +
+                          htmlAttribute(
+                                  new SimpleAccountManager(activity)
+                                          .getEmail() == null
+                                      ? ""
+                                      : new SimpleAccountManager(activity)
+                                              .getEmail()) +
+                          "</div>" +
+                          "</div>" +
+
+                          "<div class='row'>" +
+                          "<div class='title'>" +
+                          Localization.translate(activity, "account.sync_now") +
+                          "</div>" +
+                          "<div class='description'>Keep your Simple Browser profiles and settings synchronized across devices.</div>" +
+                          "<button style='margin-top:8px' onclick='Android.accountSync()'>" +
+                          Localization.translate(activity, "account.sync_now") +
+                          "</button>" +
+                          "</div>" +
+
+                          "<div class='row'>" +
+                          "<button onclick='Android.accountSignOut()'>" +
+                          Localization.translate(activity, "account.sign_out") +
+                          "</button>" +
+                          "</div>"
+                        : "<div class='row'>" +
+                          "<div class='title'>Sign in to Simple Account</div>" +
+                          "<div class='description'>Sync your Simple Browser profiles and settings between your devices and keep your browser preferences with your account.</div>" +
+                          "<div style='margin-top:12px;line-height:1.55;font-size:13px;'>" +
+                          "Benefits of signing in:" +
+                          "<br>&bull; Sync browser profiles and their settings" +
+                          "<br>&bull; Keep your browser configuration across devices" +
+                          "<br>&bull; More Simple services can use the same account" +
+                          "</div>" +
+                          "<button style='margin-top:14px' onclick='Android.accountLogin()'>" +
+                          Localization.translate(activity, "account.sign_in") +
+                          "</button>" +
+                          "</div>") +
 
                 "</div>" +
                 "</div>" +
@@ -1814,6 +1880,23 @@ public class SettingsPage {
                                         null)
                                 .show();
                     });
+        }
+
+        @JavascriptInterface
+        public void accountLogin() {
+            activity.runOnUiThread(
+                    () -> activity.showSimpleAccount());
+        }
+
+        @JavascriptInterface
+        public void accountSignOut() {
+            activity.runOnUiThread(
+                    () -> activity.signOutSimpleAccount());
+        }
+
+        @JavascriptInterface
+        public void accountSync() {
+            activity.syncSimpleAccount(true);
         }
 
         @JavascriptInterface
