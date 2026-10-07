@@ -12,7 +12,7 @@ public final class German extends LanguagePack {
         put("settings.appearance", "Darstellung");
         put("settings.advanced", "Erweitert");
         put("settings.cookies", "Cookies");
-        put("settings.updates", "Updates");
+        put("settings.updates", "Aktualisierungen");
         put("settings.current_version", "Aktuelle Version");
         put("settings.check_updates", "Nach Updates suchen");
         put("settings.install_update", "Update installieren");
@@ -461,6 +461,7 @@ public final class German extends LanguagePack {
         put("settings.update_title", "Update verfügbar");
         put("settings.update_later", "Später");
         put("settings.update_now", "Jetzt aktualisieren");
+        put("settings.update_notes", "Was ist neu");
         put("common.close", "Schließen");
         put("common.close_tab", "Tab schließen");    }
         put("account.title", "Simple Account");
