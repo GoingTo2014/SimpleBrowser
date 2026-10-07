@@ -457,7 +457,7 @@ public final class Russian extends LanguagePack {
         put("tab.guest_tabs", "Вкладки гостя");
         put("guest.enter", "Войти в гостевой режим");
         put("guest.exit", "Выйти из гостевого режима");
-    }        put("app.name", "Simple Browser");
+        put("app.name", "Simple Browser");
         put("settings.update_title", "Доступно обновление");
         put("settings.update_later", "Позже");
         put("settings.update_now", "Обновить сейчас");
