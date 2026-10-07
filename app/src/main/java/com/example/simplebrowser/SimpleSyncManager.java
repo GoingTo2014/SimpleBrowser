@@ -301,13 +301,13 @@ public final class SimpleSyncManager {
                 throw failure;
             }
 
-            if (!account.refreshIdToken()) {
+            try {
+                token =
+                        account.refreshIdToken();
+            } catch (Exception ignored) {
                 throw new Exception(
                         "Simple Account session expired.");
             }
-
-            token =
-                    account.getValidIdToken();
 
             return performSync(
                     context,
@@ -445,6 +445,16 @@ public final class SimpleSyncManager {
             }
         }
 
+        SharedPreferences syncPreferences =
+                context.getApplicationContext()
+                        .getSharedPreferences(
+                                PREFS,
+                                Context.MODE_PRIVATE);
+
+        JSONObject localDeletedProfiles =
+                readDeletedProfiles(
+                        syncPreferences);
+
         for (CloudProfile cloud :
                 cloudProfiles.values()) {
 
@@ -453,6 +463,16 @@ public final class SimpleSyncManager {
                     localIds.containsKey(
                             cloud.id) ||
                     cloud.deleted) {
+                continue;
+            }
+
+            long localDeletedAt =
+                    localDeletedProfiles.optLong(
+                            cloud.id,
+                            0L);
+
+            if (localDeletedAt >=
+                    cloud.updatedAt) {
                 continue;
             }
 
