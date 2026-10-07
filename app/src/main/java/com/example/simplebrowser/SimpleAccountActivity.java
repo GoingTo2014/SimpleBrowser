@@ -31,6 +31,8 @@ public final class SimpleAccountActivity extends Activity {
     private WebView webView;
     private SimpleAccountManager accountManager;
     private boolean completed;
+    private boolean showingAccountError;
+    private String accountUrl = "";
 
     private static final String ACCOUNT_ORIGIN =
             "https://goingto2014.github.io";
@@ -235,6 +237,17 @@ public final class SimpleAccountActivity extends Activity {
                     public void onPageFinished(
                             WebView view,
                             String url) {
+
+                        /*
+                         * loadDataWithBaseURL() is used for our local error
+                         * document, so do not clear showingAccountError
+                         * simply because that document finished loading.
+                         * A real Account URL clears the error state.
+                         */
+                        if (!showingAccountError &&
+                                isTrustedAccountUrl(url)) {
+                            showingAccountError = false;
+                        }
                     }
 
                     @Override
@@ -243,10 +256,66 @@ public final class SimpleAccountActivity extends Activity {
                             int errorCode,
                             String description,
                             String failingUrl) {
+
+                        if (showingAccountError ||
+                                failingUrl == null ||
+                                failingUrl.trim().isEmpty()) {
+                            return;
+                        }
+
+                        String currentUrl =
+                                view.getUrl();
+
+                        if (currentUrl != null &&
+                                !currentUrl.equals(
+                                        failingUrl)) {
+                            return;
+                        }
+
+                        if (!isTrustedAccountUrl(
+                                failingUrl)) {
+                            return;
+                        }
+
+                        showAccountErrorPage();
+                    }
+
+                    @Override
+                    public void onReceivedError(
+                            WebView view,
+                            WebResourceError error) {
+
+                        if (android.os.Build.VERSION.SDK_INT < 23 ||
+                                showingAccountError ||
+                                error == null) {
+                            return;
+                        }
+
+                        Uri uri =
+                                Uri.parse(
+                                        error.getDescription() == null
+                                                ? ""
+                                                : view.getUrl());
+
+                        String failingUrl =
+                                view.getUrl();
+
+                        if (failingUrl == null ||
+                                !isTrustedAccountUrl(
+                                        failingUrl)) {
+                            return;
+                        }
+
+                        showAccountErrorPage();
                     }
                 });
 
-        String accountUrl =
+        loadAccountPage();
+    }
+
+    private void loadAccountPage() {
+
+        accountUrl =
                 SimpleAccountManager.ACCOUNT_SITE;
 
         try {
@@ -266,7 +335,86 @@ public final class SimpleAccountActivity extends Activity {
         } catch (Throwable ignored) {
         }
 
+        showingAccountError = false;
         webView.loadUrl(accountUrl);
+    }
+
+    private void showAccountErrorPage() {
+
+        showingAccountError = true;
+
+        String title =
+                Localization.translate(
+                        this,
+                        "error.title");
+
+        String description =
+                Localization.translate(
+                        this,
+                        "error.description");
+
+        String retry =
+                Localization.translate(
+                        this,
+                        "common.reload");
+
+        String detail =
+                Localization.translate(
+                        this,
+                        "error.not_working");
+
+        String html =
+                "<!DOCTYPE html>" +
+                "<html>" +
+                "<head>" +
+                "<meta name='viewport' content='width=device-width,initial-scale=1'>" +
+                "<style>" +
+                "html,body{margin:0;padding:0;width:100%;height:100%;" +
+                "font-family:Arial,Helvetica,sans-serif;background:#fff;color:#202124;}" +
+                "body{display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}" +
+                ".box{text-align:center;max-width:420px;width:100%;}" +
+                ".icon{font-size:48px;margin-bottom:18px;}" +
+                "h1{font-size:24px;margin:0 0 10px;}" +
+                "p{font-size:14px;line-height:1.5;color:#6b7078;margin:0 0 8px;}" +
+                ".detail{font-size:13px;margin-bottom:20px;}" +
+                "button{min-width:130px;min-height:44px;padding:0 18px;border:0;" +
+                "border-radius:7px;background:#1a73e8;color:#fff;font-size:14px;font-weight:700;}" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='box'>" +
+                "<div class='icon'>!</div>" +
+                "<h1>" + htmlEscape(title) + "</h1>" +
+                "<p>" + htmlEscape(description) + "</p>" +
+                "<p class='detail'>" + htmlEscape(detail) + "</p>" +
+                "<button type='button' onclick='Android.retryAccountPage()'>" +
+                htmlEscape(retry) +
+                "</button>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
+
+        webView.loadDataWithBaseURL(
+                ACCOUNT_ORIGIN + ACCOUNT_PATH,
+                html,
+                "text/html",
+                "UTF-8",
+                accountUrl);
+    }
+
+    private String htmlEscape(
+            String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace(""", "&quot;")
+                .replace("'", "&#39;");
     }
 
     private boolean handleUrl(
@@ -495,6 +643,12 @@ public final class SimpleAccountActivity extends Activity {
                             finish();
                         }
                     });
+        }
+
+        @JavascriptInterface
+        public void retryAccountPage() {
+            runOnUiThread(
+                    () -> loadAccountPage());
         }
     }
 }
