@@ -445,6 +445,7 @@ put("common.cancel", "キャンセル");
         put("settings.update_title", "アップデートがあります");
         put("settings.update_later", "後で");
         put("settings.update_now", "今すぐ更新");
+        put("settings.update_notes", "変更内容");
         put("common.close", "閉じる");
         put("common.close_tab", "タブを閉じる");
 
