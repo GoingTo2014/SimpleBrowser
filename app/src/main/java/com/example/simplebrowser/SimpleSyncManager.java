@@ -707,6 +707,15 @@ public final class SimpleSyncManager {
             return 0;
         }
 
+        ProfileManager.Profile freshProfile =
+                profileManager.getProfile(
+                        context,
+                        profile.id);
+
+        if (freshProfile != null) {
+            profile = freshProfile;
+        }
+
         long localModified =
                 getLocalModified(
                         context,
@@ -890,6 +899,28 @@ public final class SimpleSyncManager {
                     if (profile == null) {
                         return 0;
                     }
+
+                    localSnapshot =
+                            buildLocalSnapshot(
+                                    context,
+                                    profile);
+                }
+
+                /*
+                 * Refresh one final time before the HTTP write so a local
+                 * profile rename is not written from a stale Profile object.
+                 */
+                ProfileManager.Profile profileBeforeUpload =
+                        profileManager.getProfile(
+                                context,
+                                profile.id);
+
+                if (profileBeforeUpload != null) {
+                    profile = profileBeforeUpload;
+                    localSnapshot =
+                            buildLocalSnapshot(
+                                    context,
+                                    profile);
                 }
 
                 long uploadTime =
@@ -907,6 +938,32 @@ public final class SimpleSyncManager {
                                     profile,
                                     uploadTime,
                                     candidateCloud.serverVersion);
+
+                    ProfileManager.Profile afterUploadProfile =
+                            profileManager.getProfile(
+                                    context,
+                                    profile.id);
+
+                    String afterUploadSnapshot =
+                            buildLocalSnapshot(
+                                    context,
+                                    afterUploadProfile);
+
+                    if (!localSnapshot.equals(
+                            afterUploadSnapshot)) {
+
+                        /*
+                         * A local edit happened while the HTTP write was in
+                         * flight. Do not acknowledge it as synced; its
+                         * snapshot difference will make the next poll upload
+                         * it again.
+                         */
+                        markProfileChanged(
+                                context,
+                                profile.id);
+
+                        return 1;
+                    }
 
                     markLocalSynced(
                             context,
