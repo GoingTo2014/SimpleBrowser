@@ -449,9 +449,6 @@ put("common.cancel", "Cancelar");
         put("common.close", "Fechar");
         put("common.close_tab", "Fechar aba");
 
-    }
-
-
         put("account.title", "Simple Account");
         put("account.settings", "Conta");
         put("account.sign_in", "Entrar");
@@ -469,5 +466,9 @@ put("common.cancel", "Cancelar");
         put("account.sync_now", "Sincronizar agora");
         put("account.sync_complete", "Sincronização da Simple Account concluída.");
         put("account.sync_failed", "Falha ao sincronizar a Simple Account.");
+
+    }
+
+
 
 }
