@@ -783,19 +783,6 @@ public class MainActivity extends Activity {
 
         addMenuActionButton(
                 menu,
-                "account.title",
-                () -> {
-                    if (browserMenu != null) {
-                        browserMenu.dismiss();
-                    }
-
-                    showSimpleAccount();
-                },
-                accent,
-                readable);
-
-        addMenuActionButton(
-                menu,
                 "Bookmarks",
                 () -> {
                     if (browserMenu != null) {
@@ -956,36 +943,37 @@ public class MainActivity extends Activity {
                 0);
     }
 
-    private void syncSimpleAccount(
-            boolean showResult) {
+    void signOutSimpleAccount() {
+        if (simpleAccountManager == null) {
+            simpleAccountManager =
+                    new SimpleAccountManager(this);
+        }
 
-        SimpleSyncManager.syncAsync(
-                this,
-                showResult
-                        ? new SimpleSyncManager.Callback() {
-                            @Override
-                            public void onComplete(
-                                    boolean success,
-                                    String message) {
+        simpleAccountManager.signOut();
+        refreshSettingsAccountPage();
 
-                                android.widget.Toast
-                                        .makeText(
-                                                MainActivity.this,
-                                                success
-                                                        ? Localization.translate(
-                                                                MainActivity.this,
-                                                                "account.sync_complete") +
-                                                                "\n" +
-                                                                message
-                                                        : Localization.translate(
-                                                                MainActivity.this,
-                                                                "account.sync_failed"),
-                                                android.widget.Toast
-                                                        .LENGTH_LONG)
-                                        .show();
-                            }
-                        }
-                        : null);
+        android.widget.Toast
+                .makeText(
+                        this,
+                        Localization.translate(
+                                this,
+                                "account.signed_out"),
+                        android.widget.Toast.LENGTH_SHORT)
+                .show();
+    }
+
+    void refreshSettingsAccountPage() {
+        BrowserTab tab =
+                getActiveTab();
+
+        if (tab != null &&
+                tab.settingsPage &&
+                "account".equals(
+                        tab.settingsSection)) {
+            showSettings(
+                    tab,
+                    "account");
+        }
     }
 
     private void showSimpleAccount() {
@@ -1022,24 +1010,7 @@ public class MainActivity extends Activity {
                                             this,
                                             "account.sign_out"),
                                     (d, which) -> {
-                                        simpleAccountManager.signOut();
-
-                                        android.widget.Toast
-                                                .makeText(
-                                                        this,
-                                                        Localization.translate(
-                                                                this,
-                                                                "account.signed_out"),
-                                                        android.widget.Toast
-                                                                .LENGTH_SHORT)
-                                                .show();
-                                    })
-                            .setNeutralButton(
-                                    Localization.translate(
-                                            this,
-                                            "account.sync_now"),
-                                    (d, which) -> {
-                                        syncSimpleAccount(true);
+                                        signOutSimpleAccount();
                                     })
                             .setNegativeButton(
                                     Localization.translate(
@@ -1076,6 +1047,4775 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void addCurrentProfileMenuHeader(
+            LinearLayout menu,
+            int accent,
+            int readable) {
+
+        ProfileManager.Profile profile =
+                profileManager.getActiveProfile(
+                        this);
+
+        if (profile == null) {
+            return;
+        }
+
+        boolean guest =
+                tabManager != null &&
+                tabManager.isGuestMode();
+
+        String profileName =
+                guest
+                        ? Localization.translate(
+                                this,
+                                "profiles.guest")
+                        : profile.name;
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setOrientation(
+                LinearLayout.HORIZONTAL);
+        row.setGravity(
+                android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(
+                dp(10),
+                dp(8),
+                dp(10),
+                dp(8));
+        row.setBackgroundColor(
+                accent);
+
+        TextView avatar =
+                new TextView(this);
+
+        avatar.setGravity(
+                android.view.Gravity.CENTER);
+        avatar.setText(
+                profileName == null ||
+                        profileName.trim().isEmpty()
+                        ? "?"
+                        : String.valueOf(
+                                Character.toUpperCase(
+                                        profileName
+                                                .trim()
+                                                .charAt(0))));
+        avatar.setTextColor(readable);
+        avatar.setTextSize(18f);
+
+        GradientDrawable circle =
+                new GradientDrawable();
+        circle.setShape(
+                GradientDrawable.OVAL);
+        circle.setColor(
+                Color.TRANSPARENT);
+        circle.setStroke(
+                dp(2),
+                readable);
+
+        avatar.setBackground(circle);
+
+        row.addView(
+                avatar,
+                new LinearLayout.LayoutParams(
+                        dp(40),
+                        dp(40)));
+
+        LinearLayout identity =
+                new LinearLayout(this);
+
+        identity.setOrientation(
+                LinearLayout.VERTICAL);
+        identity.setGravity(
+                android.view.Gravity.CENTER_VERTICAL);
+        identity.setPadding(
+                dp(10),
+                0,
+                dp(4),
+                0);
+
+        TextView name =
+                new TextView(this);
+
+        name.setText(profileName);
+        name.setTextColor(readable);
+        name.setTextSize(16f);
+
+        identity.addView(
+                name,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(30)));
+
+        boolean signedIn =
+                simpleAccountManager != null &&
+                simpleAccountManager.isSignedIn();
+
+        if (signedIn) {
+
+            TextView account =
+                    new TextView(this);
+
+            String email =
+                    simpleAccountManager.getEmail();
+
+            account.setText(
+                    email == null ||
+                    email.trim().isEmpty()
+                            ? Localization.translate(
+                                    this,
+                                    "account.signed_in")
+                            : email);
+
+            account.setTextColor(readable);
+            account.setTextSize(11f);
+            account.setSingleLine(true);
+            account.setEllipsize(
+                    android.text.TextUtils.TruncateAt.END);
+            account.setClickable(true);
+            account.setOnClickListener(
+                    v -> showSimpleAccount());
+
+            identity.addView(
+                    account,
+                    new LinearLayout.LayoutParams(
+                            -1,
+                            dp(20)));
+
+        } else {
+
+            Button signIn =
+                    new Button(this);
+
+            signIn.setText(
+                    Localization.translate(
+                            this,
+                            "account.sign_in"));
+            signIn.setAllCaps(false);
+            signIn.setTextColor(
+                    readable);
+            signIn.setTextSize(12f);
+            signIn.setMinHeight(dp(28));
+            signIn.setGravity(
+                    android.view.Gravity.LEFT |
+                    android.view.Gravity.CENTER_VERTICAL);
+            signIn.setPadding(
+                    0,
+                    0,
+                    0,
+                    0);
+            signIn.setBackgroundColor(
+                    Color.TRANSPARENT);
+
+            signIn.setOnClickListener(
+                    v -> {
+                        if (browserMenu != null) {
+                            browserMenu.dismiss();
+                        }
+
+                        showSimpleAccount();
+                    });
+
+            identity.addView(
+                    signIn,
+                    new LinearLayout.LayoutParams(
+                            -1,
+                            dp(28)));
+        }
+
+        row.addView(
+                identity,
+                new LinearLayout.LayoutParams(
+                        0,
+                        signedIn ? dp(56) : dp(58),
+                        1f));
+
+        menu.addView(
+                row,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        signedIn ? dp(72) : dp(76)));
+    }
+
+    private void addMenuActionButton(
+            LinearLayout menu,
+            String text,
+            final Runnable action,
+            int accent,
+            int readable) {
+
+        Button button =
+                new Button(this);
+
+        button.setText(
+                Localization.translate(
+                        this,
+                        text));
+        button.setAllCaps(false);
+        button.setTextColor(
+                readable);
+        button.setBackgroundColor(
+                accent);
+        button.setGravity(
+                android.view.Gravity.RIGHT |
+                android.view.Gravity.CENTER_VERTICAL);
+        button.setPadding(
+                dp(12),
+                0,
+                dp(14),
+                0);
+
+        button.setOnClickListener(
+                v -> action.run());
+
+        menu.addView(
+                button,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)));
+    }
+
+    private void addMenuSectionButton(
+            LinearLayout menu,
+            String text,
+            String section,
+            int accent,
+            int readable) {
+
+        Button button =
+                new Button(this);
+
+        button.setText(
+                Localization.translate(
+                        this,
+                        text));
+        button.setAllCaps(false);
+        button.setTextColor(readable);
+        button.setBackgroundColor(accent);
+        button.setGravity(
+                android.view.Gravity.RIGHT |
+                android.view.Gravity.CENTER_VERTICAL);
+        button.setPadding(
+                dp(12),
+                0,
+                dp(14),
+                0);
+
+        button.setOnClickListener(
+                v -> {
+
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    BrowserTab tab =
+                            getActiveTab();
+
+                    if (tab != null) {
+                        showSettings(
+                                tab,
+                                section);
+                    }
+                });
+
+        menu.addView(
+                button,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)));
+    }
+
+    public boolean handleWebViewLongPress(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab.webView == null) {
+            return false;
+        }
+
+        WebView.HitTestResult result =
+                tab.webView.getHitTestResult();
+
+        if (result == null) {
+            return false;
+        }
+
+        int type =
+                result.getType();
+
+        String extra =
+                result.getExtra();
+
+        if (extra == null ||
+                extra.trim().isEmpty()) {
+            return false;
+        }
+
+        boolean image =
+                type ==
+                        WebView.HitTestResult
+                                .IMAGE_TYPE ||
+                type ==
+                        WebView.HitTestResult
+                                .SRC_IMAGE_ANCHOR_TYPE;
+
+        // Android's WebView HitTestResult uses type 9 for video.
+        // Use the numeric value here because VIDEO_TYPE is not exposed
+        // by every Android SDK stub used to compile the app.
+        boolean video =
+                type == 9;
+
+        // Audio uses type 10 in Android WebView. Treat it like other media.
+        boolean audio =
+                type == 10;
+
+        boolean media =
+                video ||
+                audio;
+
+        boolean link =
+                type ==
+                        WebView.HitTestResult
+                                .SRC_ANCHOR_TYPE;
+
+        if (!image &&
+                !media &&
+                !link) {
+            return false;
+        }
+
+        final String target =
+                extra.trim();
+
+        String title;
+
+        if (image) {
+            title = "Image";
+        } else if (media) {
+            title = audio ? "Audio" : "Video";
+        } else {
+            title = "Link";
+        }
+
+        final String[] actions =
+                image
+                        ? new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy URL"
+                        }
+                        : media
+                        ? new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy URL"
+                        }
+                        : new String[] {
+                                "Open",
+                                "Open in new tab",
+                                "Download",
+                                "Share",
+                                "Copy link"
+                        };
+
+        final String[] translatedActions =
+                new String[actions.length];
+
+        for (int i = 0;
+                i < actions.length;
+                i++) {
+            translatedActions[i] =
+                    Localization.translate(
+                            this,
+                            actions[i]);
+        }
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                title))
+                .setItems(
+                        translatedActions,
+                        (dialog, which) -> {
+
+                            String action =
+                                    actions[which];
+
+                            if ("Open".equals(action)) {
+
+                                openUrlOrSearchForTab(
+                                        tab,
+                                        target);
+
+                            } else if (
+                                    "Open in new tab"
+                                            .equals(action)) {
+
+                                tabManager.addCurrentModeTab(
+                                        target);
+
+                            } else if (
+                                    "Download".equals(action)) {
+
+                                startDownload(
+                                        tab,
+                                        target,
+                                        tab.webView
+                                                .getSettings()
+                                                .getUserAgentString(),
+                                        null,
+                                        image
+                                                ? "image/*"
+                                                : media
+                                                ? (audio
+                                                ? "audio/*"
+                                                : "video/*")
+                                                : null,
+                                        -1);
+
+                            } else if (
+                                    "Share".equals(action)) {
+
+                                shareUrl(
+                                        target);
+
+                            } else {
+
+                                copyToClipboard(
+                                        image
+                                                ? "Image URL"
+                                                : media
+                                                ? (audio
+                                                ? "Audio URL"
+                                                : "Video URL")
+                                                : "Link",
+                                        target);
+                            }
+                        })
+                .show();
+
+        return true;
+    }
+
+    private void copyToClipboard(
+            String label,
+            String value) {
+
+        ClipboardManager clipboard =
+                (ClipboardManager)
+                        getSystemService(
+                                CLIPBOARD_SERVICE);
+
+        if (clipboard != null) {
+
+            clipboard.setPrimaryClip(
+                    ClipData.newPlainText(
+                            label,
+                            value));
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "Copied"),
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    private void shareUrl(
+            String url) {
+
+        try {
+
+            Intent intent =
+                    new Intent(
+                            Intent.ACTION_SEND);
+
+            intent.setType(
+                    "text/plain");
+
+            intent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    url);
+
+            startActivity(
+                    Intent.createChooser(
+                            intent,
+                            Localization.translate(
+                                    this,
+                                    "Share")));
+
+        } catch (Exception e) {
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "No app can share this"),
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    public void showBookmarks(BrowserTab tab, String query) {
+        if (tab == null) return;
+        removeInternalPageState(tab);
+        bookmarksPage.show(tab, query);
+        tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.BOOKMARKS);
+    }
+
+    public void addCurrentPageBookmark() {
+        BrowserTab tab = getActiveTab();
+        if (tab == null || tab.webView == null) return;
+        String url = tab.webView.getUrl();
+        if (url == null ||
+                (!url.startsWith("http://") && !url.startsWith("https://"))) {
+            android.widget.Toast.makeText(this,
+                    Localization.translate(this, "bookmarks.invalid"),
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        bookmarkStore.addOrUpdate(url, tab.title, tab.favicon);
+        android.widget.Toast.makeText(this,
+                Localization.translate(this, "bookmarks.added"),
+                android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    public void showProfiles(BrowserTab tab) {
+        if (tab == null) return;
+        removeInternalPageState(tab);
+        profilesPage.show(tab);
+        tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.PROFILES);
+    }
+
+    public void showPasswordSite(
+            BrowserTab tab,
+            String site) {
+
+        if (tab == null) {
+            return;
+        }
+
+        if (!passwordManagerAuthenticated) {
+            pendingPasswordTab = tab;
+            pendingPasswordSite =
+                    site == null
+                            ? ""
+                            : site;
+            showPasswordManager(tab);
+            return;
+        }
+
+        if (site == null ||
+                site.trim().isEmpty()) {
+            showPasswordManagerPage(tab);
+        } else {
+            passwordsPage.show(
+                    tab,
+                    site);
+
+            tabManager.selectTab(tab);
+            recordInternalVisit(
+                    tab,
+                    BrowserPage.PASSWORDS);
+        }
+    }
+
+    public void showPasswordEntry(
+            BrowserTab tab,
+            long id) {
+
+        if (tab == null ||
+                id <= 0L) {
+            return;
+        }
+
+        if (!passwordManagerAuthenticated) {
+            pendingPasswordRevealId = id;
+            pendingPasswordTab = tab;
+            showPasswordManager(tab);
+            return;
+        }
+
+        try {
+            PasswordStore.Entry entry =
+                    passwordStore.get(id);
+
+            if (entry == null) {
+                showPasswordManagerError(
+                        Localization.translate(
+                                this,
+                                "passwords.error"));
+                return;
+            }
+
+            String title =
+                    entry.site == null ||
+                    entry.site.trim().isEmpty()
+                            ? Localization.translate(
+                                    this,
+                                    "passwords.reveal")
+                            : entry.site;
+
+            String message =
+                    entry.username +
+                    "\n\nPassword:\n" +
+                    entry.password;
+
+            new AlertDialog.Builder(this)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton(
+                            android.R.string.ok,
+                            null)
+                    .show();
+
+        } catch (Exception exception) {
+            showPasswordManagerError(
+                    Localization.translate(
+                            this,
+                            "passwords.error"));
+        }
+    }
+
+    public void showPasswordManager(BrowserTab tab) {
+        if (tab == null) return;
+        if (passwordManagerAuthenticated) {
+            showPasswordManagerPage(tab);
+            return;
+        }
+        KeyguardManager keyguard =
+                (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        boolean secure = keyguard != null && keyguard.isKeyguardSecure();
+        if (secure && Build.VERSION.SDK_INT >= 21) {
+            try {
+                Intent intent = keyguard.createConfirmDeviceCredentialIntent(
+                        Localization.translate(this, "passwords.unlock_title"),
+                        Localization.translate(this, "passwords.unlock_desc"));
+                if (intent != null) {
+                    pendingPasswordTab = tab;
+                    awaitingPasswordAuthentication = true;
+                    startActivityForResult(intent, PASSWORD_AUTH_REQUEST);
+                    return;
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        if (secure && Build.VERSION.SDK_INT < 21) {
+            android.widget.Toast.makeText(this,
+                    Localization.translate(this, "passwords.api_limit"),
+                    android.widget.Toast.LENGTH_LONG).show();
+        }
+        passwordManagerAuthenticated = true;
+        showPasswordManagerPage(tab);
+    }
+
+    private void showPasswordManagerPage(BrowserTab tab) {
+        passwordsPage.show(tab);
+        tabManager.selectTab(tab);
+        recordInternalVisit(tab, BrowserPage.PASSWORDS);
+    }
+
+    public void startPasswordExport(
+            BrowserTab tab) {
+
+        final EditText password =
+                new EditText(this);
+
+        password.setSingleLine(true);
+        password.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        password.setHint(
+                Localization.translate(
+                        this,
+                        "passwords.export_password"));
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.export_title"))
+                .setView(password)
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.cancel"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.export"),
+                        (dialog, which) -> {
+                            try {
+                                pendingPasswordExport =
+                                        passwordStore
+                                                .exportEncrypted(
+                                                        password.getText()
+                                                                .toString());
+
+                                Intent intent =
+                                        new Intent(
+                                                Intent.ACTION_CREATE_DOCUMENT);
+
+                                intent.addCategory(
+                                        Intent.CATEGORY_OPENABLE);
+                                intent.setType(
+                                        "application/octet-stream");
+                                intent.putExtra(
+                                        Intent.EXTRA_TITLE,
+                                        "simplebrowser-passwords.sbpass");
+
+                                pendingPasswordFileTab = tab;
+
+                                startActivityForResult(
+                                        intent,
+                                        PASSWORD_EXPORT_REQUEST);
+
+                            } catch (Exception exception) {
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.export_failed"));
+                            }
+                        })
+                .show();
+    }
+
+    public void startPasswordImport(
+            BrowserTab tab) {
+
+        pendingPasswordFileTab = tab;
+
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_OPEN_DOCUMENT);
+
+        intent.addCategory(
+                Intent.CATEGORY_OPENABLE);
+
+        intent.setType(
+                "application/octet-stream");
+
+        try {
+            startActivityForResult(
+                    intent,
+                    PASSWORD_IMPORT_REQUEST);
+        } catch (Throwable exception) {
+            showPasswordManagerError(
+                    Localization.translate(
+                            this,
+                            "passwords.import_failed"));
+        }
+    }
+
+    private void promptForPasswordImport(
+            Uri uri) {
+
+        final EditText password =
+                new EditText(this);
+
+        password.setSingleLine(true);
+        password.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        password.setHint(
+                Localization.translate(
+                        this,
+                        "passwords.export_password"));
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.import_title"))
+                .setView(password)
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.cancel"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.import"),
+                        (dialog, which) -> {
+
+                            InputStream input = null;
+
+                            try {
+                                input =
+                                        getContentResolver()
+                                                .openInputStream(
+                                                        uri);
+
+                                StringBuilder data =
+                                        new StringBuilder();
+
+                                byte[] buffer =
+                                        new byte[8192];
+
+                                int count;
+
+                                while ((count =
+                                        input.read(buffer)) != -1) {
+
+                                    data.append(
+                                            new String(
+                                                    buffer,
+                                                    0,
+                                                    count,
+                                                    "UTF-8"));
+                                }
+
+                                int imported =
+                                        passwordStore
+                                                .importEncrypted(
+                                                        data.toString(),
+                                                        password.getText()
+                                                                .toString());
+
+                                BrowserTab tab =
+                                        pendingPasswordFileTab;
+
+                                if (tab != null) {
+                                    passwordsPage.show(tab, "");
+                                    tabManager.selectTab(tab);
+                                }
+
+                                android.widget.Toast.makeText(
+                                        this,
+                                        Localization.translate(
+                                                this,
+                                                "passwords.imported") +
+                                                " " +
+                                                imported,
+                                        android.widget.Toast.LENGTH_SHORT)
+                                        .show();
+
+                            } catch (Exception exception) {
+
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.import_failed"));
+
+                            } finally {
+
+                                if (input != null) {
+                                    try {
+                                        input.close();
+                                    } catch (Exception ignored) {
+                                    }
+                                }
+                            }
+                        })
+                .show();
+    }
+
+    public void promptToSavePassword(
+            BrowserTab tab,
+            String site,
+            String username,
+            String password) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                tab.isGuest ||
+                password == null ||
+                password.isEmpty() ||
+                passwordStore == null) {
+            return;
+        }
+
+        final String cleanSite =
+                site == null || site.trim().isEmpty()
+                        ? tab.webView.getUrl()
+                        : site.trim();
+
+        final String cleanUsername =
+                username == null
+                        ? ""
+                        : username;
+
+        try {
+            if (passwordStore.containsCredentials(
+                    cleanSite,
+                    cleanUsername,
+                    password)) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "passwords.save_prompt_title"))
+                .setMessage(
+                        Localization.translate(
+                                this,
+                                "passwords.save_prompt"))
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "passwords.not_now"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "passwords.save_password"),
+                        (dialog, which) -> {
+
+                            try {
+                                String favicon =
+                                        tab.favicon == null
+                                                ? ""
+                                                : android.util.Base64
+                                                        .encodeToString(
+                                                                bitmapToPng(
+                                                                        tab.favicon),
+                                                                android.util.Base64.NO_WRAP);
+
+                                passwordStore.save(
+                                        -1,
+                                        cleanSite,
+                                        cleanUsername,
+                                        password,
+                                        "",
+                                        favicon);
+
+                            } catch (Exception exception) {
+                                showPasswordManagerError(
+                                        Localization.translate(
+                                                this,
+                                                "passwords.save_failed"));
+                            }
+                        })
+                .show();
+    }
+
+    private byte[] bitmapToPng(
+            Bitmap bitmap)
+            throws Exception {
+
+        java.io.ByteArrayOutputStream output =
+                new java.io.ByteArrayOutputStream();
+
+        bitmap.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                output);
+
+        return output.toByteArray();
+    }
+
+    public void showPasswordManagerError(String message) {
+        android.widget.Toast.makeText(this, message,
+                android.widget.Toast.LENGTH_LONG).show();
+    }
+
+    public void switchProfile(String profileId) {
+        if (profileId == null ||
+                profileId.trim().isEmpty() ||
+                profileSwitching) {
+            return;
+        }
+
+        if (tabManager != null &&
+                tabManager.isGuestMode()) {
+
+            exitGuestProfile(
+                    () -> {
+
+                        if (!isFinishing()) {
+                            performProfileSwitch(
+                                    profileId);
+                        }
+                    });
+
+            return;
+        }
+
+        performProfileSwitch(profileId);
+    }
+
+    public void enterGuestProfile(BrowserTab tab) {
+
+        if (tabManager == null ||
+                tabManager.isGuestMode() ||
+                tabManager.isIncognitoMode()) {
+            return;
+        }
+
+        profileSwitching = true;
+
+        if (cookieStore != null) {
+            cookieStore.stopSync();
+        }
+
+        snapshotAllWebStorage(
+                () -> {
+
+                    if (cookieStore != null) {
+                        cookieStore.discoverFromHistory(
+                                browserHistory);
+                        cookieStore.recordUrls(
+                                getOpenWebUrls());
+                        cookieStore.snapshotCookies();
+                    }
+
+                    /*
+                     * Guest WebViews disable DOM storage/WebSQL. Clear only
+                     * cookies so guest cookies cannot leak into the persistent
+                     * profile; never delete the profile's WebStorage.
+                     */
+                    CookieStore.clearRuntimeCookies(
+                            () -> {
+
+                                tabManager.enterGuestMode(
+                                        browserSettings
+                                                .getHomePage());
+
+                                applyBrowserAppearance();
+
+                                profileSwitching = false;
+                            });
+                });
+    }
+
+    public void exitGuestProfile() {
+        exitGuestProfile(null);
+    }
+
+    private void exitGuestProfile(
+            final Runnable after) {
+
+        if (tabManager == null ||
+                !tabManager.isGuestMode()) {
+
+            if (after != null) {
+                after.run();
+            }
+
+            return;
+        }
+
+        profileSwitching = true;
+
+        /*
+         * Guest mode disables DOM storage, so WebStorage.deleteAllData()
+         * would only destroy the persistent profile's data. Clear the guest
+         * cookie jar and restore the saved persistent-profile cookies.
+         */
+        CookieStore.clearRuntimeCookies(
+                () -> {
+
+                    Runnable restoreCookies =
+                            () -> {
+
+                                tabManager.exitGuestMode();
+
+                                if (cookieStore != null) {
+                                    cookieStore.startSync();
+                                }
+
+                                profileSwitching = false;
+                                applyBrowserAppearance();
+
+                                if (after != null) {
+                                    after.run();
+                                }
+                            };
+
+                    if (cookieStore != null) {
+                        cookieStore.restoreCookies(
+                                restoreCookies);
+                    } else {
+                        restoreCookies.run();
+                    }
+                });
+    }
+
+    private void restoreWebStorageForNormalTabs(
+            final Runnable completion) {
+
+        if (tabManager == null) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        java.util.ArrayList<BrowserTab> candidates =
+                new java.util.ArrayList<>();
+
+        for (BrowserTab tab :
+                tabManager.getNormalTabs()) {
+
+            if (tab == null ||
+                    tab.webView == null ||
+                    tab.isIncognito ||
+                    tab.isGuest) {
+                continue;
+            }
+
+            String url = tab.webView.getUrl();
+
+            if (WebStorageStore.normalizeOrigin(url) != null) {
+                candidates.add(tab);
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        final int[] remaining =
+                new int[] { candidates.size() };
+
+        for (BrowserTab tab : candidates) {
+            restoreWebStorage(
+                    tab,
+                    tab.webView.getUrl(),
+                    () -> {
+                        remaining[0]--;
+
+                        if (remaining[0] <= 0 &&
+                                completion != null) {
+                            completion.run();
+                        }
+                    });
+        }
+    }
+
+    private void performProfileSwitch(
+            String targetProfileId) {
+
+        if (profileSwitching) {
+            return;
+        }
+
+        String current =
+                ProfileManager.getActiveProfileId(this);
+
+        if (targetProfileId == null ||
+                current.equals(targetProfileId)) {
+            return;
+        }
+
+        if (!ProfileManager.isGuest(targetProfileId) &&
+                profileManager.getProfile(
+                        this,
+                        targetProfileId) == null) {
+            return;
+        }
+
+        /*
+         * Android 9+ can give every persistent profile its own real WebView
+         * data directory in a dedicated process. Start that process first,
+         * then remove the old Activity from the task. The old browser process
+         * is allowed to finish normally instead of being force-killed.
+         */
+        if (Build.VERSION.SDK_INT >= 28 &&
+                !ProfileManager.isGuest(targetProfileId)) {
+
+            profileSwitching = true;
+
+            saveTabs();
+
+            if (cookieStore != null) {
+                cookieStore.discoverFromHistory(
+                        browserHistory);
+                cookieStore.recordUrls(
+                        getOpenWebUrls());
+                cookieStore.snapshotCookies();
+            }
+
+            boolean dedicatedProcess =
+                    ProfileManager.isDedicatedProfileProcess();
+
+            /*
+             * The Main process owns the default WebView directory. Every
+             * user-created profile owns the one reusable :profile process,
+             * configured with that profile's WebView data-directory suffix.
+             */
+            ProfileManager.setActiveProfileId(
+                    this,
+                    targetProfileId);
+
+            if (ProfileManager.MAIN_ID.equals(
+                    targetProfileId)) {
+
+                try {
+                    Intent intent =
+                            new Intent(
+                                    this,
+                                    MainActivity.class);
+
+                    intent.addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                    startActivity(intent);
+                    overridePendingTransition(0, 0);
+
+                    if (dedicatedProcess) {
+                        new android.os.Handler(
+                                Looper.getMainLooper())
+                                .postDelayed(
+                                        () -> android.os.Process
+                                                .killProcess(
+                                                        android.os.Process
+                                                                .myPid()),
+                                        300L);
+                    }
+
+                } catch (Throwable error) {
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+                }
+
+                return;
+            }
+
+            /*
+             * If we are already inside :profile, Android would reuse the same
+             * process when starting another ProfileProcessActivity. WebView's
+             * data-directory suffix cannot be changed after WebView has been
+             * initialized, so use the default-process helper to wait for this
+             * process to die and then launch the target profile in a fresh
+             * :profile process.
+             */
+            if (dedicatedProcess) {
+
+                if (!ProfileSwitchService.request(
+                        this,
+                        current,
+                        targetProfileId)) {
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+
+                    return;
+                }
+
+                boolean helperStarted = false;
+
+                try {
+                    Intent switchIntent =
+                            new Intent(
+                                    this,
+                                    ProfileSwitchActivity.class);
+
+                    switchIntent.addFlags(
+                            Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                            Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                    startActivity(switchIntent);
+                    overridePendingTransition(0, 0);
+                    helperStarted = true;
+
+                } catch (Throwable ignored) {
+                }
+
+                if (!helperStarted) {
+
+                    ProfileSwitchService
+                            .cancelPendingSwitch(this);
+
+                    ProfileManager.setActiveProfileId(
+                            this,
+                            current);
+
+                    profileSwitching = false;
+
+                    android.widget.Toast.makeText(
+                            this,
+                            "Could not switch profiles.",
+                            android.widget.Toast.LENGTH_LONG)
+                            .show();
+
+                    return;
+                }
+
+                new android.os.Handler(
+                        Looper.getMainLooper())
+                        .postDelayed(
+                                () -> android.os.Process
+                                        .killProcess(
+                                                android.os.Process
+                                                        .myPid()),
+                                250L);
+
+                return;
+            }
+
+            /*
+             * Main/default process -> profile process. There is no existing
+             * :profile process to conflict with, so start it directly.
+             */
+            try {
+                Intent intent =
+                        new Intent(
+                                this,
+                                ProfileProcessActivity.class);
+
+                intent.putExtra(
+                        PROFILE_PROCESS_PROFILE_ID_EXTRA,
+                        targetProfileId);
+
+                intent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+
+            } catch (Throwable error) {
+
+                ProfileManager.setActiveProfileId(
+                        this,
+                        current);
+
+                profileSwitching = false;
+
+                android.widget.Toast.makeText(
+                        this,
+                        "Could not switch profiles.",
+                        android.widget.Toast.LENGTH_LONG)
+                        .show();
+            }
+
+            return;
+        }
+
+        /*
+         * Android 4.4-8.1 has one process-global WebView data directory.
+         * Keep the legacy serialized filesystem swap for those devices.
+         */
+        profileSwitching = true;
+
+        saveTabs();
+
+        if (cookieStore != null) {
+            cookieStore.discoverFromHistory(
+                    browserHistory);
+            cookieStore.recordUrls(
+                    getOpenWebUrls());
+            cookieStore.snapshotCookies();
+        }
+
+        snapshotAllWebStorage(
+                () -> continueProfileSwitch(
+                        current,
+                        targetProfileId));
+    }
+
+    private void continueProfileSwitch(
+            final String current,
+            final String targetProfileId) {
+
+        if (browserHistory != null) {
+            browserHistory.close();
+        }
+
+        if (downloadHistory != null) {
+            downloadHistory.close();
+        }
+
+        if (bookmarkStore != null) {
+            bookmarkStore.close();
+        }
+
+        if (passwordStore != null) {
+            passwordStore.close();
+        }
+
+        if (tabManager != null) {
+            tabManager.destroyAllTabsForProfileSwitch();
+        }
+
+        flushWebViewDataBeforeProcessExit();
+
+        ProfileManager.setActiveProfileId(
+                MainActivity.this,
+                targetProfileId);
+
+        if (!ProfileSwitchService.request(
+                MainActivity.this,
+                current,
+                targetProfileId)) {
+
+            ProfileManager.setActiveProfileId(
+                    MainActivity.this,
+                    current);
+
+            profileSwitching = false;
+
+            android.widget.Toast.makeText(
+                    MainActivity.this,
+                    "Could not switch profiles.",
+                    android.widget.Toast.LENGTH_LONG)
+                    .show();
+
+            return;
+        }
+
+        boolean helperStarted = false;
+
+        try {
+            Intent switchIntent =
+                    new Intent(
+                            MainActivity.this,
+                            ProfileSwitchActivity.class);
+
+            switchIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION);
+
+            startActivity(switchIntent);
+            overridePendingTransition(0, 0);
+            helperStarted = true;
+
+        } catch (Throwable ignored) {
+        }
+
+        if (!helperStarted) {
+            ProfileSwitchService.cancelPendingSwitch(
+                    MainActivity.this);
+
+            ProfileManager.setActiveProfileId(
+                    MainActivity.this,
+                    current);
+
+            profileSwitching = false;
+
+            android.widget.Toast.makeText(
+                    MainActivity.this,
+                    "Could not switch profiles.",
+                    android.widget.Toast.LENGTH_LONG)
+                    .show();
+
+            return;
+        }
+
+        new android.os.Handler(
+                Looper.getMainLooper())
+                .postDelayed(
+                        () -> android.os.Process.killProcess(
+                                android.os.Process.myPid()),
+                        250L);
+    }
+
+    private void flushWebViewDataBeforeProcessExit() {
+
+        try {
+            if (Build.VERSION.SDK_INT >= 21) {
+                CookieManager
+                        .getInstance()
+                        .flush();
+            } else {
+                android.webkit.CookieSyncManager
+                        .createInstance(
+                                getApplicationContext())
+                        .sync();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public void showProfileEditor(
+            BrowserTab tab,
+            String profileId) {
+
+        ProfileManager.Profile profile =
+                profileId == null
+                        ? null
+                        : profileManager.getProfile(
+                                this,
+                                profileId);
+
+        if (profileId != null &&
+                profile == null) {
+            return;
+        }
+
+        final EditText name =
+                new EditText(this);
+
+        name.setSingleLine(true);
+        name.setHint(
+                Localization.translate(
+                        this,
+                        "profiles.name"));
+
+        name.setText(
+                profile == null
+                        ? "Profile " +
+                                Math.max(
+                                        2,
+                                        profileManager
+                                                .getPersistentProfileCount(
+                                                        this) +
+                                                1)
+                        : profile.name);
+
+        final AlertDialog dialog =
+                new AlertDialog.Builder(this)
+                        .setTitle(
+                                profileId == null
+                                        ? Localization.translate(
+                                                this,
+                                                "profiles.create")
+                                        : Localization.translate(
+                                                this,
+                                                "profiles.edit"))
+                        .setView(name)
+                        .setNegativeButton(
+                                Localization.translate(
+                                        this,
+                                        "common.cancel"),
+                                null)
+                        .setPositiveButton(
+                                Localization.translate(
+                                        this,
+                                        "common.save"),
+                                null)
+                        .create();
+
+        dialog.setOnShowListener(
+                ignored -> {
+                    Button save =
+                            dialog.getButton(
+                                    AlertDialog.BUTTON_POSITIVE);
+
+                    save.setOnClickListener(
+                            v -> {
+
+                                String cleanName =
+                                        name.getText()
+                                                .toString()
+                                                .trim();
+
+                                if (cleanName.isEmpty()) {
+                                    cleanName =
+                                            profileId != null &&
+                                            ProfileManager.MAIN_ID
+                                                    .equals(profileId)
+                                                    ? "Profile 1"
+                                                    : "Profile";
+                                }
+
+                                boolean ok;
+
+                                if (profileId == null) {
+                                    ok =
+                                            profileManager
+                                                    .createProfile(
+                                                            this,
+                                                            cleanName)
+                                                    != null;
+                                } else {
+                                    ok =
+                                            profileManager
+                                                    .updateProfile(
+                                                            this,
+                                                            profileId,
+                                                            cleanName);
+                                }
+
+                                if (!ok) {
+                                    showPasswordManagerError(
+                                            Localization.translate(
+                                                    this,
+                                                    "profiles.cannot_save"));
+                                    return;
+                                }
+
+                                dialog.dismiss();
+
+                                if (tab != null &&
+                                        tab.profilesPage) {
+                                    profilesPage.show(tab);
+                                    tabManager.selectTab(tab);
+                                }
+                            });
+                });
+
+        dialog.show();
+    }
+
+    public boolean handleProfileActionUrl(
+            BrowserTab tab,
+            String url) {
+
+        if (url == null) {
+            return false;
+        }
+
+        String prefix =
+                "simplebrowser://profile/";
+
+        String route =
+                BrowserPage.toPublicRoute(url);
+
+        if (route != null &&
+                route.startsWith(
+                        BrowserPage.PROFILES +
+                        "/action/")) {
+
+            prefix =
+                    BrowserPage.PROFILES +
+                    "/action/";
+
+            url = route;
+
+        } else if (!url.startsWith(prefix)) {
+            return false;
+        }
+
+        String remainder =
+                url.substring(
+                        prefix.length());
+
+        int slash =
+                remainder.indexOf('/');
+
+        String action =
+                slash < 0
+                        ? remainder
+                        : remainder.substring(
+                                0,
+                                slash);
+
+        String profileId =
+                slash < 0
+                        ? ""
+                        : remainder.substring(
+                                slash + 1);
+
+        if ("create".equals(action)) {
+            showProfileEditor(tab, null);
+            return true;
+        }
+
+        if ("guest".equals(action)) {
+            enterGuestProfile(tab);
+            return true;
+        }
+
+        if ("exit-guest".equals(action)) {
+            exitGuestProfile();
+            return true;
+        }
+
+        if ("switch".equals(action)) {
+            switchProfile(profileId);
+            return true;
+        }
+
+        if ("edit".equals(action)) {
+            showProfileEditor(
+                    tab,
+                    profileId);
+            return true;
+        }
+
+        if ("delete".equals(action)) {
+
+            ProfileManager.Profile profile =
+                    profileManager.getProfile(
+                            this,
+                            profileId);
+
+            if (profile == null ||
+                    profile.isMain()) {
+                return true;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle(
+                            Localization.translate(
+                                    this,
+                                    "profiles.delete_confirm"))
+                    .setMessage(profile.name)
+                    .setNegativeButton(
+                            Localization.translate(
+                                    this,
+                                    "common.cancel"),
+                            null)
+                    .setPositiveButton(
+                            Localization.translate(
+                                    this,
+                                    "common.delete"),
+                            (dialog, which) -> {
+
+                                if (profileManager.deleteProfile(
+                                        this,
+                                        profileId) &&
+                                        tab != null) {
+
+                                    profilesPage.show(
+                                            tab);
+                                    tabManager.selectTab(
+                                            tab);
+                                }
+                            })
+                    .show();
+
+            return true;
+        }
+
+        return true;
+    }
+
+    public void openUrlOrSearch(
+            String input) {
+
+        openUrlOrSearchForTab(
+                getActiveTab(),
+                input);
+    }
+
+    public void openUrlOrSearchForTab(
+            BrowserTab tab,
+            String input) {
+
+        hideKeyboard();
+
+        if (tab == null ||
+                input == null) {
+            return;
+        }
+
+        String value =
+                input.trim();
+
+        if (value.isEmpty()) {
+            return;
+        }
+
+        String settingsSection =
+                getSettingsSection(value);
+
+        if (settingsSection != null) {
+
+            showSettings(
+                    tab,
+                    settingsSection);
+
+            return;
+        }
+
+        if (BrowserPage.DEFAULT.equalsIgnoreCase(value)) {
+
+            showDefaultPage(tab);
+            return;
+        }
+
+        if (BrowserPage.HISTORY.equalsIgnoreCase(value)) {
+
+            showHistory(tab, "");
+            return;
+        }
+
+        if (BrowserPage.DOWNLOADS.equalsIgnoreCase(value)) {
+
+            showDownloads(tab, "");
+            return;
+        }
+
+        if (BrowserPage.COOKIES.equalsIgnoreCase(value)) {
+
+            showCookies(tab);
+            return;
+        }
+
+        if (BrowserPage.DEMO.equalsIgnoreCase(value)) {
+
+            showDemoPage(tab);
+            return;
+        }
+
+        if (BrowserPage.BOOKMARKS.equalsIgnoreCase(value)) {
+            showBookmarks(tab, "");
+            return;
+        }
+
+        if (BrowserPage.PASSWORDS.equalsIgnoreCase(value)) {
+            showPasswordManager(tab);
+            return;
+        }
+
+        if (BrowserPage.PROFILES.equalsIgnoreCase(value)) {
+            showProfiles(tab);
+            return;
+        }
+
+        if (isLocalPath(value)) {
+
+            loadTabUrl(
+                    tab,
+                    toLocalUri(value));
+
+            return;
+        }
+
+        if (isUrl(value)) {
+
+            if (!value.startsWith("http://") &&
+                    !value.startsWith("https://") &&
+                    !value.startsWith("file://") &&
+                    !value.startsWith("content://")) {
+
+                value =
+                        "https://" + value;
+            }
+
+            loadTabUrl(
+                    tab,
+                    value);
+
+            return;
+        }
+
+        loadTabUrl(
+                tab,
+                buildSearchUrl(value));
+    }
+
+        private String getSettingsSection(
+            String url) {
+
+        return BrowserPage.getSettingsSection(
+                url);
+    }
+
+    public String getSettingsUrl(
+            String section) {
+
+        return BrowserPage.settingsUrl(
+                section);
+    }
+
+    private boolean isLocalPath(
+            String input) {
+
+        if (input == null ||
+                input.isEmpty()) {
+            return false;
+        }
+
+        if (input.startsWith("/") &&
+                !input.startsWith("//")) {
+            return true;
+        }
+
+        if (input.startsWith("file://") ||
+                input.startsWith("content://")) {
+            return true;
+        }
+
+        try {
+            return input.toLowerCase()
+                    .endsWith(".html") &&
+                    input.contains("/") &&
+                    new File(input).exists();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String toLocalUri(
+            String input) {
+
+        if (input.startsWith("file://") ||
+                input.startsWith("content://")) {
+            return input;
+        }
+
+        return Uri.fromFile(
+                new File(input))
+                .toString();
+    }
+
+    private boolean isUrl(
+            String input) {
+
+        if (input.startsWith("http://") ||
+                input.startsWith("https://") ||
+                input.startsWith("file://") ||
+                input.startsWith("content://")) {
+            return true;
+        }
+
+        if (input.contains(" ")) {
+            return false;
+        }
+
+        return input.contains(".") ||
+                input.startsWith("localhost:") ||
+                input.startsWith("127.0.0.1:");
+    }
+
+    private String getSearchUrl() {
+
+        String engine =
+                browserSettings
+                        .getSearchEngine();
+
+        if ("bing".equals(engine)) {
+            return
+                    "https://www.bing.com/search?q=";
+        }
+
+        if ("duckduckgo".equals(engine)) {
+            return
+                    "https://duckduckgo.com/?q=";
+        }
+
+        if ("yahoo".equals(engine)) {
+            return
+                    "https://search.yahoo.com/search?p=";
+        }
+
+        if ("custom".equals(engine)) {
+            String custom =
+                    browserSettings
+                            .getCustomSearchUrl();
+
+            if (!custom.trim().isEmpty()) {
+                return custom.trim();
+            }
+        }
+
+        return
+                "https://www.google.com/search?q=";
+    }
+
+    private String buildSearchUrl(
+            String input) {
+
+        String encoded;
+
+        try {
+
+            encoded =
+                    URLEncoder.encode(
+                            input,
+                            "UTF-8");
+
+        } catch (Exception e) {
+
+            encoded = input;
+        }
+
+        String template =
+                getSearchUrl();
+
+        if (template.contains("%s")) {
+
+            return template.replace(
+                    "%s",
+                    encoded);
+        }
+
+        if (template.endsWith("=") ||
+                template.endsWith("?") ||
+                template.endsWith("&")) {
+
+            return template + encoded;
+        }
+
+        if (template.contains("?")) {
+            return template + "&q=" + encoded;
+        }
+
+        return template + "?q=" + encoded;
+    }
+
+    public void loadTabUrl(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.webView == null) {
+            return;
+        }
+
+        tab.hasLoaded = true;
+        tab.pendingUrl =
+                url == null ||
+                url.trim().isEmpty()
+                        ? "about:blank"
+                        : url;
+
+        String settingsSection =
+                getSettingsSection(url);
+
+        if (settingsSection != null) {
+
+            showSettings(
+                    tab,
+                    settingsSection);
+
+            return;
+        }
+
+        if (BrowserPage.DEFAULT.equalsIgnoreCase(url)) {
+
+            showDefaultPage(tab);
+            return;
+        }
+
+        if (BrowserPage.HISTORY.equalsIgnoreCase(url)) {
+
+            showHistory(tab, "");
+            return;
+        }
+
+        if (BrowserPage.DOWNLOADS.equalsIgnoreCase(url)) {
+
+            showDownloads(tab, "");
+            return;
+        }
+
+        if (BrowserPage.COOKIES.equalsIgnoreCase(url)) {
+
+            showCookies(tab);
+            return;
+        }
+
+        if (BrowserPage.DEMO.equalsIgnoreCase(url)) {
+
+            showDemoPage(tab);
+            return;
+        }
+
+        if (BrowserPage.BOOKMARKS.equalsIgnoreCase(url)) {
+            showBookmarks(tab, "");
+            return;
+        }
+
+        if (BrowserPage.PASSWORDS.equalsIgnoreCase(url)) {
+            showPasswordManager(tab);
+            return;
+        }
+
+        if (BrowserPage.PROFILES.equalsIgnoreCase(url)) {
+            showProfiles(tab);
+            return;
+        }
+
+        removeInternalPageState(tab);
+
+        tab.loading = true;
+        tab.sslError = false;
+        tab.favicon = null;
+        tabManager.updateTabLoadingState(tab);
+
+        tab.webView.loadUrl(url);
+        updateBookmarkButton(tab);
+    }
+
+    public void removeInternalPageState(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        settingsPage.remove(tab);
+
+        defaultPage.remove(tab);
+        historyPage.remove(tab);
+        downloadsPage.remove(tab);
+        cookiesPage.remove(tab);
+        bookmarksPage.remove(tab);
+        passwordsPage.remove(tab);
+        profilesPage.remove(tab);
+
+        tab.settingsPage = false;
+        tab.defaultPage = false;
+        tab.historyPage = false;
+        tab.downloadsPage = false;
+        tab.cookiesPage = false;
+        tab.bookmarksPage = false;
+        tab.passwordsPage = false;
+        tab.profilesPage = false;
+        tab.errorPage = false;
+        tab.settingsSection = "general";
+    }
+
+    public void showDefaultPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        defaultPage.show(tab);
+        tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DEFAULT);
+    }
+
+    public void showErrorPage(
+            BrowserTab tab,
+            String url,
+            String description) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+
+        tab.errorPage = true;
+        errorPage.show(
+                tab,
+                url,
+                description);
+
+        recordInternalVisit(
+                tab,
+                url);
+
+        if (tab == getActiveTab()) {
+            applyActiveTabAppearance();
+        }
+    }
+
+    public void showHistory(
+            BrowserTab tab,
+            String query) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        historyPage.show(
+                tab,
+                query);
+        tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.HISTORY);
+    }
+
+    public void showDownloads(
+            BrowserTab tab,
+            String query) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        downloadsPage.show(
+                tab,
+                query);
+        tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DOWNLOADS);
+    }
+
+    public void showCookies(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        cookiesPage.show(tab);
+        tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.COOKIES);
+    }
+
+    public void showDemoPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        removeInternalPageState(tab);
+        demoPage.show(tab);
+        tabManager.selectTab(tab);
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.DEMO);
+    }
+
+    public void refreshLocalizedChrome() {
+
+        urlBox.setHint(
+                Localization.translate(
+                        this,
+                        "Search or enter an address"));
+
+        setupToolbarIcons();
+        applyResponsiveToolbar();
+
+        BrowserTab active =
+                getActiveTab();
+
+        if (active != null) {
+            updateTabTitle(active);
+            updateSecurity(active);
+            updateReloadButton(active);
+        }
+
+        updateNavigationButtons();
+    }
+
+    public void refreshTab(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        if (tab.settingsPage) {
+            settingsPage.show(
+                    tab,
+                    tab.settingsSection);
+            return;
+        }
+
+        if (tab.historyPage) {
+            historyPage.show(
+                    tab,
+                    "");
+            return;
+        }
+
+        if (tab.downloadsPage) {
+            downloadsPage.show(
+                    tab,
+                    "");
+            return;
+        }
+
+        if (tab.cookiesPage) {
+            cookiesPage.show(tab);
+            return;
+        }
+
+        if (tab.bookmarksPage) {
+            bookmarksPage.show(tab, "");
+            return;
+        }
+
+        if (tab.passwordsPage) {
+            if (passwordManagerAuthenticated) {
+                passwordsPage.show(tab);
+            } else {
+                showPasswordManager(tab);
+            }
+            return;
+        }
+
+        if (tab.profilesPage) {
+            profilesPage.show(tab);
+            return;
+        }
+
+        if (BrowserPage.DEMO.equals(
+                tab.url)) {
+            demoPage.show(tab);
+            return;
+        }
+
+        if (tab.errorPage) {
+            String retry =
+                    tab.url;
+
+            if (retry != null &&
+                    !retry.trim().isEmpty()) {
+                loadTabUrl(tab, retry);
+            }
+            return;
+        }
+
+        if (tab.defaultPage) {
+            defaultPage.show(tab);
+            return;
+        }
+
+        tab.webView.reload();
+    }
+
+    public WebStorageStore getWebStorageStore() {
+        return webStorageStore;
+    }
+
+    public boolean isProfileSwitching() {
+        return profileSwitching;
+    }
+
+    private void persistWebStorageSnapshot(
+            String origin,
+            String data) {
+
+        if (webStorageStore == null) {
+            return;
+        }
+
+        try {
+            webStorageStore.put(
+                    origin,
+                    data);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public void saveWebStorageSnapshot(
+            String origin,
+            String data) {
+
+        if (profileSwitching) {
+            return;
+        }
+
+        persistWebStorageSnapshot(
+                origin,
+                data);
+    }
+
+    public void restoreWebStorage(
+            BrowserTab tab,
+            String url) {
+        restoreWebStorage(
+                tab,
+                url,
+                null);
+    }
+
+    public void restoreWebStorage(
+            BrowserTab tab,
+            String url,
+            final Runnable completion) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                tab.isIncognito ||
+                tab.isGuest ||
+                !browserSettings.isStorageEnabled() ||
+                webStorageStore == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        final String origin =
+                WebStorageStore.normalizeOrigin(url);
+
+        if (origin == null ||
+                !webStorageStore.has(origin)) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        final String data =
+                webStorageStore.get(origin);
+
+        String script =
+                "(function(){try{" +
+                "var d=" +
+                javaScriptString(data) +
+                ";" +
+                "var o=JSON.parse(d);" +
+                "for(var k in o){" +
+                "if(Object.prototype.hasOwnProperty.call(o,k))" +
+                "localStorage.setItem(k,String(o[k]));" +
+                "}" +
+                "}catch(e){}})();";
+
+        try {
+            tab.webView.evaluateJavascript(
+                    script,
+                    value -> {
+                        if (completion != null) {
+                            completion.run();
+                        }
+                    });
+        } catch (Throwable ignored) {
+            try {
+                tab.webView.loadUrl(
+                        "javascript:" +
+                        script);
+            } catch (Throwable ignoredAgain) {
+            }
+
+            if (completion != null) {
+                completion.run();
+            }
+        }
+    }
+
+    public void snapshotWebStorageForTab(
+            BrowserTab tab) {
+        snapshotWebStorageForTab(
+                tab,
+                null);
+    }
+
+    private void snapshotWebStorageForTab(
+            BrowserTab tab,
+            final Runnable completion) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                tab.isIncognito ||
+                !browserSettings.isStorageEnabled()) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        final String origin =
+                WebStorageStore.normalizeOrigin(
+                        tab.webView.getUrl());
+
+        if (origin == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        try {
+            tab.webView.evaluateJavascript(
+                    "(function(){try{" +
+                    "var o={};" +
+                    "for(var i=0;i<localStorage.length;i++){" +
+                    "var k=localStorage.key(i);" +
+                    "o[k]=localStorage.getItem(k);" +
+                    "}" +
+                    "return JSON.stringify({" +
+                    "__simpleBrowserSnapshot:true," +
+                    "data:o});" +
+                    "}catch(e){" +
+                    "return JSON.stringify({" +
+                    "__simpleBrowserSnapshot:false});" +
+                    "}})();",
+                    value -> {
+
+                        String json =
+                                parseJavascriptString(
+                                        value);
+
+                        try {
+                            org.json.JSONObject wrapper =
+                                    new org.json.JSONObject(
+                                            json);
+
+                            if (wrapper.optBoolean(
+                                    "__simpleBrowserSnapshot",
+                                    false)) {
+
+                                org.json.JSONObject dataObject =
+                                        wrapper.optJSONObject(
+                                                "data");
+
+                                if (dataObject != null) {
+                                    persistWebStorageSnapshot(
+                                            origin,
+                                            dataObject.toString());
+                                }
+                            }
+                        } catch (Throwable ignored) {
+                            // Never replace a valid snapshot with "{}" on
+                            // an evaluateJavascript failure/result parse error.
+                        }
+
+                        if (completion != null) {
+                            completion.run();
+                        }
+                    });
+
+        } catch (Throwable ignored) {
+
+            if (completion != null) {
+                completion.run();
+            }
+        }
+    }
+
+    private void snapshotAllWebStorage() {
+        snapshotAllWebStorage(null);
+    }
+
+    private void snapshotAllWebStorage(
+            final Runnable completion) {
+
+        if (tabManager == null) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        java.util.ArrayList<BrowserTab> webTabs =
+                new java.util.ArrayList<>();
+
+        for (BrowserTab tab :
+                tabManager.getNormalTabs()) {
+
+            if (tab != null &&
+                    tab.webView != null &&
+                    !tab.isIncognito &&
+                    !tab.isGuest &&
+                    browserSettings.isStorageEnabled() &&
+                    WebStorageStore.normalizeOrigin(
+                            tab.webView.getUrl()) != null) {
+
+                webTabs.add(tab);
+            }
+        }
+
+        if (webTabs.isEmpty()) {
+
+            if (completion != null) {
+                completion.run();
+            }
+
+            return;
+        }
+
+        final int[] remaining =
+                new int[] {
+                        webTabs.size()
+                };
+
+        final boolean[] completed =
+                new boolean[] {
+                        false
+                };
+
+        Runnable done =
+                () -> {
+
+                    remaining[0]--;
+
+                    if (remaining[0] <= 0 &&
+                            !completed[0]) {
+
+                        completed[0] = true;
+
+                        if (completion != null) {
+                            completion.run();
+                        }
+                    }
+                };
+
+        for (BrowserTab tab : webTabs) {
+            snapshotWebStorageForTab(
+                    tab,
+                    done);
+        }
+    }
+
+    public void clearSecurityDecisions() {
+
+        if (tabManager != null) {
+            for (BrowserTab tab :
+                    tabManager.getTabs()) {
+                if (tab != null &&
+                        tab.webView != null) {
+                    tab.webView.clearSslPreferences();
+                }
+            }
+        }
+
+        try {
+            android.webkit.GeolocationPermissions
+                    .getInstance()
+                    .clearAll();
+        } catch (Throwable ignored) {
+        }
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            try {
+                WebView.clearClientCertPreferences(
+                        null);
+            } catch (Throwable ignored) {
+            }
+        }
+    }
+
+    public void clearSharedWebViewDatabaseData() {
+
+        try {
+            android.webkit.WebViewDatabase database =
+                    android.webkit.WebViewDatabase.getInstance(
+                            this);
+
+            database.clearFormData();
+            database.clearHttpAuthUsernamePassword();
+
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public void clearRuntimeWebStorage() {
+        clearRuntimeWebStorage(null);
+    }
+
+    public void clearRuntimeWebStorage(
+            final Runnable completion) {
+
+        try {
+            android.webkit.WebStorage
+                    .getInstance()
+                    .deleteAllData();
+        } catch (Throwable ignored) {
+            if (completion != null) {
+                completion.run();
+            }
+            return;
+        }
+
+        if (completion == null) {
+            return;
+        }
+
+        waitForWebStorageClear(
+                completion,
+                0);
+    }
+
+    private void waitForWebStorageClear(
+            final Runnable completion,
+            final int attempt) {
+
+        if (attempt >= 12) {
+            completion.run();
+            return;
+        }
+
+        try {
+            android.webkit.WebStorage
+                    .getInstance()
+                    .getOrigins(
+                            origins -> {
+
+                                if (origins == null ||
+                                        origins.isEmpty()) {
+                                    completion.run();
+                                    return;
+                                }
+
+                                new android.os.Handler(
+                                        android.os.Looper
+                                                .getMainLooper())
+                                        .postDelayed(
+                                                () -> waitForWebStorageClear(
+                                                        completion,
+                                                        attempt + 1),
+                                                100L);
+                            });
+        } catch (Throwable ignored) {
+            new android.os.Handler(
+                    android.os.Looper
+                            .getMainLooper())
+                    .postDelayed(
+                            () -> completion.run(),
+                            150L);
+        }
+    }
+
+    private String parseJavascriptString(
+            String value) {
+
+        if (value == null ||
+                value.trim().isEmpty() ||
+                "null".equals(value)) {
+            return "{}";
+        }
+
+        try {
+            return new org.json.JSONArray(
+                    "[" +
+                    value +
+                    "]")
+                    .getString(0);
+        } catch (Throwable ignored) {
+            return "{}";
+        }
+    }
+
+    private String javaScriptString(
+            String value) {
+
+        if (value == null) {
+            return "''";
+        }
+
+        return "'" +
+                value
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n")
+                        .replace("</script>", "<\\/script>") +
+                "'";
+    }
+
+    private java.util.List<String> getOpenWebUrls() {
+
+        java.util.ArrayList<String> urls =
+                new java.util.ArrayList<>();
+
+        if (tabManager == null) {
+            return urls;
+        }
+
+        for (BrowserTab current :
+                tabManager.getTabs()) {
+
+            if (current == null ||
+                    current.isIncognito ||
+                    current.webView == null) {
+                continue;
+            }
+
+            String url =
+                    current.webView.getUrl();
+
+            if (url != null &&
+                    (url.startsWith("http://") ||
+                     url.startsWith("https://"))) {
+                urls.add(url);
+            }
+        }
+
+        return urls;
+    }
+
+    public void copyLogsToClipboard(
+            String filter) {
+
+        String text =
+                BrowserLogger.getText(filter);
+
+        ClipboardManager clipboard =
+                (ClipboardManager)
+                        getSystemService(
+                                CLIPBOARD_SERVICE);
+
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(
+                    ClipData.newPlainText(
+                            "Simple Browser logs",
+                            text));
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "settings.logs_copied"),
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    public void clearBrowserHistory() {
+
+        if (browserHistory != null) {
+            browserHistory.clear();
+        }
+    }
+
+    public void clearDownloadHistory() {
+
+        if (downloadHistory != null) {
+            downloadHistory.clear();
+        }
+    }
+
+    public void clearCookieIndex() {
+
+        if (cookieStore != null) {
+            cookieStore.clearIndex();
+        }
+    }
+
+    public CookieStore getCookieStore() {
+        return cookieStore;
+    }
+
+    public BrowserHistory getBrowserHistory() {
+        return browserHistory;
+    }
+
+    public void startDownload(
+            BrowserTab tab,
+            String url,
+            String userAgent,
+            String contentDisposition,
+            String mimeType,
+            long contentLength) {
+
+        if (url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+
+            String filename =
+                    URLUtil.guessFileName(
+                            url,
+                            contentDisposition,
+                            mimeType);
+
+            if (filename == null ||
+                    filename.trim().isEmpty()) {
+                filename = "download";
+            }
+
+            android.app.DownloadManager.Request request =
+                    new android.app.DownloadManager.Request(
+                            Uri.parse(url));
+
+            request.setTitle(filename);
+            request.setDescription(
+                    Localization.translate(
+                            this,
+                            "Simple Browser"));
+
+            if (mimeType != null &&
+                    !mimeType.trim().isEmpty()) {
+                request.setMimeType(mimeType);
+            }
+
+            request.setNotificationVisibility(
+                    android.app.DownloadManager
+                            .Request
+                            .VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+            if (userAgent != null &&
+                    !userAgent.trim().isEmpty()) {
+                request.addRequestHeader(
+                        "User-Agent",
+                        userAgent);
+            }
+
+            String cookie =
+                    CookieManager
+                            .getInstance()
+                            .getCookie(url);
+
+            if (cookie != null &&
+                    !cookie.trim().isEmpty()) {
+                request.addRequestHeader(
+                        "Cookie",
+                        cookie);
+            }
+
+            android.app.DownloadManager manager =
+                    (android.app.DownloadManager)
+                            getSystemService(
+                                    DOWNLOAD_SERVICE);
+
+            if (manager == null) {
+                throw new IllegalStateException(
+                        "Download manager unavailable");
+            }
+
+            long downloadId =
+                    manager.enqueue(request);
+
+            if (tab == null ||
+                    !tab.isIncognito) {
+
+                downloadHistory.add(
+                        downloadId,
+                        url,
+                        filename,
+                        mimeType,
+                        System.currentTimeMillis());
+            }
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "Download started: ") + filename,
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+
+        } catch (Exception e) {
+
+            android.widget.Toast.makeText(
+                    this,
+                    Localization.translate(
+                            this,
+                            "Unable to start download"),
+                    android.widget.Toast.LENGTH_SHORT)
+                    .show();
+        }
+    }
+
+    public void recordVisit(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        android.graphics.Bitmap icon =
+                tab.favicon != null
+                        ? tab.favicon
+                        : tab.webView == null
+                        ? null
+                        : tab.webView.getFavicon();
+
+        browserHistory.addVisit(
+                url,
+                tab.title,
+                icon);
+    }
+
+    private void recordInternalVisit(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == null ||
+                tab.isIncognito ||
+                url == null ||
+                url.trim().isEmpty()) {
+            return;
+        }
+
+        String lower =
+                url.trim().toLowerCase();
+
+        // browser:// pages are browser UI, not browsing history.
+        if (lower.startsWith("browser://")) {
+            return;
+        }
+
+        browserHistory.addVisit(
+                url,
+                tab.title,
+                tab.favicon);
+    }
+
+    public void updateTabIcon(
+            BrowserTab tab,
+            android.graphics.Bitmap favicon) {
+
+        if (tabManager != null) {
+            tabManager.updateTabIcon(
+                    tab,
+                    favicon);
+        }
+
+        if (tab != null &&
+                favicon != null &&
+                !favicon.isRecycled() &&
+                bookmarkStore != null &&
+                tab.webView != null) {
+
+            String url =
+                    tab.webView.getUrl();
+
+            if (url != null &&
+                    (url.startsWith("http://") ||
+                     url.startsWith("https://"))) {
+
+                bookmarkStore.updateFavicon(
+                        url,
+                        favicon);
+            }
+        }
+
+        updateBookmarkButton(tab);
+    }
+
+    public void setBrowserPageIcon(
+            BrowserTab tab,
+            int iconType) {
+
+        if (tab == null ||
+                tabManager == null) {
+            return;
+        }
+
+        int chromeColor =
+                tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : getAccentColor();
+
+        int color =
+                ColorUtils.getReadableTextColor(
+                        chromeColor);
+
+        android.graphics.Bitmap bitmap =
+                android.graphics.Bitmap.createBitmap(
+                        32,
+                        32,
+                        android.graphics.Bitmap.Config.ARGB_8888);
+
+        android.graphics.Canvas canvas =
+                new android.graphics.Canvas(bitmap);
+
+        BrowserIconDrawable drawable =
+                new BrowserIconDrawable(
+                        iconType,
+                        color);
+
+        drawable.setBounds(
+                0, 0, 32, 32);
+
+        drawable.draw(canvas);
+
+        tab.favicon = bitmap;
+
+        tabManager.updateTabIcon(
+                tab,
+                bitmap);
+    }
+
+    public void saveTabs() {
+
+        if (browserSettings
+                .isRestoreTabsEnabled()) {
+
+            tabManager.saveTabs();
+
+        } else {
+
+            browserSettings.setSavedTabsJson("");
+        }
+    }
+
+    public void applyActiveTabAppearance() {
+
+        BrowserTab tab =
+                getActiveTab();
+
+        int chromeColor;
+        int urlBackground;
+
+        if (tab != null &&
+                tab.isGuest) {
+
+            chromeColor =
+                    Color.WHITE;
+
+            urlBackground =
+                    Color.rgb(
+                            245,
+                            245,
+                            245);
+
+        } else if (tab != null &&
+                tab.isIncognito) {
+
+            chromeColor =
+                    INCOGNITO_CHROME;
+
+            urlBackground =
+                    INCOGNITO_URL;
+
+        } else {
+
+            int accent =
+                    getAccentColor();
+
+            chromeColor =
+                    accent;
+
+            urlBackground =
+                    ColorUtils.darken(
+                            accent,
+                            0.12f);
+        }
+
+        int readable =
+                ColorUtils.getReadableTextColor(
+                        chromeColor);
+
+        int tabBarColor =
+                tab != null &&
+                        tab.isGuest
+                        ? Color.WHITE
+                        : tab != null &&
+                        tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : ColorUtils.darken(
+                                chromeColor,
+                                0.14f);
+
+        toolbar.setBackgroundColor(
+                chromeColor);
+
+        View tabBar =
+                findViewById(R.id.tab_bar);
+
+        if (tabBar != null) {
+            tabBar.setBackgroundColor(
+                    tabBarColor);
+        }
+
+        View tabScroll =
+                findViewById(R.id.tab_scroll);
+
+        if (tabScroll != null) {
+            tabScroll.setBackgroundColor(
+                    tabBarColor);
+        }
+
+        setToolbarIcon(
+                R.id.back,
+                BrowserIconDrawable.BACK,
+                readable);
+
+        setToolbarIcon(
+                R.id.forward,
+                BrowserIconDrawable.FORWARD,
+                readable);
+
+        setToolbarIcon(
+                R.id.home,
+                BrowserIconDrawable.HOME,
+                readable);
+
+        setToolbarIcon(
+                R.id.settings,
+                BrowserIconDrawable.MORE,
+                readable);
+
+        updateBookmarkButton(
+                tab);
+
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        tabOverview.setImageDrawable(
+                new TabCountDrawable(
+                        readable,
+                        tabManager == null
+                                ? 0
+                                : tabManager
+                                        .getTabs()
+                                        .size()));
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        newTab.setColorFilter(
+                readable,
+                PorterDuff.Mode.SRC_IN);
+
+        urlBox.setBackgroundColor(
+                Color.TRANSPARENT);
+
+        GradientDrawable urlDrawable =
+                new GradientDrawable();
+
+        urlDrawable.setColor(
+                urlBackground);
+
+        urlDrawable.setCornerRadius(
+                dp(5));
+
+        urlDrawable.setStroke(
+                dp(1),
+                ColorUtils.darken(
+                        urlBackground,
+                        0.25f));
+
+        urlBox.setBackground(
+                urlDrawable);
+
+        int urlText =
+                ColorUtils.getReadableTextColor(
+                        urlBackground);
+
+        urlBox.setTextColor(urlText);
+
+        urlBox.setHintTextColor(
+                ColorUtils.mix(
+                        urlBackground,
+                        urlText,
+                        0.50f));
+
+        securityManager.applyAppearance();
+
+        tabManager.updateTabAppearanceColors();
+        tabManager.updateTitles();
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+        public void showSettings(
+            BrowserTab tab) {
+
+        showSettings(
+                tab,
+                "general");
+    }
+
+    public void showSettings(
+            BrowserTab tab,
+            String section) {
+
+        if (tab == null) {
+            return;
+        }
+
+        settingsPage.show(
+                tab,
+                section);
+
+        tabManager.selectTab(tab);
+
+        updateSecurity(tab);
+        updateNavigationButtons();
+
+        recordInternalVisit(
+                tab,
+                BrowserPage.settingsUrl(
+                        section));
+
+        if ("general".equals(tab.settingsSection) &&
+                updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
+    }
+
+    public void showSettingsSection(
+            BrowserTab tab,
+            String section) {
+
+        showSettings(
+                tab,
+                section);
+    }
+
+    public void handleGeolocationRequest(
+            String origin,
+            GeolocationPermissions.Callback callback) {
+
+        if (!browserSettings.isGeolocationEnabled() ||
+                callback == null) {
+
+            if (callback != null) {
+                callback.invoke(
+                        origin,
+                        false,
+                        false);
+            }
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT < 23 ||
+                checkSelfPermission(
+                        Manifest.permission
+                                .ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+
+            callback.invoke(
+                    origin,
+                    true,
+                    false);
+
+            return;
+        }
+
+        if (pendingGeolocationCallback != null) {
+
+            pendingGeolocationCallback.invoke(
+                    pendingGeolocationOrigin,
+                    false,
+                    false);
+        }
+
+        pendingGeolocationOrigin = origin;
+        pendingGeolocationCallback = callback;
+
+        requestPermissions(
+                new String[] {
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                },
+                LOCATION_PERMISSION_REQUEST);
+    }
+
+    @android.annotation.TargetApi(21)
+    public void handleWebPermissionRequest(
+            android.webkit.PermissionRequest request) {
+
+        if (request == null ||
+                Build.VERSION.SDK_INT < 21) {
+            return;
+        }
+
+        String[] requested =
+                request.getResources();
+
+        java.util.ArrayList<String> allowed =
+                new java.util.ArrayList<>();
+
+        if (requested != null) {
+            for (String resource : requested) {
+
+                if (android.webkit.PermissionRequest
+                        .RESOURCE_VIDEO_CAPTURE
+                        .equals(resource) &&
+                        browserSettings.isCameraEnabled()) {
+                    allowed.add(resource);
+
+                } else if (
+                        android.webkit.PermissionRequest
+                                .RESOURCE_AUDIO_CAPTURE
+                                .equals(resource) &&
+                        browserSettings.isMicrophoneEnabled()) {
+                    allowed.add(resource);
+                }
+            }
+        }
+
+        if (allowed.isEmpty()) {
+            request.deny();
+            return;
+        }
+
+        String[] resources =
+                allowed.toArray(
+                        new String[allowed.size()]);
+
+        if (Build.VERSION.SDK_INT >= 23) {
+
+            java.util.ArrayList<String> missing =
+                    new java.util.ArrayList<>();
+
+            for (String resource : resources) {
+
+                if (android.webkit.PermissionRequest
+                        .RESOURCE_VIDEO_CAPTURE
+                        .equals(resource) &&
+                        checkSelfPermission(
+                                Manifest.permission.CAMERA) !=
+                                PackageManager.PERMISSION_GRANTED) {
+                    if (!missing.contains(
+                            Manifest.permission.CAMERA)) {
+                        missing.add(
+                                Manifest.permission.CAMERA);
+                    }
+
+                } else if (
+                        android.webkit.PermissionRequest
+                                .RESOURCE_AUDIO_CAPTURE
+                                .equals(resource) &&
+                        checkSelfPermission(
+                                Manifest.permission.RECORD_AUDIO) !=
+                                PackageManager.PERMISSION_GRANTED) {
+                    if (!missing.contains(
+                            Manifest.permission.RECORD_AUDIO)) {
+                        missing.add(
+                                Manifest.permission.RECORD_AUDIO);
+                    }
+                }
+            }
+
+            if (!missing.isEmpty()) {
+                pendingMediaPermissionRequest = request;
+                pendingMediaPermissionResources = resources;
+
+                requestPermissions(
+                        missing.toArray(
+                                new String[missing.size()]),
+                        MEDIA_PERMISSION_REQUEST);
+                return;
+            }
+        }
+
+        showMediaPermissionDialog(
+                request,
+                resources);
+    }
+
+    @android.annotation.TargetApi(21)
+    private void showMediaPermissionDialog(
+            final android.webkit.PermissionRequest request,
+            final String[] resources) {
+
+        if (request == null ||
+                resources == null ||
+                resources.length == 0) {
+            if (request != null) {
+                request.deny();
+            }
+            return;
+        }
+
+        boolean camera = false;
+        boolean microphone = false;
+
+        for (String resource : resources) {
+            if (android.webkit.PermissionRequest
+                    .RESOURCE_VIDEO_CAPTURE
+                    .equals(resource)) {
+                camera = true;
+            }
+
+            if (android.webkit.PermissionRequest
+                    .RESOURCE_AUDIO_CAPTURE
+                    .equals(resource)) {
+                microphone = true;
+            }
+        }
+
+        StringBuilder message =
+                new StringBuilder(
+                        Localization.translate(
+                                this,
+                                "permissions.website_request"));
+
+        message.append("\n\n");
+
+        if (camera) {
+            message.append(
+                    Localization.translate(
+                            this,
+                            "permissions.camera"));
+        }
+
+        if (camera && microphone) {
+            message.append(", ");
+        }
+
+        if (microphone) {
+            message.append(
+                    Localization.translate(
+                            this,
+                            "permissions.microphone"));
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "permissions.title"))
+                .setMessage(message.toString())
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "common.deny"),
+                        (dialog, which) ->
+                                request.deny())
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "common.allow"),
+                        (dialog, which) ->
+                                request.grant(resources))
+                .setOnCancelListener(
+                        dialog -> request.deny())
+                .show();
+    }
+
+    @android.annotation.TargetApi(21)
+    public void handleWebPermissionRequestCanceled(
+            android.webkit.PermissionRequest request) {
+
+        if (request == pendingMediaPermissionRequest) {
+            pendingMediaPermissionRequest = null;
+            pendingMediaPermissionResources = null;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults) {
+
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults);
+
+        if (requestCode ==
+                MEDIA_PERMISSION_REQUEST) {
+
+            android.webkit.PermissionRequest request =
+                    pendingMediaPermissionRequest;
+
+            String[] resources =
+                    pendingMediaPermissionResources;
+
+            pendingMediaPermissionRequest = null;
+            pendingMediaPermissionResources = null;
+
+            if (request == null ||
+                    resources == null) {
+                return;
+            }
+
+            boolean allGranted = true;
+
+            if (permissions != null) {
+                for (int i = 0;
+                        i < permissions.length;
+                        i++) {
+                    if (grantResults.length <= i ||
+                            grantResults[i] !=
+                                    PackageManager
+                                            .PERMISSION_GRANTED) {
+                        allGranted = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!allGranted) {
+                request.deny();
+            } else {
+                showMediaPermissionDialog(
+                        request,
+                        resources);
+            }
+
+            return;
+        }
+
+        if (requestCode !=
+                LOCATION_PERMISSION_REQUEST) {
+            return;
+        }
+
+        if (pendingGeolocationCallback == null) {
+            return;
+        }
+
+        boolean granted =
+                grantResults.length > 0 &&
+                grantResults[0] ==
+                        PackageManager.PERMISSION_GRANTED;
+
+        pendingGeolocationCallback.invoke(
+                pendingGeolocationOrigin,
+                granted,
+                false);
+
+        pendingGeolocationCallback = null;
+        pendingGeolocationOrigin = null;
+    }
+
+    public UpdateManager getUpdateManager() {
+        return updateManager;
+    }
+
+    public void promptForAutomaticUpdate(
+            UpdateManager.UpdateInfo update) {
+
+        if (update == null ||
+                isFinishing()) {
+            return;
+        }
+
+        final String version =
+                update.version == null
+                        ? ""
+                        : update.version;
+
+        String notes =
+                update.notes == null
+                        ? ""
+                        : update.notes.trim();
+
+        if (notes.length() > 1400) {
+            notes =
+                    notes.substring(0, 1400) +
+                    "...";
+        }
+
+        StringBuilder message =
+                new StringBuilder();
+
+        message.append(
+                Localization.translate(
+                        this,
+                        "settings.update_available"));
+        message.append(": ");
+        message.append(version);
+
+        if (!notes.isEmpty()) {
+            message.append("\n\n");
+            message.append(notes);
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        Localization.translate(
+                                this,
+                                "settings.update_title"))
+                .setMessage(
+                        message.toString())
+                .setNegativeButton(
+                        Localization.translate(
+                                this,
+                                "settings.update_later"),
+                        null)
+                .setPositiveButton(
+                        Localization.translate(
+                                this,
+                                "settings.update_now"),
+                        (dialog, which) -> {
+
+                            BrowserTab tab =
+                                    getActiveTab();
+
+                            updateManager
+                                    .downloadAndInstall(
+                                            update,
+                                            tab,
+                                            false);
+                        })
+                .show();
+    }
+
+    public void checkForUpdatesFromSettings(
+            BrowserTab tab) {
+
+        if (updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
+    }
+
+    public void installAvailableUpdate(
+            BrowserTab tab) {
+
+        if (updateManager == null) {
+            return;
+        }
+
+        UpdateManager.UpdateInfo update =
+                updateManager.getAvailableUpdate();
+
+        if (update != null) {
+            updateManager.downloadAndInstall(
+                    update,
+                    tab,
+                    false);
+        } else {
+            checkForUpdatesFromSettings(tab);
+        }
+    }
+
+    public void onUpdateCheckFinished(
+            BrowserTab tab,
+            UpdateManager.UpdateInfo update,
+            String error,
+            boolean manual) {
+
+        if (tab != null &&
+                tab.settingsPage) {
+
+            settingsPage.updateUpdateStatus(
+                    tab,
+                    update,
+                    error);
+        }
+
+        if (!manual &&
+                update != null &&
+                error == null) {
+            // UpdateManager handles the automatic download/install.
+        }
+    }
+
+    public void onUpdateStatus(
+            BrowserTab tab,
+            String message,
+            boolean showInstall) {
+
+        if (tab != null &&
+                tab.settingsPage) {
+
+            settingsPage.updateUpdateStatusText(
+                    tab,
+                    message,
+                    showInstall);
+        }
+    }
+
+    public void onAutomaticUpdatesChanged(
+            BrowserTab tab,
+            boolean enabled) {
+
+        Runnable updateUi =
+                () -> {
+                    if (tab != null &&
+                            tab.settingsPage) {
+                        settingsPage.updateAutomaticUpdatesUi(
+                                tab,
+                                enabled);
+                    }
+                };
+
+        if (Looper.myLooper() ==
+                Looper.getMainLooper()) {
+            updateUi.run();
+        } else {
+            runOnUiThread(updateUi);
+        }
+    }
+
+    public void removeSettingsBridge(
+            BrowserTab tab) {
+
+        settingsPage.remove(tab);
+    }
+
+    public void restoreSettingsPage(
+            BrowserTab tab,
+            String section) {
+
+        settingsPage.show(
+                tab,
+                section);
+
+        if ("general".equals(
+                tab.settingsSection) &&
+                updateManager != null) {
+            updateManager.checkForUpdates(
+                    true,
+                    tab);
+        }
+    }
+
+    public void pageStarted(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == getActiveTab()) {
+
+            if (tab.settingsPage) {
+
+                setUrlText(
+                        getSettingsUrl(
+                                tab.settingsSection));
+
+            } else if (tab.defaultPage) {
+
+                setUrlText("");
+
+            } else if (tab.historyPage) {
+
+                setUrlText(
+                        BrowserPage.HISTORY);
+
+            } else if (tab.downloadsPage) {
+
+                setUrlText(
+                        BrowserPage.DOWNLOADS);
+
+            } else if (BrowserPage.DEMO.equals(
+                    tab.url)) {
+
+                setUrlText(
+                        BrowserPage.DEMO);
+
+            } else if (tab.bookmarksPage) {
+
+                setUrlText(BrowserPage.BOOKMARKS);
+
+            } else if (tab.passwordsPage) {
+
+                setUrlText(BrowserPage.PASSWORDS);
+
+            } else if (tab.profilesPage) {
+
+                setUrlText(BrowserPage.PROFILES);
+
+            } else if (tab.errorPage) {
+
+                setUrlText(tab.url);
+
+            } else {
+
+                setUrlText(url);
+            }
+
+            progressBar.setProgress(0);
+            progressBar.setVisibility(
+                    View.VISIBLE);
+        }
+
+        tabManager.updateTabLoadingState(tab);
+        updateSecurity(tab);
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+    public void pageFinished(
+            BrowserTab tab,
+            String url) {
+
+        if (tab == getActiveTab()) {
+
+            if (tab.settingsPage) {
+
+                setUrlText(
+                        getSettingsUrl(
+                                tab.settingsSection));
+
+            } else if (tab.defaultPage) {
+
+                setUrlText("");
+
+            } else if (tab.historyPage) {
+
+                setUrlText(
+                        BrowserPage.HISTORY);
+
+            } else if (tab.downloadsPage) {
+
+                setUrlText(
+                        BrowserPage.DOWNLOADS);
+
+            } else if (BrowserPage.DEMO.equals(
+                    tab.url)) {
+
+                setUrlText(
+                        BrowserPage.DEMO);
+
+            } else if (tab.bookmarksPage) {
+
+                setUrlText(BrowserPage.BOOKMARKS);
+
+            } else if (tab.passwordsPage) {
+
+                setUrlText(BrowserPage.PASSWORDS);
+
+            } else if (tab.profilesPage) {
+
+                setUrlText(BrowserPage.PROFILES);
+
+            } else if (tab.errorPage) {
+
+                setUrlText(tab.url);
+
+            } else {
+
+                setUrlText(url);
+            }
+
+            progressBar.setProgress(100);
+        }
+
+        tabManager.updateTabLoadingState(tab);
+        updateSecurity(tab);
+        updateReloadButton(tab);
+        updateNavigationButtons();
+
+        if (tab == getActiveTab() &&
+                !tab.loading) {
+
+            progressBar.postDelayed(
+                    () -> {
+
+                        if (tab ==
+                                getActiveTab() &&
+                                !tab.loading) {
+
+                            progressBar
+                                    .setVisibility(
+                                            View.GONE);
+                        }
+
+                    },
+                    100);
+        }
+    }
+
+    public void pageProgress(
+            BrowserTab tab,
+            int progress) {
+
+        if (tab != getActiveTab()) {
+            return;
+        }
+
+        progressBar.setProgress(
+                progress);
+
+        if (progress < 100) {
+            progressBar.setVisibility(
+                    View.VISIBLE);
+        } else if (!tab.loading) {
+            progressBar.setVisibility(
+                    View.GONE);
+        }
+
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+    public void settingsLoaded(
+            BrowserTab tab) {
+
+        if (tab == getActiveTab()) {
+
+            setUrlText(
+                    getSettingsUrl(
+                            tab.settingsSection));
+
+            progressBar.setVisibility(
+                    View.GONE);
+        }
+
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+    public void goBackFromInternalPage(
+            BrowserTab tab) {
+
+        if (tab == null) {
+            return;
+        }
+
+        hideKeyboard();
+
+        if (tab.errorPage) {
+
+            int delta =
+                    findErrorNavigationDelta(
+                            tab,
+                            -1);
+
+            if (delta != 0) {
+                tab.errorPage = false;
+                tab.webView.goBackOrForward(delta);
+                updateNavigationButtons();
+                return;
+            }
+
+            showDefaultPage(tab);
+            return;
+        }
+
+        if (tab.webView.canGoBack()) {
+            tab.webView.goBack();
+            return;
+        }
+
+        showDefaultPage(tab);
+    }
+
+    public void goForwardFromInternalPage(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                !tab.errorPage) {
+            return;
+        }
+
+        hideKeyboard();
+
+        int delta =
+                findErrorNavigationDelta(
+                        tab,
+                        1);
+
+        if (delta != 0) {
+            tab.errorPage = false;
+            tab.webView.goBackOrForward(delta);
+        }
+
+        updateNavigationButtons();
+    }
+
+    public void updateTabTitle(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tabManager == null) {
+            return;
+        }
+
+        tabManager.updateTabTitle(tab);
+    }
+
+    public void updateSecurity(
+            BrowserTab tab) {
+
+        if (securityManager == null) {
+            return;
+        }
+
+        securityManager.updateIcon(tab);
+    }
+
+    private void updateNavigationButtons() {
+
+        BrowserTab tab =
+                getActiveTab();
+
+        boolean backEnabled =
+                tab != null &&
+                (tab.errorPage
+                        ? canNavigateFromErrorPage(
+                                tab,
+                                -1)
+                        : tab.webView.canGoBack());
+
+        boolean forwardEnabled =
+                tab != null &&
+                (tab.errorPage
+                        ? canNavigateFromErrorPage(
+                                tab,
+                                1)
+                        : tab.webView.canGoForward());
+
+        ImageButton back =
+                findViewById(R.id.back);
+
+        ImageButton forward =
+                findViewById(R.id.forward);
+
+        setToolbarButtonState(
+                back,
+                backEnabled);
+
+        setToolbarButtonState(
+                forward,
+                forwardEnabled);
+    }
+
+    private boolean canNavigateFromErrorPage(
+            BrowserTab tab,
+            int direction) {
+
+        return findErrorNavigationDelta(
+                tab,
+                direction) != 0;
+    }
+
+    private int findErrorNavigationDelta(
+            BrowserTab tab,
+            int direction) {
+
+        if (tab == null ||
+                tab.webView == null ||
+                (direction != -1 &&
+                 direction != 1)) {
+
+            return 0;
+        }
+
+        android.webkit.WebBackForwardList history =
+                tab.webView.copyBackForwardList();
+
+        int current =
+                history.getCurrentIndex();
+
+        if (current < 0) {
+            return 0;
+        }
+
+        String failingUrl =
+                tab.url == null
+                        ? ""
+                        : tab.url;
+
+        for (int index =
+                current + direction;
+                index >= 0 &&
+                index < history.getSize();
+                index += direction) {
+
+            android.webkit.WebHistoryItem item =
+                    history.getItemAtIndex(index);
+
+            if (item == null ||
+                    item.getUrl() == null) {
+                continue;
+            }
+
+            String candidate =
+                    item.getUrl();
+
+            if (BrowserPage.isInternalUrl(candidate)) {
+                continue;
+            }
+
+            if (!failingUrl.isEmpty() &&
+                    failingUrl.equals(candidate)) {
+                continue;
+            }
+
+            return index - current;
+        }
+
+        return 0;
+    }
+
+    private void setToolbarButtonState(
+            ImageButton button,
+            boolean enabled) {
+
+        button.setEnabled(enabled);
+
+        button.setAlpha(
+                enabled
+                        ? 1f
+                        : 0.30f);
+
+        button.setScaleX(1f);
+        button.setScaleY(1f);
+    }
+
+    private void updateBookmarkButton(
+            BrowserTab tab) {
+
+        ImageButton button =
+                findViewById(R.id.bookmark);
+
+        if (button == null) {
+            return;
+        }
+
+        int color =
+                tab != null &&
+                        tab.isIncognito
+                        ? ColorUtils.getReadableTextColor(
+                                INCOGNITO_CHROME)
+                        : ColorUtils.getReadableTextColor(
+                                getAccentColor());
+
+        boolean bookmarked =
+                tab != null &&
+                        !tab.isIncognito &&
+                        bookmarkStore != null &&
+                        tab.webView != null &&
+                        tab.webView.getUrl() != null &&
+                        bookmarkStore.isBookmarked(
+                                tab.webView.getUrl());
+
+        button.setImageDrawable(
+                new BrowserIconDrawable(
+                        BrowserIconDrawable.BOOKMARK,
+                        color,
+                        bookmarked));
+
+        button.setEnabled(
+                tab != null &&
+                        !tab.isIncognito &&
+                        tab.webView != null &&
+                        tab.webView.getUrl() != null);
+
+        button.setAlpha(
+                tab != null &&
+                        !tab.isIncognito
+                        ? 1f
+                        : 0.35f);
+    }
+
+    private void updateReloadButton(
+            BrowserTab tab) {
+
+        if (tab == null ||
+                tab != getActiveTab()) {
+            return;
+        }
+
+        ImageButton reload =
+                findViewById(R.id.reload);
+
+        int chromeColor =
+                tab.isIncognito
+                        ? INCOGNITO_CHROME
+                        : getAccentColor();
+
+        int iconColor =
+                ColorUtils
+                        .getReadableTextColor(
+                                chromeColor);
+
+        reload.setImageDrawable(
+                new BrowserIconDrawable(
+                        tab.loading
+                                ? BrowserIconDrawable.STOP
+                                : BrowserIconDrawable.RELOAD,
+                        iconColor));
+
+        reload.setContentDescription(
+                Localization.translate(
+                        this,
+                        tab.loading
+                                ? "Stop loading"
+                                : "Reload"));
+    }
+
+    private int getAccentColor() {
+
+        return ColorUtils.parseColor(
+                browserSettings.getAccentColor(),
+                Color.rgb(
+                        63,
+                        81,
+                        181));
+    }
+
+    public void applyWebsiteSettings() {
+
+        tabManager.applyWebSettings();
+        updateNavigationButtons();
+        updateReloadButton(
+                getActiveTab());
+    }
+
+    public void applyDesktopMode() {
+
+        tabManager.applyWebSettings();
+
+        for (BrowserTab tab :
+                tabManager.getTabs()) {
+
+            if (!tab.settingsPage) {
+                tab.webView.reload();
+            }
+        }
+    }
+
+    private void applyResponsiveToolbar() {
+
+        int width =
+                getResources()
+                        .getDisplayMetrics()
+                        .widthPixels;
+
+        float density =
+                getResources()
+                        .getDisplayMetrics()
+                        .density;
+
+        float widthDp =
+                width / density;
+
+        boolean compactPhoneLayout =
+                widthDp < 500f;
+
+        int buttonSize;
+
+        if (compactPhoneLayout) {
+            buttonSize =
+                    widthDp < 360
+                            ? 34
+                            : 40;
+        } else {
+            buttonSize =
+                    widthDp < 320
+                            ? 34
+                            : widthDp < 360
+                            ? 36
+                            : widthDp < 420
+                            ? 40
+                            : 44;
+        }
+
+        int buttonHeight =
+                compactPhoneLayout
+                        ? 42
+                        : widthDp < 360
+                        ? 40
+                        : 44;
+
+        int padding =
+                widthDp < 320
+                        ? 6
+                        : widthDp < 360
+                        ? 7
+                        : 8;
+
+        int[] toolbarButtons = {
+                R.id.back,
+                R.id.forward,
+                R.id.home,
+                R.id.reload,
+                R.id.security,
+                R.id.bookmark,
+                R.id.settings
+        };
+
+        for (int id : toolbarButtons) {
+
+            ImageButton button =
+                    findViewById(id);
+
+            if (button == null) {
+                continue;
+            }
+
+            button.setMinimumWidth(0);
+            button.setMinimumHeight(0);
+            button.setPadding(
+                    dp(padding),
+                    dp(padding),
+                    dp(padding),
+                    dp(padding));
+
+            LinearLayout.LayoutParams params =
+                    (LinearLayout.LayoutParams)
+                            button.getLayoutParams();
+
+            params.width = dp(buttonSize);
+            params.height = dp(buttonHeight);
+            params.weight = 0;
+            button.setLayoutParams(params);
+        }
+
+        ImageButton newTab =
+                findViewById(R.id.new_tab);
+
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        View toolbarSpacer =
+                findViewById(R.id.toolbar_spacer);
+
+        int tabButtonSize =
+                widthDp < 360
+                        ? 34
+                        : 36;
+
+        for (ImageButton button :
+                new ImageButton[] {
+                        newTab,
+                        tabOverview
+                }) {
+
+            if (button == null) {
+                continue;
+            }
+
+            button.setMinimumWidth(0);
+            button.setMinimumHeight(0);
+
+            LinearLayout.LayoutParams params =
+                    (LinearLayout.LayoutParams)
+                            button.getLayoutParams();
+
+            params.width = dp(
+                    compactPhoneLayout
+                            ? buttonSize
+                            : tabButtonSize);
+            params.height = dp(
+                    compactPhoneLayout
+                            ? buttonHeight
+                            : tabButtonSize);
+            params.weight = 0;
+            button.setLayoutParams(params);
+        }
+
+        LinearLayout urlRow =
+                findViewById(R.id.url_row);
+
+        LinearLayout tabBar =
+                findViewById(R.id.tab_bar);
+
+        if (compactPhoneLayout) {
+
+            if (toolbarSpacer != null) {
+                toolbarSpacer.setVisibility(View.VISIBLE);
+
+                LinearLayout.LayoutParams spacerParams =
+                        (LinearLayout.LayoutParams)
+                                toolbarSpacer.getLayoutParams();
+
+                spacerParams.width = 0;
+                spacerParams.height = -1;
+                spacerParams.weight = 1f;
+
+                toolbarSpacer.setLayoutParams(
+                        spacerParams);
+            }
+
+            int spacerIndex =
+                    toolbarSpacer == null
+                            ? toolbar.indexOfChild(
+                                    findViewById(R.id.settings))
+                            : toolbar.indexOfChild(
+                                    toolbarSpacer);
+
+            if (newTab != null &&
+                    newTab.getParent() != toolbar) {
+
+                if (newTab.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            newTab.getParent())
+                            .removeView(newTab);
+                }
+
+                toolbar.addView(
+                        newTab,
+                        Math.min(
+                                toolbar.getChildCount(),
+                                spacerIndex + 1));
+            }
+
+            if (tabOverview != null &&
+                    tabOverview.getParent() != toolbar) {
+
+                if (tabOverview.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            tabOverview.getParent())
+                            .removeView(tabOverview);
+                }
+
+                toolbar.addView(
+                        tabOverview,
+                        Math.min(
+                                toolbar.getChildCount(),
+                                spacerIndex + 2));
+            }
+
+            if (urlBox.getParent() != urlRow) {
+
+                if (urlBox.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            urlBox.getParent())
+                            .removeView(urlBox);
+                }
+
+                urlBox.setMinimumWidth(0);
+                urlBox.setLayoutParams(
+                        new LinearLayout.LayoutParams(
+                                -1,
+                                dp(42),
+                                0f));
+
+                urlRow.addView(urlBox);
+            }
+
+            urlRow.setVisibility(View.VISIBLE);
+            tabBar.setVisibility(View.GONE);
+
+        } else {
+
+            if (newTab != null &&
+                    newTab.getParent() != tabBar) {
+
+                if (newTab.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            newTab.getParent())
+                            .removeView(newTab);
+                }
+
+                tabBar.addView(newTab);
+            } else if (newTab != null) {
+
+                tabBar.removeView(newTab);
+                tabBar.addView(newTab);
+            }
+
+            if (tabOverview != null &&
+                    tabOverview.getParent() != tabBar) {
+
+                if (tabOverview.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            tabOverview.getParent())
+                            .removeView(tabOverview);
+                }
+
+                tabBar.addView(tabOverview);
+            } else if (tabOverview != null) {
+
+                tabBar.removeView(tabOverview);
+                tabBar.addView(tabOverview);
+            }
+
+            if (urlBox.getParent() != toolbar) {
+
+                if (urlBox.getParent()
+                        instanceof android.view.ViewGroup) {
+
+                    ((android.view.ViewGroup)
+                            urlBox.getParent())
+                            .removeView(urlBox);
+                }
+
+                urlBox.setLayoutParams(
+                        new LinearLayout.LayoutParams(
+                                0,
+                                dp(42),
+                                1f));
+
+                int settingsIndex =
+                        toolbar.indexOfChild(
+                                findViewById(R.id.settings));
+
+                toolbar.addView(
+                        urlBox,
+                        Math.max(0, settingsIndex));
+            }
+
+            if (toolbarSpacer != null) {
+                toolbarSpacer.setVisibility(View.GONE);
+
+                LinearLayout.LayoutParams spacerParams =
+                        (LinearLayout.LayoutParams)
+                                toolbarSpacer.getLayoutParams();
+
+                spacerParams.width = 0;
+                spacerParams.height = -1;
+                spacerParams.weight = 0f;
+
+                toolbarSpacer.setLayoutParams(
+                        spacerParams);
+            }
+
+            urlRow.setVisibility(View.GONE);
+            tabBar.setVisibility(View.VISIBLE);
+        }
+
+        urlBox.setMinimumWidth(
+                dp(compactPhoneLayout
+                        ? 0
+                        : widthDp < 320
+                        ? 72
+                        : 80));
+
+        int urlPadding =
+                widthDp < 360
+                        ? 6
+                        : 9;
+
+        urlBox.setPadding(
+                dp(urlPadding),
+                0,
+                dp(urlPadding),
+                0);
+    }
+
+    private void applySystemBarInsets() {
+
+        if (Build.VERSION.SDK_INT < 30) {
+            return;
+        }
+
+        getWindow()
+                .setDecorFitsSystemWindows(false);
+
+        View root =
+                findViewById(R.id.root);
+
+        if (root == null) {
+            return;
+        }
+
+        root.setOnApplyWindowInsetsListener(
+                (view, insets) -> {
+
+                    android.graphics.Insets bars =
+                            insets.getInsets(
+                                    android.view.WindowInsets
+                                            .Type.systemBars());
+
+                    view.setPadding(
+                            view.getPaddingLeft(),
+                            bars.top,
+                            view.getPaddingRight(),
+                            bars.bottom);
+
+                    return insets;
+                });
+
+        root.requestApplyInsets();
+    }
+
+    public void applyBrowserAppearance() {
+
+        applyActiveTabAppearance();
+    }
+
+    public void updateTabOverviewIcon() {
+
+        ImageButton tabOverview =
+                findViewById(R.id.tab_overview);
+
+        if (tabOverview == null) {
+            return;
+        }
+
+        BrowserTab active =
+                getActiveTab();
+
+        int color =
+                ColorUtils.getReadableTextColor(
+                        active != null &&
+                        active.isGuest
+                                ? Color.WHITE
+                                : active != null &&
+                        active.isIncognito
+                                ? INCOGNITO_CHROME
+                                : getAccentColor());
+
+        int count =
+                tabManager == null
+                        ? 0
+                        : tabManager.getTabs().size();
+
+        tabOverview.setImageDrawable(
+                new TabCountDrawable(
+                        color,
+                        count));
+    }
+
+        public void updateNavigationButtonsForTabs() {
+        updateNavigationButtons();
+    }
+
+    public void setUrlText(
+            String text) {
+
+        urlBox.setText(
+                text == null
+                        ? ""
+                        : text);
+    }
+
+    public void setLoading(
+            boolean loading) {
+
+        BrowserTab tab =
+                getActiveTab();
+
+        if (tab != null) {
+            tab.loading = loading;
+            tabManager.updateTabLoadingState(tab);
+        }
+
+        progressBar.setVisibility(
+                loading
+                        ? View.VISIBLE
+                        : View.GONE);
+
+        updateReloadButton(tab);
+        updateNavigationButtons();
+    }
+
+    public BrowserTab getActiveTab() {
+        return tabManager.getActiveTab();
+    }
+
+    public TabManager getTabManager() {
+        return tabManager;
+    }
+
+    public BrowserSettings
+            getBrowserSettings() {
+        return browserSettings;
+    }
+
+    public void hideKeyboard() {
+
+        InputMethodManager manager =
+                (InputMethodManager)
+                        getSystemService(
+                                Context
+                                        .INPUT_METHOD_SERVICE);
+
+        if (manager != null) {
+
+            manager.hideSoftInputFromWindow(
+                    urlBox.getWindowToken(),
+                    0);
+        }
+
+        urlBox.clearFocus();
+    }
+
     @Override
     protected void onActivityResult(
             int requestCode,
@@ -1097,6 +5837,11 @@ public class MainActivity extends Activity {
                 if (simpleAccountManager.isSignedIn()) {
                     syncSimpleAccount(true);
                 }
+
+                refreshSettingsAccountPage();
+
+            } else {
+                refreshSettingsAccountPage();
             }
 
             return;
