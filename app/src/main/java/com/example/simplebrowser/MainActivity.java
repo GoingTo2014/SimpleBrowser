@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
     private CookiesPage cookiesPage;
     private DemoPage demoPage;
     private UpdateManager updateManager;
+    private SimpleAccountManager simpleAccountManager;
 
     private static final int PASSWORD_AUTH_REQUEST = 2001;
 
@@ -119,6 +120,9 @@ public class MainActivity extends Activity {
 
         profileManager =
                 new ProfileManager(this);
+
+        simpleAccountManager =
+                new SimpleAccountManager(this);
 
         /*
          * Persistent non-main profiles have dedicated Android processes on
@@ -825,6 +829,19 @@ public class MainActivity extends Activity {
 
         addMenuActionButton(
                 menu,
+                "account.title",
+                () -> {
+                    if (browserMenu != null) {
+                        browserMenu.dismiss();
+                    }
+
+                    showSimpleAccount();
+                },
+                accent,
+                readable);
+
+        addMenuActionButton(
+                menu,
                 "Bookmarks",
                 () -> {
                     if (browserMenu != null) {
@@ -983,6 +1000,125 @@ public class MainActivity extends Activity {
                 anchor.getWidth() -
                         dp(220),
                 0);
+    }
+
+    private void showSimpleAccount() {
+
+        if (simpleAccountManager == null) {
+            simpleAccountManager =
+                    new SimpleAccountManager(this);
+        }
+
+        if (simpleAccountManager.isSignedIn()) {
+
+            String email =
+                    simpleAccountManager.getEmail();
+
+            AlertDialog dialog =
+                    new AlertDialog.Builder(this)
+                            .setTitle(
+                                    Localization.translate(
+                                            this,
+                                            "account.title"))
+                            .setMessage(
+                                    Localization.translate(
+                                            this,
+                                            "account.signed_in_as") +
+                                    "\n\n" +
+                                    (email == null ||
+                                    email.trim().isEmpty()
+                                            ? Localization.translate(
+                                                    this,
+                                                    "account.signed_in")
+                                            : email))
+                            .setPositiveButton(
+                                    Localization.translate(
+                                            this,
+                                            "account.sign_out"),
+                                    (d, which) -> {
+                                        simpleAccountManager.signOut();
+
+                                        android.widget.Toast
+                                                .makeText(
+                                                        this,
+                                                        Localization.translate(
+                                                                this,
+                                                                "account.signed_out"),
+                                                        android.widget.Toast
+                                                                .LENGTH_SHORT)
+                                                .show();
+                                    })
+                            .setNegativeButton(
+                                    Localization.translate(
+                                            this,
+                                            "common.close"),
+                                    null)
+                            .create();
+
+            dialog.show();
+            return;
+        }
+
+        try {
+            Intent intent =
+                    new Intent(
+                            this,
+                            SimpleAccountActivity.class);
+
+            startActivityForResult(
+                    intent,
+                    5101);
+
+        } catch (Throwable error) {
+
+            android.widget.Toast
+                    .makeText(
+                            this,
+                            Localization.translate(
+                                    this,
+                                    "account.open_failed"),
+                            android.widget.Toast
+                                    .LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data) {
+
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data);
+
+        if (requestCode == 5101 &&
+                resultCode == RESULT_OK) {
+
+            if (simpleAccountManager == null) {
+                simpleAccountManager =
+                        new SimpleAccountManager(this);
+            }
+
+            String email =
+                    simpleAccountManager.getEmail();
+
+            android.widget.Toast
+                    .makeText(
+                            this,
+                            Localization.translate(
+                                    this,
+                                    "account.signed_in") +
+                            (email == null ||
+                             email.trim().isEmpty()
+                                    ? ""
+                                    : ": " + email),
+                            android.widget.Toast
+                                    .LENGTH_SHORT)
+                    .show();
+        }
     }
 
     private void addCurrentProfileMenuHeader(
