@@ -10,7 +10,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceError;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -222,21 +221,6 @@ public final class SimpleAccountActivity extends Activity {
                             String url) {
 
                         return handleUrl(url);
-                    }
-
-                    @Override
-                    public boolean shouldOverrideUrlLoading(
-                            WebView view,
-                            WebResourceRequest request) {
-
-                        if (request == null ||
-                                request.getUrl() == null) {
-                            return true;
-                        }
-
-                        return handleUrl(
-                                request.getUrl()
-                                        .toString());
                     }
 
                     @Override
