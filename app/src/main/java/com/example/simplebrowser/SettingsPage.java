@@ -764,7 +764,7 @@ public class SettingsPage {
 
                 "<div class='nav " +
                 active(currentSection, "account") +
-                "' onclick="Android.navigate('account')">" +
+                "' onclick=\"Android.navigate('account')\">" +
                 "Account</div>" +
 
                 "<div class='nav " +
