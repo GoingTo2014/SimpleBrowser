@@ -30,6 +30,8 @@ public final class ProfileManager {
 
     private static final String PROFILE_REGISTRY_FILE =
             "profile_registry.state";
+    private static final String MAIN_NAME_STATE_FILE =
+            "profile_main_name.state";
     private static String guestSessionId;
     private static String processProfileId;
 
@@ -668,6 +670,10 @@ public final class ProfileManager {
         }
 
         if (MAIN_ID.equals(profileId)) {
+            writeMainProfileName(
+                    context,
+                    cleanName);
+
             preferences(context).edit()
                     .putString(
                             KEY_MAIN_NAME,
@@ -792,6 +798,10 @@ public final class ProfileManager {
         }
 
         if (MAIN_ID.equals(profileId)) {
+            writeMainProfileName(
+                    context,
+                    cleanName);
+
             preferences(context).edit()
                     .putString(
                             KEY_MAIN_NAME,
@@ -887,6 +897,15 @@ public final class ProfileManager {
     private String getMainProfileName(
             Context context) {
 
+        String stateName =
+                readMainProfileName(
+                        context);
+
+        if (stateName != null &&
+                !stateName.trim().isEmpty()) {
+            return stateName.trim();
+        }
+
         String value =
                 preferences(context).getString(
                         KEY_MAIN_NAME,
@@ -894,10 +913,122 @@ public final class ProfileManager {
 
         if (value == null ||
                 value.trim().isEmpty()) {
-            return "Profile 1";
+            value = "Profile 1";
         }
 
-        return value.trim();
+        value = value.trim();
+
+        /*
+         * Migrate the legacy SharedPreferences value into the durable
+         * cross-process file used by the profile system.
+         */
+        writeMainProfileName(
+                context,
+                value);
+
+        return value;
+    }
+
+    private static AtomicFile mainNameStateFile(
+            Context context) {
+
+        return new AtomicFile(
+                new java.io.File(
+                        context.getFilesDir(),
+                        MAIN_NAME_STATE_FILE));
+    }
+
+    private static String readMainProfileName(
+            Context context) {
+
+        if (context == null) {
+            return null;
+        }
+
+        java.io.FileInputStream input = null;
+
+        try {
+            input =
+                    mainNameStateFile(context)
+                            .openRead();
+
+            java.io.ByteArrayOutputStream output =
+                    new java.io.ByteArrayOutputStream();
+
+            byte[] buffer =
+                    new byte[128];
+
+            int count;
+
+            while ((count =
+                    input.read(buffer)) != -1) {
+                output.write(
+                        buffer,
+                        0,
+                        count);
+            }
+
+            String value =
+                    new String(
+                            output.toByteArray(),
+                            "UTF-8")
+                            .trim();
+
+            return value.isEmpty()
+                    ? null
+                    : value;
+
+        } catch (Throwable ignored) {
+            return null;
+
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+    }
+
+    private static void writeMainProfileName(
+            Context context,
+            String name) {
+
+        if (context == null ||
+                name == null ||
+                name.trim().isEmpty()) {
+            return;
+        }
+
+        AtomicFile file =
+                mainNameStateFile(context);
+
+        java.io.FileOutputStream output = null;
+
+        try {
+            output =
+                    file.startWrite();
+
+            output.write(
+                    name.trim()
+                            .getBytes("UTF-8"));
+
+            output.flush();
+            output.getFD().sync();
+
+            file.finishWrite(output);
+            output = null;
+
+        } catch (Throwable ignored) {
+
+            if (output != null) {
+                try {
+                    file.failWrite(output);
+                } catch (Throwable ignoredAgain) {
+                }
+            }
+        }
     }
 
     private void saveProfile(
