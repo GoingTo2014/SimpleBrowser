@@ -463,4 +463,22 @@ public final class German extends LanguagePack {
         put("settings.update_now", "Jetzt aktualisieren");
         put("common.close", "Schließen");
         put("common.close_tab", "Tab schließen");    }
+        put("account.title", "Simple Account");
+        put("account.settings", "Konto");
+        put("account.sign_in", "Anmelden");
+        put("account.sign_in_heading", "Bei Simple Account anmelden");
+        put("account.sign_in_benefits", "Vorteile der Anmeldung:");
+        put("account.benefit_profiles", "Browserprofile und ihre Einstellungen synchronisieren");
+        put("account.benefit_configuration", "Browserkonfiguration auf allen Geräten beibehalten");
+        put("account.benefit_services", "Weitere Simple-Dienste können dasselbe Konto verwenden");
+        put("account.sync_desc", "Halte Simple-Browser-Profile und Einstellungen auf allen Geräten synchronisiert.");
+        put("account.signed_in", "Angemeldet");
+        put("account.signed_in_as", "Angemeldet als");
+        put("account.sign_out", "Abmelden");
+        put("account.signed_out", "Von Simple Account abgemeldet.");
+        put("account.open_failed", "Simple Account konnte nicht geöffnet werden.");
+        put("account.sync_now", "Jetzt synchronisieren");
+        put("account.sync_complete", "Simple-Account-Synchronisierung abgeschlossen.");
+        put("account.sync_failed", "Simple-Account-Synchronisierung fehlgeschlagen.");
+
 }
