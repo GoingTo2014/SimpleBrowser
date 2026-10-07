@@ -457,7 +457,7 @@ public final class Arabic extends LanguagePack {
         put("tab.guest_tabs", "علامات تبويب الضيف");
         put("guest.enter", "الدخول إلى وضع الضيف");
         put("guest.exit", "الخروج من وضع الضيف");
-    }        put("app.name", "Simple Browser");
+        put("app.name", "Simple Browser");
         put("settings.update_title", "تحديث متاح");
         put("settings.update_later", "لاحقًا");
         put("settings.update_now", "التحديث الآن");
